@@ -1,0 +1,17 @@
+{
+    "experiment_mode": "objectToBox",
+    "gradual_step": 1,
+    "per_block_type": ["rotated", "clamped", "rotated", "clamped", "aligned", "clamped"],
+    "per_block_n": [18,3,6,6,6,6],
+    "per_block_rotation": [50,0,30,0,0,0],
+    "per_block_distance": [22, 22, 22, 22, 22, 22],
+    "per_block_target_vertPos": [0, 0, 0, 0, 0, 0],
+    "per_block_targetListToUse": ["tl2", "tl2", "tl1", "tl2", "tl2", "tl2"],
+    "per_block_plane": ["none", "none", "none", "none", "none", "none"],
+    "per_block_hand": ["r", "r", "r", "r", "r", "r"],
+    "per_block_obj_type": ["random", "sphere", "cube", "cube", "random", "random"],
+    "tl1": [45, 90, 135], 
+    "tl2": [45, 90, 135],
+    "t_null": [90],
+    "exp_version": "test_moveObj"
+}
