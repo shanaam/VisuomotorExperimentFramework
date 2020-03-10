@@ -30,5 +30,7 @@ public class ExperimentGenerator : MonoBehaviour
                 }
             }
         }
+
+        GetComponent<ExperimentController>().Init(session);
     }
 }
