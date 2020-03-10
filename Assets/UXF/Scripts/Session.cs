@@ -16,7 +16,7 @@ namespace UXF
     /// </summary>
     [ExecuteInEditMode]
     [RequireComponent(typeof(FileIOManager))]
-    public class Session : MonoBehaviour
+    public class Session : MonoBehaviour, ISettingsContainer
     {
         [Header(":: Behaviour")]
         /// <summary>
@@ -36,6 +36,13 @@ namespace UXF
         /// </summary>
         [Tooltip("Enable to automatically end the session when the final trial has ended.")]
         public bool endAfterLastTrial = false;
+        
+        /// <summary>
+        /// If enabled, results that are not listed in Custom Headers can be added at any time. If disabled, adding results that are not listed in Custom Headers will throw an error.
+        /// </summary>
+        [Tooltip("If enabled, results that are not listed in Custom Headers can be added at any time. If disabled, adding results that are not listed in Custom Headers will throw an error.")]
+        public bool adHocHeaderAdd = false;
+
 
         /// <summary>
         /// List of blocks for this experiment
@@ -140,7 +147,7 @@ namespace UXF
         /// <summary>
         /// Settings for the experiment. These are provided on initialisation of the session.
         /// </summary>
-        public Settings settings;
+        public Settings settings { get; private set; }
 
         /// <summary>
         /// Returns true if current trial is in progress
@@ -719,9 +726,8 @@ namespace UXF
 
         void SaveResults()
         {
-            List<OrderedResultDict> results = Trials.Select(t => t.result).ToList();
+            List<ResultsDictionary> results = Trials.Select(t => t.result).ToList();
             string fileName = "trial_results.csv";
-
             WriteFileInfo fileInfo = new WriteFileInfo(
                 WriteFileType.Trials,
                 BasePath,
@@ -731,7 +737,7 @@ namespace UXF
                 fileName
                 );
 
-            fileIOManager.ManageInWorker(() => fileIOManager.WriteTrials(results, Headers.ToArray(), fileInfo));
+            fileIOManager.ManageInWorker(() => fileIOManager.WriteTrials(results, fileInfo));
         }
 
 

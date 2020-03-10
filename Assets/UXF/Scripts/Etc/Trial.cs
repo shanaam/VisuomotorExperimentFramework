@@ -13,7 +13,7 @@ namespace UXF
     /// The base unit of experiments. A Trial is usually a singular attempt at a task by a participant after/during the presentation of a stimulus.
     /// </summary>
     [Serializable]
-    public class Trial
+    public class Trial : ISettingsContainer
     {
 
         /// <summary>
@@ -46,18 +46,19 @@ namespace UXF
         /// <summary>
         /// Trial settings. These will override block settings if set.
         /// </summary>
-        public Settings settings = Settings.empty;
+        public Settings settings { get; private set; }
 
         /// <summary>
         /// Dictionary of results in a order.
         /// </summary>
-        public OrderedResultDict result;
+        public ResultsDictionary result;
 
         /// <summary>
         /// Manually create a trial. When doing this you need to add this trial to a block with block.trials.Add(trial)
         /// </summary>
         internal Trial(Block trialBlock)
         {
+            settings = Settings.empty;
             SetReferences(trialBlock);
         }
 
@@ -69,7 +70,7 @@ namespace UXF
         {
             block = trialBlock;
             session = block.session;
-            settings.SetParent(block.settings);
+            settings.SetParent(block);
         }
 
         /// <summary>
@@ -82,9 +83,7 @@ namespace UXF
 
             status = TrialStatus.InProgress;
             startTime = Time.time;
-            result = new OrderedResultDict();
-            foreach (string h in session.Headers)
-                result.Add(h, string.Empty);
+            result = new ResultsDictionary(session.Headers, session.adHocHeaderAdd);
 
             result["directory"] = Extensions.CombinePaths(session.experimentName, session.ppid, session.FolderName).Replace('\\', '/');
             result["experiment"] = session.experimentName;
