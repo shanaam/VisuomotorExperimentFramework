@@ -3,7 +3,7 @@
     "gradual_step": 1,
     "per_block_type": ["aligned", "rotated", "localization", "instruction", "nocursor", "rotated"],
     "per_block_n": [4,4,12,1,2,4],
-    "per_block_rotation": [0,45,0,0,0,45],
+    "per_block_rotation": [45,45,0,0,0,45],
     "per_block_distance": [10, 10, 10, 10, 10, 20],
     "per_block_target_vertPos": [0, 0, 0, 0, 0, 0],
     "per_block_targetListToUse": ["tl2", "tl1", "tl2", "t_null", "tl1", "tl2"],

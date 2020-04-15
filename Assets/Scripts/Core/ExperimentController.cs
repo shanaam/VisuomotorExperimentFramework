@@ -3,26 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UXF;
 using System;
+using MovementType = CursorController.MovementType;
+
+/// <summary>
+/// Overview of how the application works:
+/// - We read in data from the JSON using ExperimentGenerator.cs
+/// - The JSON only contains ONE Experiment type
+/// 
+/// - For each trial, we initialize a BaseTask component, representing the logic
+/// for that specific task (aligned, rotated, etc)
+/// 
+/// - That BaseTask component will run EndAndPrepare when all steps are completed.
+/// 
+/// - ExperimentController will contain any variables required by the TASKs
+/// such as input, session variables, etc
+/// </summary>
 
 public class ExperimentController : MonoBehaviour
 {
-    /// <summary>
-    /// Overview of how the application works:
-    /// - We read in data from the JSON using ExperimentGenerator.cs
-    /// - The JSON only contains ONE Experiment type
-    /// 
-    /// - For each trial, we initialize a BaseTask component, representing the logic
-    /// for that specific task (aligned, rotated, etc)
-    /// 
-    /// - That BaseTask component will run EndAndPrepare when all steps are completed.
-    /// 
-    /// - ExperimentController will contain any variables required by the TASKs
-    /// such as input, session variables, etc
-    /// </summary>
+
 
     private static ExperimentController instance;
 
+    public GameObject TargetContainer; // Used as the center point for spawning targets.
+
+    public BaseTask CurrentTask;
+    public GameObject TargetPrefab;
+    
+    public CursorController CursorController { get; private set; }
+
     public Session Session { get; private set; }
+
+    private float currentTrialTime;
 
     /// <summary>
     /// Gets the singleton instance of our experiment controller. Use it for
@@ -46,7 +58,24 @@ public class ExperimentController : MonoBehaviour
     public void Init(Session session) 
     { 
         Session = session;
-        Session.FirstTrial.Begin();
+        CursorController = GameObject.Find("Cursor").GetComponent<CursorController>();
+
+        BeginNextTrial();
+    }
+
+    public void BeginNextTrial()
+    {
+        StartCoroutine(StartTrial());
+    }
+
+    private IEnumerator StartTrial()
+    {
+        yield return null;
+
+        if (Session.currentTrialNum == 0)
+            Session.FirstTrial.Begin();
+        else
+            Session.BeginNextTrial();
     }
 
     // Start is called before the first frame update
@@ -59,11 +88,6 @@ public class ExperimentController : MonoBehaviour
     void Update()
     {
         
-    }
-
-    public void BeginTrial()
-    {
-        Session.BeginNextTrial();
     }
 
     public void BeginTrialSteps(Trial trial)
@@ -80,16 +104,26 @@ public class ExperimentController : MonoBehaviour
                     case "aligned":
                     case "rotated":
                     case "nocursor":
-                        Enum.TryParse(per_block_type, out ReachExperiment.ReachType reachType);
-                        gameObject.AddComponent<ReachToTargetTask>();
+                        Enum.TryParse(per_block_type, out MovementType reachType);
+                        CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
                         gameObject.GetComponent<ReachToTargetTask>().Init(trial, reachType);
                         break;
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
+                        trial.End();
                         break;
                 }
                 break;
         }
+    }
+
+    /// <summary>
+    /// Cleans up the current trial objects and sets up for the next trial
+    /// </summary>
+    /// <param name="trial"></param>
+    public void PrepareNextTrial(Trial trial)
+    {
+        BeginNextTrial();
     }
 
     public void EndAndPrepare()
