@@ -87,7 +87,11 @@ public class ExperimentController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            Debug.Log("Recentered Experiment to: " + CursorController.transform.position);
+            transform.position = CursorController.transform.position;
+        }
     }
 
     public void BeginTrialSteps(Trial trial)
@@ -114,32 +118,56 @@ public class ExperimentController : MonoBehaviour
                         break;
                 }
                 break;
+            default:
+                Debug.LogWarning("Experiment Type not implemented: " + 
+                                 Session.settings.GetString("experiment_mode"));
+                trial.End();
+                break;
         }
     }
 
     /// <summary>
     /// Cleans up the current trial objects and sets up for the next trial
     /// </summary>
-    /// <param name="trial"></param>
     public void PrepareNextTrial(Trial trial)
     {
         BeginNextTrial();
     }
 
+    public void OnEnterHome()
+    {
+        currentTrialTime = Time.fixedTime;
+    }
+
     public void EndAndPrepare()
     {
         Debug.Log("Ending: " + Session.CurrentTrial.number);
+        LogParameters();
         BaseTask task = GetComponent<BaseTask>();
         task.enabled = false;
         Destroy(task);
        
         if (Session.CurrentTrial.number == Session.LastTrial.number)
-        {
             Session.End();
-        }
         else
-        {
             Session.CurrentTrial.End();
-        }
+    }
+
+    /// <summary>
+    /// Saves all of the data points for a particular trial
+    /// </summary>
+    private void LogParameters()
+    {
+        Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.x;
+        Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.y;
+        Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.z;
+
+        Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
+        Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
+        Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.z;
+
+        Session.CurrentTrial.result["step_time"] = Time.fixedTime - currentTrialTime;
+
+        Debug.Log("Time for trial: " + (Time.fixedTime - currentTrialTime));
     }
 }

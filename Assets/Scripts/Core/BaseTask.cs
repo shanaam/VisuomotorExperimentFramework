@@ -31,7 +31,7 @@ public abstract class BaseTask : MonoBehaviour
     {
         get
         {
-            if (home == null)
+            if (target == null)
                 Debug.LogWarning("Target is not set for this task.");
 
             return target;

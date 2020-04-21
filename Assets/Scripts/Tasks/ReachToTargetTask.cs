@@ -15,6 +15,8 @@ public class ReachToTargetTask : BaseTask
     Trial trial;
     private GameObject[] targets = new GameObject[3];
 
+    private List<float> targetAngles;
+
     /// <summary>
     /// Initializes a task where you move from a starting position to
     /// a target in space
@@ -33,19 +35,22 @@ public class ReachToTargetTask : BaseTask
     public void Update()
     {
         if (Input.GetKeyDown("n"))
-        {
             IncrementStep();
-        }
 
         if (Finished)
-        {
             ExperimentController.Instance().EndAndPrepare();
-        }
     }
 
     public override bool IncrementStep()
     {
         targets[currentStep].SetActive(false);
+
+        // If the user enters the home, start tracking time
+        if (currentStep == 1)
+        {
+            ExperimentController.Instance().OnEnterHome();
+            ExperimentController.Instance().CursorController.SetMovementType(reachType[2]);
+        }
 
         base.IncrementStep();
 
@@ -59,6 +64,9 @@ public class ReachToTargetTask : BaseTask
     {
         ExperimentController ctrler = ExperimentController.Instance();
 
+        // Set up hand and cursor
+        ctrler.CursorController.SetHandVisibility(false);
+
         // Set up the dock position
         targets[0] = Instantiate(ctrler.TargetPrefab);
         targets[0].transform.position = ctrler.TargetContainer.transform.position;
@@ -71,21 +79,30 @@ public class ReachToTargetTask : BaseTask
         targets[1].name = "Home";
         Home = targets[1];
 
-        Debug.Log(trial.settings.GetFloat("per_block_rotation"));
-        
         // Set up the target
+
+        // Get target angles from list
+        targetAngles = ctrler.Session.settings.GetFloatList(
+            trial.settings.GetString("per_block_targetListToUse")
+        );
+
+        // Select a random angle from the list and use it as the target angle
+        // Uses psuedo-random
+        
         targets[2] = Instantiate(ctrler.TargetPrefab);
-        targets[2].transform.rotation = Quaternion.Euler(0f, trial.settings.GetFloat("per_block_rotation"), 0f);
+        targets[2].transform.rotation = Quaternion.Euler(
+            0f, 
+            -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f, 
+            0f);
 
         targets[2].transform.position = targets[1].transform.position + 
             targets[2].transform.forward.normalized * (trial.settings.GetFloat("per_block_distance") / 100f);
-
-        Debug.Log(Vector3.Distance(targets[1].transform.position, targets[2].transform.position));
-
+        
         targets[2].SetActive(false);
         targets[2].name = "Target";
         Target = targets[2];
 
+        // Parents everything to the target container
         foreach (GameObject g in targets)
             g.transform.SetParent(ctrler.TargetContainer.transform);
     }
