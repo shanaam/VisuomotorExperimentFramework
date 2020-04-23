@@ -13,6 +13,8 @@ public abstract class BaseTask : MonoBehaviour
     // Use the auto properties to set the value for this
     private GameObject home, target;
 
+    private GameObject[] trackers;
+
     // This task's "home" position
     public virtual GameObject Home 
     {
@@ -39,6 +41,18 @@ public abstract class BaseTask : MonoBehaviour
         protected set => target = value;
     }
 
+    protected virtual GameObject[] Trackers
+    {
+        get
+        {
+            if (trackers == null)
+                Debug.LogWarning("Trackers have not been initialized for this task.");
+
+            return trackers;
+        }
+        set => trackers = value;
+    }
+
     /// <summary>
     /// Increments the current step in this task
     /// </summary>
@@ -57,4 +71,15 @@ public abstract class BaseTask : MonoBehaviour
     /// Logic for setting up a specific trial type
     /// </summary>
     protected abstract void Setup();
+
+
+    protected virtual void OnDestroy()
+    {
+        // Delete trackers
+        foreach (GameObject g in Trackers)
+        {
+            ExperimentController.Instance().Session.trackedObjects.Remove(g.GetComponent<PositionRotationTracker>());
+            Destroy(g);
+        }
+    }
 }

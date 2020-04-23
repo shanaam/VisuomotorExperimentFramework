@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UXF;
 using System;
@@ -21,14 +20,13 @@ using MovementType = CursorController.MovementType;
 
 public class ExperimentController : MonoBehaviour
 {
-
-
     private static ExperimentController instance;
 
     public GameObject TargetContainer; // Used as the center point for spawning targets.
 
     public BaseTask CurrentTask;
     public GameObject TargetPrefab;
+    public GameObject TrackerPrefab;
     
     public CursorController CursorController { get; private set; }
 
@@ -78,6 +76,19 @@ public class ExperimentController : MonoBehaviour
             Session.BeginNextTrial();
     }
 
+    /// <summary>
+    /// Temporary disables the cursor and re-enables it after 1 second
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator TempDisableCursor()
+    {
+        CursorController.gameObject.SetActive(false);
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        CursorController.gameObject.SetActive(true);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -89,14 +100,13 @@ public class ExperimentController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            Debug.Log("Recentered Experiment to: " + CursorController.transform.position);
+            Debug.Log("Re-centered Experiment to: " + CursorController.transform.position);
             transform.position = CursorController.RightHand.transform.position;
+            StartCoroutine(TempDisableCursor());
         }
 
         if (Input.GetKeyDown(KeyCode.M))
-        {
             EndAndPrepare();
-        }
     }
 
     public void BeginTrialSteps(Trial trial)
@@ -105,18 +115,19 @@ public class ExperimentController : MonoBehaviour
         {
             case "target":
                 String per_block_type = trial.settings.GetString("per_block_type");
-                Debug.Log("Beginning: " + trial.number);
-                Debug.Log("Trial Type: " + per_block_type);
 
                 switch (per_block_type)
                 {
                     case "aligned":
                     case "rotated":
-                    case "nocursor":
                     case "clamped":
                         Enum.TryParse(per_block_type, out MovementType reachType);
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
                         gameObject.GetComponent<ReachToTargetTask>().Init(trial, reachType);
+                        break;
+                    case "localization":
+                        break;
+                    case "nocursor":
                         break;
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
@@ -147,16 +158,16 @@ public class ExperimentController : MonoBehaviour
 
     public void EndAndPrepare()
     {
-        Debug.Log("Ending: " + Session.CurrentTrial.number);
         LogParameters();
-        BaseTask task = GetComponent<BaseTask>();
-        task.enabled = false;
-        Destroy(task);
-       
+
         if (Session.CurrentTrial.number == Session.LastTrial.number)
             Session.End();
         else
             Session.CurrentTrial.End();
+
+        BaseTask task = GetComponent<BaseTask>();
+        task.enabled = false;
+        Destroy(task);
     }
 
     /// <summary>
@@ -173,7 +184,20 @@ public class ExperimentController : MonoBehaviour
         Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
 
         Session.CurrentTrial.result["step_time"] = Time.fixedTime - currentTrialTime;
+    }
 
-        Debug.Log("Time for trial: " + (Time.fixedTime - currentTrialTime));
+    /// <summary>
+    /// Instantiates and sets up a tracker with the specified name.
+    /// </summary>
+    public GameObject GenerateTracker(String trackerName, Transform parent)
+    {
+        if (trackerName.Contains(" "))
+            Debug.LogError("Tracker has a space in its name. Remove the spaces.");
+
+        GameObject tracker = Instantiate(TrackerPrefab, parent);
+
+        tracker.name = tracker.GetComponent<PositionRotationTracker>().objectName = trackerName;
+
+        return tracker;
     }
 }

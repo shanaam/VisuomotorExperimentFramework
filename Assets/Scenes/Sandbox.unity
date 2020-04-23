@@ -1057,6 +1057,8 @@ MonoBehaviour:
   CurrentTask: {fileID: 0}
   TargetPrefab: {fileID: 2700544815385351241, guid: d858f1efed52b1448963809b840de727,
     type: 3}
+  TrackerPrefab: {fileID: 164031498910047154, guid: 7add25bfa422dba43b2be260d0f37bcb,
+    type: 3}
 --- !u!114 &1000910855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1648,6 +1650,11 @@ PrefabInstance:
         type: 3}
       propertyPath: customHeaders.Array.data[6]
       value: step_time
+      objectReference: {fileID: 0}
+    - target: {fileID: 114916036141644208, guid: 0a3b6392f04558844bd340e68ced1ff9,
+        type: 3}
+      propertyPath: adHocHeaderAdd
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 224025734146448884, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}

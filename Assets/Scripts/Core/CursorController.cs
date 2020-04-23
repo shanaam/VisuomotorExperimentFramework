@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,6 +23,10 @@ public class CursorController : MonoBehaviour
     public string CurrentTaskHand { get; private set; }
 
     private InputDevice leftHandDevice, rightHandDevice;
+
+    // Used to track hold time
+    private Vector3 previousPosition;
+    public float PauseTime { get; private set; }
 
     public enum MovementType
     {
@@ -110,9 +114,19 @@ public class CursorController : MonoBehaviour
     {
         if (ExperimentController.Instance().CurrentTask == null) return;
 
+        Vector3 realHandPosition = CurrentTaskHand == "l"
+            ? leftHandCollider.transform.position
+            : rightHandCollider.transform.position;
+
         // Update the position of the cursor depending on which hand is involved
-        transform.position = ConvertPosition(CurrentTaskHand == "l" ? 
-            leftHandCollider.transform.position : rightHandCollider.transform.position);
+        transform.position = ConvertPosition(realHandPosition);
+
+        if ((previousPosition - realHandPosition).magnitude > 0.01f)
+            PauseTime = 0f;
+        else
+            PauseTime += Time.deltaTime;
+
+        previousPosition = realHandPosition;
     }
 
     /// <summary>

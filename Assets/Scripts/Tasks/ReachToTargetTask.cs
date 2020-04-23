@@ -50,6 +50,9 @@ public class ReachToTargetTask : BaseTask
         {
             ExperimentController.Instance().OnEnterHome();
             ExperimentController.Instance().CursorController.SetMovementType(reachType[2]);
+
+            foreach (GameObject g in Trackers)
+                g.GetComponent<PositionRotationTracker>().StartRecording();
         }
 
         base.IncrementStep();
@@ -105,12 +108,26 @@ public class ReachToTargetTask : BaseTask
         // Parents everything to the target container
         foreach (GameObject g in targets)
             g.transform.SetParent(ctrler.TargetContainer.transform);
+
+        // Create tracker objects
+        Trackers[0] = ctrler.GenerateTracker("handtracker",
+            ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l" ?
+                    ctrler.CursorController.LeftHand.transform :
+                    ctrler.CursorController.RightHand.transform
+        );
+
+        Trackers[1] = ctrler.GenerateTracker("cursortracker", ctrler.CursorController.transform);
+
+        foreach (GameObject g in Trackers)
+            ctrler.Session.trackedObjects.Add(g.GetComponent<PositionRotationTracker>());
     }
 
-    void OnDestroy()
+    protected override void OnDestroy()
     {
         // When the trial ends, we need to delete all the objects this task spawned
         foreach (GameObject g in targets)
             Destroy(g);
+
+        base.OnDestroy();
     }
 }
