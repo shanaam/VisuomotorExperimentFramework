@@ -15,8 +15,6 @@ public class CursorController : MonoBehaviour
     private GameObject leftHandModel, rightHandModel;
     private GameObject leftHandCollider, rightHandCollider;
 
-    private ExperimentController ctrler;
-
     public bool CursorVisible { get; private set; }
     public bool LeftHandVisible { get; private set; }
     public bool RightHandVisible { get; private set; }
@@ -130,15 +128,26 @@ public class CursorController : MonoBehaviour
             case MovementType.rotated:
                 float angle = ExperimentController.Instance().Session.CurrentTrial.settings
                     .GetFloat("per_block_rotation");
-                Vector3 rotated = Quaternion.Euler(0, -angle, 0) * position;
-                return rotated;
+
+                return Quaternion.Euler(0, -angle, 0) * position;
             case MovementType.clamped:
                 // Get vector between home position and target
-                Vector3 home = ctrler.CurrentTask.Home.transform.position;
-                Vector3 target = ctrler.CurrentTask.Target.transform.position;
+                Vector3 home = ExperimentController.Instance().CurrentTask.Home.transform.position;
+                Vector3 target = ExperimentController.Instance().CurrentTask.Target.transform.position;
 
-                Vector3 direction = target - home;
-                return Vector3.ProjectOnPlane(position, Vector3.up);
+                Vector3 normal = target - ExperimentController.Instance().transform.position;
+
+                // Rotate vector by 90 degrees to get plane parallel to the vector
+                normal = Quaternion.Euler(0f, -90f, 0f) * normal;
+
+                //  o   < target
+                //  |
+                // -|   < normal
+                //  |
+                //  x   < dock / center of experiment
+
+                // Project position using this new vector as the plane normal
+                return Vector3.ProjectOnPlane(position, normal);
             default:
                 throw new ArgumentOutOfRangeException();
         }

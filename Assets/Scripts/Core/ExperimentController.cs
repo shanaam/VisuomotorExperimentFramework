@@ -90,7 +90,12 @@ public class ExperimentController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.C))
         {
             Debug.Log("Recentered Experiment to: " + CursorController.transform.position);
-            transform.position = CursorController.transform.position;
+            transform.position = CursorController.RightHand.transform.position;
+        }
+
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            EndAndPrepare();
         }
     }
 
@@ -108,6 +113,7 @@ public class ExperimentController : MonoBehaviour
                     case "aligned":
                     case "rotated":
                     case "nocursor":
+                    case "clamped":
                         Enum.TryParse(per_block_type, out MovementType reachType);
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
                         gameObject.GetComponent<ReachToTargetTask>().Init(trial, reachType);
@@ -159,12 +165,12 @@ public class ExperimentController : MonoBehaviour
     private void LogParameters()
     {
         Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.x;
-        Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.y;
-        Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.z;
+        Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;
+        Session.CurrentTrial.result["home_z"] = CurrentTask.Home.transform.localPosition.z;
 
         Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
         Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
-        Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.z;
+        Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
 
         Session.CurrentTrial.result["step_time"] = Time.fixedTime - currentTrialTime;
 
