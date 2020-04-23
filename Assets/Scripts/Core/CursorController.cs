@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -135,7 +135,7 @@ public class CursorController : MonoBehaviour
                 Vector3 home = ExperimentController.Instance().CurrentTask.Home.transform.position;
                 Vector3 target = ExperimentController.Instance().CurrentTask.Target.transform.position;
 
-                Vector3 normal = target - ExperimentController.Instance().transform.position;
+                Vector3 normal = target - home;
 
                 // Rotate vector by 90 degrees to get plane parallel to the vector
                 normal = Quaternion.Euler(0f, -90f, 0f) * normal;
@@ -147,7 +147,7 @@ public class CursorController : MonoBehaviour
                 //  x   < dock / center of experiment
 
                 // Project position using this new vector as the plane normal
-                return Vector3.ProjectOnPlane(position, normal);
+                return Vector3.ProjectOnPlane(position - home, normal) + home;
             default:
                 throw new ArgumentOutOfRangeException();
         }
