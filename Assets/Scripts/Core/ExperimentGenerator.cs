@@ -2,13 +2,6 @@
 using UnityEngine;
 using UXF;
 
-/*
- * File: ExperimentGenerator.cs
- * License: York University (c) 2020
- * Author: Mark Voong
- * Desc: Loads JSON and generates blocks for experiment
- */
-
 public class ExperimentGenerator : MonoBehaviour
 {
     public void GenerateBlocks(Session session)

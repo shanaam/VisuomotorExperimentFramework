@@ -3,7 +3,6 @@ using UnityEngine;
 using UXF;
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using MovementType = CursorController.MovementType;
 
 /// <summary>
@@ -46,9 +45,7 @@ public class ExperimentController : MonoBehaviour
     public static ExperimentController Instance()
     {
         if (instance == null)
-        {
             Debug.LogWarning("Attempted to get ExperimentController that is unitialized.");
-        }
 
         return instance;
     }
@@ -73,6 +70,9 @@ public class ExperimentController : MonoBehaviour
         StartCoroutine(StartTrial());
     }
 
+    /// <summary>
+    /// Waits one frame before triggering the next trial event
+    /// </summary>
     private IEnumerator StartTrial()
     {
         yield return null;
@@ -96,6 +96,10 @@ public class ExperimentController : MonoBehaviour
         CursorController.gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// We store a list of prefabs a task can spawn. This returns an associated
+    /// prefab using the name as it's key
+    /// </summary>
     public GameObject GetPrefab(String key)
     {
         if (Prefabs[key] != null) return Prefabs[key];
@@ -124,6 +128,9 @@ public class ExperimentController : MonoBehaviour
             EndAndPrepare();
     }
 
+    /// <summary>
+    /// Called at the beginning of each trial. Called by UXF
+    /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
         switch (Session.settings.GetString("experiment_mode")) 
@@ -146,9 +153,8 @@ public class ExperimentController : MonoBehaviour
                     case "localization":
                         CurrentTask = gameObject.AddComponent<LocalizationTask>();
 
-                        ((LocalizationTask)CurrentTask).Init(trial);
+                        ((LocalizationTask) CurrentTask).Init(trial);
                         break;
-
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
                         trial.End();
@@ -172,6 +178,9 @@ public class ExperimentController : MonoBehaviour
         BeginNextTrial();
     }
 
+    /// <summary>
+    /// Starts time tracking. Called in the task class
+    /// </summary>
     public void StartTimer()
     {
         currentTrialTime = Time.fixedTime;
@@ -191,6 +200,7 @@ public class ExperimentController : MonoBehaviour
         else
             Session.CurrentTrial.End();
 
+        // Cleanup the current task and destroy it
         BaseTask task = GetComponent<BaseTask>();
         task.enabled = false;
         Destroy(task);
@@ -205,6 +215,8 @@ public class ExperimentController : MonoBehaviour
         Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;
         Session.CurrentTrial.result["home_z"] = CurrentTask.Home.transform.localPosition.z;
 
+        // Localization task uses Target as the cursor location
+        // For all other tasks, the Target is the actual target
         if (!(CurrentTask is LocalizationTask))
         {
             Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
@@ -212,7 +224,7 @@ public class ExperimentController : MonoBehaviour
             Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
         }
 
-        
+        EndTimer();
     }
 
     /// <summary>

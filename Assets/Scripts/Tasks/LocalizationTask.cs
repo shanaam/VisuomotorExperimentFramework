@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using UnityEngine;
+﻿using UnityEngine;
 using UXF;
 
 public class LocalizationTask : BaseTask
@@ -22,16 +19,18 @@ public class LocalizationTask : BaseTask
     {
         switch (currentStep)
         {
+            // When the user holds their hand and they are outside the home, begin the next phase of localization
             case 2 when ExperimentController.Instance().CursorController.PauseTime > 0.5f && ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f:
                 IncrementStep();
                 break;
-            case 3:
+            case 3: // User uses their head to localize their hand
                 Plane plane = new Plane(Vector3.down, ExperimentController.Instance().transform.position.y);
                 Ray r = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
                 
                 if (plane.Raycast(r, out float hit))
                     localizer.transform.position = r.GetPoint(hit);
 
+                // If the user presses the trigger associated with the hand, we end the trial
                 if (ExperimentController.Instance().CursorController.IsTriggerDown("r") || Input.GetKeyDown(KeyCode.N))
                     IncrementStep();
 
@@ -81,6 +80,7 @@ public class LocalizationTask : BaseTask
                 ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
                     localizer.transform.localPosition.z;
 
+                // We use the target variable to store the cursor position
                 Target.transform.position =
                     ExperimentController.Instance().CursorController.CurrentHand().transform.position;
 

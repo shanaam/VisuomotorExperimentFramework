@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
 using UXF;
@@ -23,6 +21,7 @@ public class CursorController : MonoBehaviour
     // Which hand is involved in the current task
     public string CurrentTaskHand { get; private set; }
 
+    // Used to access the hardware controllers
     public InputDevice LeftHandDevice { get; private set; }
     public InputDevice RightHandDevice { get; private set; }
 
@@ -30,10 +29,8 @@ public class CursorController : MonoBehaviour
     private Vector3 previousPosition;
     public float PauseTime { get; private set; }
 
+    // Returns the distance from the cursor to the home
     public float DistanceFromHome { get; private set; }
-
-    private float[] average = new float[10];
-    private int counter = 0;
 
     public enum MovementType
     {
@@ -96,7 +93,6 @@ public class CursorController : MonoBehaviour
     /// <summary>
     /// Returns the gameobject that represents the hand involved in the current trial
     /// </summary>
-    /// <returns></returns>
     public GameObject CurrentHand()
     {
         return CurrentTaskHand == "l" ? LeftHand : RightHand;
