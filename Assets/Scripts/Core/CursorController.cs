@@ -199,7 +199,7 @@ public class CursorController : MonoBehaviour
                 //  x   < dock / center of experiment
 
                 // Project position using this new vector as the plane normal
-                return Vector3.ProjectOnPlane(position - home, normal) + home;
+                return Vector3.ProjectOnPlane(position - home, normal.normalized) + home;
             default:
                 throw new ArgumentOutOfRangeException();
         }

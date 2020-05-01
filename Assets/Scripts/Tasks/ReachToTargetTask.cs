@@ -35,6 +35,12 @@ public class ReachToTargetTask : BaseTask
         if (Input.GetKeyDown(KeyCode.N))
             IncrementStep();
 
+        if (currentStep == 2 &&
+            ExperimentController.Instance().CursorController.PauseTime > 0.5f &&
+            ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f &&
+            trial.settings.GetString("per_block_type") == "nocursor")
+            IncrementStep();
+
         if (Finished)
             ExperimentController.Instance().EndAndPrepare();
     }
@@ -43,14 +49,20 @@ public class ReachToTargetTask : BaseTask
     {
         targets[currentStep].SetActive(false);
 
-        // If the user enters the home, start tracking time
-        if (currentStep == 1)
+        switch (currentStep)
         {
-            ExperimentController.Instance().StartTimer();
-            ExperimentController.Instance().CursorController.SetMovementType(reachType[2]);
+            // If the user enters the home, start tracking time
+            case 1:
+                ExperimentController.Instance().StartTimer();
+                ExperimentController.Instance().CursorController.SetMovementType(reachType[2]);
 
-            foreach (GameObject g in Trackers)
-                g.GetComponent<PositionRotationTracker>().StartRecording();
+                if (trial.settings.GetString("per_block_type") == "nocursor")
+                    ExperimentController.Instance().CursorController.SetCursorVisibility(false);
+
+                foreach (GameObject g in Trackers)
+                    g.GetComponent<PositionRotationTracker>().StartRecording();
+
+                break;
         }
 
         base.IncrementStep();
@@ -67,6 +79,7 @@ public class ReachToTargetTask : BaseTask
 
         // Set up hand and cursor
         ctrler.CursorController.SetHandVisibility(false);
+        ctrler.CursorController.SetCursorVisibility(true);
 
         // Set up the dock position
         targets[0] = Instantiate(ctrler.GetPrefab("Target"));
@@ -84,22 +97,23 @@ public class ReachToTargetTask : BaseTask
 
         // Get target angles from list
         var targetAngles = ctrler.Session.settings.GetFloatList(
-            trial.settings.GetString("per_block_targetListToUse")
-        );
+            trial.settings.GetString("per_block_targetListToUse"));
 
         // Select a random angle from the list and use it as the target angle
         // Uses psuedo-random
         
         targets[2] = Instantiate(ctrler.GetPrefab("Target"));
         targets[2].transform.rotation = Quaternion.Euler(
-            0f, 
-            -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f, 
-            0f);
+            0f, -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f, 0f);
 
         targets[2].transform.position = targets[1].transform.position +
                                         targets[2].transform.forward.normalized *
                                         (trial.settings.GetFloat("per_block_distance") / 100f);
-        
+
+        // Disable collision detection for nocursor task
+        if (trial.settings.GetString("per_block_type") == "nocursor")
+            targets[2].GetComponent<BaseTarget>().enabled = false;
+
         targets[2].SetActive(false);
         targets[2].name = "Target";
         Target = targets[2];

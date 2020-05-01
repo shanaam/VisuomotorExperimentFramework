@@ -1,8 +1,8 @@
 {
     "experiment_mode": "target",
     "gradual_step": 1,
-    "per_block_type": ["localization", "rotated", "clamped", "instruction", "nocursor", "rotated"],
-    "per_block_n": [6,6,12,1,2,4],
+    "per_block_type": ["aligned", "rotated", "clamped", "nocursor", "localization", "aligned"],
+    "per_block_n": [2,2,2,2,2,2],
     "per_block_rotation": [0,45,0,0,0,45],
     "per_block_distance": [10, 10, 10, 10, 10, 20],
     "per_block_target_vertPos": [0, 0, 0, 0, 0, 0],

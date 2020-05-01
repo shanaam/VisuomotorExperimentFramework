@@ -96,6 +96,7 @@ public class LocalizationTask : BaseTask
         ExperimentController ctrler = ExperimentController.Instance();
 
         ctrler.CursorController.SetHandVisibility(false);
+        ctrler.CursorController.SetCursorVisibility(true);
 
         // Set up the dock position
         targets[0] = Instantiate(ctrler.GetPrefab("Target"));

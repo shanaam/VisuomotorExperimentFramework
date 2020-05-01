@@ -130,23 +130,25 @@ public class ExperimentController : MonoBehaviour
         {
             case "target":
                 String per_block_type = trial.settings.GetString("per_block_type");
-                CursorController.SetCursorVisibility(true);
 
                 switch (per_block_type)
                 {
                     case "aligned":
                     case "rotated":
                     case "clamped":
+                    case "nocursor":
                         Enum.TryParse(per_block_type, out MovementType reachType);
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
-                        ((ReachToTargetTask)CurrentTask).Init(trial, reachType);
+
+                        ((ReachToTargetTask) CurrentTask).Init(trial,
+                            per_block_type == "nocursor" ? MovementType.aligned : reachType);
                         break;
                     case "localization":
                         CurrentTask = gameObject.AddComponent<LocalizationTask>();
+
                         ((LocalizationTask)CurrentTask).Init(trial);
                         break;
-                    case "nocursor":
-                        break;
+
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
                         trial.End();
