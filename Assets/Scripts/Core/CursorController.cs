@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
 using UXF;
@@ -22,11 +23,17 @@ public class CursorController : MonoBehaviour
     // Which hand is involved in the current task
     public string CurrentTaskHand { get; private set; }
 
-    private InputDevice leftHandDevice, rightHandDevice;
+    public InputDevice LeftHandDevice { get; private set; }
+    public InputDevice RightHandDevice { get; private set; }
 
     // Used to track hold time
     private Vector3 previousPosition;
     public float PauseTime { get; private set; }
+
+    public float DistanceFromHome { get; private set; }
+
+    private float[] average = new float[10];
+    private int counter = 0;
 
     public enum MovementType
     {
@@ -54,15 +61,45 @@ public class CursorController : MonoBehaviour
             switch (device.characteristics)
             {
                 case InputDeviceCharacteristics.Left:
-                    leftHandDevice = device;
+                    LeftHandDevice = device;
                     break;
                 case InputDeviceCharacteristics.Right:
-                    rightHandDevice = device;
+                    RightHandDevice = device;
                     break;
             }
         }
 
         MoveType = MovementType.aligned;
+    }
+
+    public bool IsTriggerDown()
+    {
+        return IsTriggerDown(CurrentTaskHand);
+    }
+
+    public bool IsTriggerDown(String hand)
+    {
+        if (hand == "l")
+        {
+            return LeftHandDevice == null
+                ? false
+                : LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+        }
+        else
+        {
+            return RightHandDevice == null
+                ? false
+                : RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+        }
+    }
+
+    /// <summary>
+    /// Returns the gameobject that represents the hand involved in the current trial
+    /// </summary>
+    /// <returns></returns>
+    public GameObject CurrentHand()
+    {
+        return CurrentTaskHand == "l" ? LeftHand : RightHand;
     }
 
     /// <summary>
@@ -121,12 +158,13 @@ public class CursorController : MonoBehaviour
         // Update the position of the cursor depending on which hand is involved
         transform.position = ConvertPosition(realHandPosition);
 
-        if ((previousPosition - realHandPosition).magnitude > 0.01f)
+        if ((previousPosition - realHandPosition).magnitude > 0.001f)
             PauseTime = 0f;
         else
             PauseTime += Time.deltaTime;
 
         previousPosition = realHandPosition;
+        DistanceFromHome = (transform.position - ExperimentController.Instance().CurrentTask.Home.transform.position).magnitude;
     }
 
     /// <summary>

@@ -1,50 +1,89 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using UnityEngine;
 using UXF;
 
 public class LocalizationTask : BaseTask
 {
-
-    private GameObject[] targets = new GameObject[2];
-    private GameObject arc;
+    private GameObject[] targets = new GameObject[3];
+    private GameObject localizer; // Cursor that indicates where the user's head is gazing
 
     private Trial trial;
 
-    private bool expand;
-
     public void Init(Trial trial)
     {
-        maxSteps = 3;
+        maxSteps = 4;
         this.trial = trial;
         Setup();
     }
 
     public void LateUpdate()
     {
-        if (currentStep == 1 && 
-            ExperimentController.Instance().CursorController.PauseTime > 0.5f)
+        switch (currentStep)
         {
+            case 2 when ExperimentController.Instance().CursorController.PauseTime > 0.5f && ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f:
+                IncrementStep();
+                break;
+            case 3:
+                Plane plane = new Plane(Vector3.down, ExperimentController.Instance().transform.position.y);
+                Ray r = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+                
+                if (plane.Raycast(r, out float hit))
+                    localizer.transform.position = r.GetPoint(hit);
 
+                if (ExperimentController.Instance().CursorController.IsTriggerDown("r") || Input.GetKeyDown(KeyCode.N))
+                    IncrementStep();
+
+                break;
         }
+
+        if (Finished)
+            ExperimentController.Instance().EndAndPrepare();
     }
 
     public override bool IncrementStep()
     {
         switch (currentStep)
         {
-            case 0: // Enter home
+            case 0: // Enter dock
+                targets[0].SetActive(false);
+                Home.SetActive(true);
+                break;
+            case 1: // Enter home
                 Home.SetActive(false);
 
-                ExperimentController.Instance().OnEnterHome();
+                ExperimentController.Instance().StartTimer();
 
                 foreach (GameObject g in Trackers)
                     g.GetComponent<PositionRotationTracker>().StartRecording();
 
+                Target.SetActive(true);
+
+                ExperimentController.Instance().CursorController.SetCursorVisibility(false);
+
                 break;
-            case 1: // Pause in arc
+            case 2: // Pause in arc
+                localizer.SetActive(true);
+                Target.GetComponent<ArcScript>().Expand();
+
                 break;
-            case 2: // Select the spot they think their real hand is
+            case 3: // Select the spot they think their real hand is
+                Target.SetActive(false);
+
+                // Store where they think their hand is
+                ExperimentController.Instance().Session.CurrentTrial.result["loc_x"] =
+                    localizer.transform.localPosition.x;
+
+                ExperimentController.Instance().Session.CurrentTrial.result["loc_y"] =
+                    localizer.transform.localPosition.y;
+
+                ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
+                    localizer.transform.localPosition.z;
+
+                Target.transform.position =
+                    ExperimentController.Instance().CursorController.CurrentHand().transform.position;
+
                 break;
         }
 
@@ -59,30 +98,60 @@ public class LocalizationTask : BaseTask
         ctrler.CursorController.SetHandVisibility(false);
 
         // Set up the dock position
-        Home = Instantiate(ctrler.TargetPrefab);
-        Home.transform.position = ctrler.TargetContainer.transform.position;
-        Home.name = "Dock";
+        targets[0] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[0].transform.position = ctrler.TargetContainer.transform.position;
+        targets[0].name = "Dock";
+
+        // Set up the home position
+        targets[1] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
+        targets[1].SetActive(false);
+        targets[1].name = "Home";
+        Home = targets[1];
 
         var targetAngles = ctrler.Session.settings.GetFloatList(
             trial.settings.GetString("per_block_targetListToUse")
         );
 
-        Target = new GameObject("Arc");
-        Target.transform.rotation = Quaternion.Euler(
+        // Set up the arc object
+        targets[2] = Instantiate(ctrler.GetPrefab("ArcTarget"));
+        targets[2].transform.rotation = Quaternion.Euler(
             0f,
             -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f,
             0f);
 
-        Target.transform.position = targets[1].transform.position +
-                                    targets[2].transform.forward.normalized *
-                                    (trial.settings.GetFloat("per_block_distance") / 100f);
+        targets[2].transform.position = targets[1].transform.position;
 
-        Target.AddComponent<MeshFilter>();
-        Target.AddComponent<MeshRenderer>();
+        targets[2].GetComponent<ArcScript>().TargetDistance = trial.settings.GetFloat("per_block_distance") / 100f;
+        targets[2].GetComponent<ArcScript>().Angle = targets[2].transform.rotation.eulerAngles.y;
+        targets[2].name = "Arc";
+        targets[2].transform.localScale = Vector3.one;
+        Target = targets[2];
 
-        Target.GetComponent<MeshFilter>().mesh = GenerateArc();
+        // Set up the GameObject that tracks the user's gaze
+        localizer = Instantiate(ctrler.GetPrefab("Target"));
+        localizer.GetComponent<SphereCollider>().enabled = false;
+        localizer.GetComponent<BaseTarget>().enabled = false;
+        localizer.SetActive(false);
 
         Target.SetActive(false);
+
+        // Create tracker objects
+        foreach (GameObject g in targets)
+            g.transform.SetParent(ctrler.TargetContainer.transform);
+
+        localizer.transform.SetParent(ctrler.TargetContainer.transform);
+        localizer.name = "Localizer";
+
+        Trackers = new GameObject[1];
+
+        Trackers[0] = ctrler.GenerateTracker("handtracker",
+            ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
+                ? ctrler.CursorController.LeftHand.transform
+                : ctrler.CursorController.RightHand.transform);
+
+        foreach (GameObject g in Trackers)
+            ctrler.Session.trackedObjects.Add(g.GetComponent<PositionRotationTracker>());
     }
 
     protected override void OnDestroy()
@@ -90,21 +159,8 @@ public class LocalizationTask : BaseTask
         foreach (GameObject g in targets)
             Destroy(g);
 
+        Destroy(localizer);
+
         base.OnDestroy();
-    }
-
-
-    private Mesh GenerateArc()
-    {
-        Mesh mesh = new Mesh();
-
-
-        // TODO: Copy old mesh code into here
-
-        mesh.RecalculateBounds();
-        mesh.RecalculateNormals();
-        mesh.RecalculateTangents();
-
-        return mesh;
     }
 }

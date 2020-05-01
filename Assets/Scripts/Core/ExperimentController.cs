@@ -2,6 +2,8 @@
 using UnityEngine;
 using UXF;
 using System;
+using System.Collections.Generic;
+using UnityEditor;
 using MovementType = CursorController.MovementType;
 
 /// <summary>
@@ -25,8 +27,10 @@ public class ExperimentController : MonoBehaviour
     public GameObject TargetContainer; // Used as the center point for spawning targets.
 
     public BaseTask CurrentTask;
-    public GameObject TargetPrefab;
-    public GameObject TrackerPrefab;
+
+    public GameObject[] PrefabList;
+
+    public Dictionary<String, GameObject> Prefabs = new Dictionary<string, GameObject>();
     
     public CursorController CursorController { get; private set; }
 
@@ -57,6 +61,9 @@ public class ExperimentController : MonoBehaviour
     { 
         Session = session;
         CursorController = GameObject.Find("Cursor").GetComponent<CursorController>();
+
+        foreach (GameObject g in PrefabList)
+            Prefabs[g.name] = g;
 
         BeginNextTrial();
     }
@@ -89,6 +96,14 @@ public class ExperimentController : MonoBehaviour
         CursorController.gameObject.SetActive(true);
     }
 
+    public GameObject GetPrefab(String key)
+    {
+        if (Prefabs[key] != null) return Prefabs[key];
+
+        Debug.LogWarning(key + " does not exist. Check spelling");
+        return null;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -115,6 +130,7 @@ public class ExperimentController : MonoBehaviour
         {
             case "target":
                 String per_block_type = trial.settings.GetString("per_block_type");
+                CursorController.SetCursorVisibility(true);
 
                 switch (per_block_type)
                 {
@@ -123,9 +139,11 @@ public class ExperimentController : MonoBehaviour
                     case "clamped":
                         Enum.TryParse(per_block_type, out MovementType reachType);
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
-                        gameObject.GetComponent<ReachToTargetTask>().Init(trial, reachType);
+                        ((ReachToTargetTask)CurrentTask).Init(trial, reachType);
                         break;
                     case "localization":
+                        CurrentTask = gameObject.AddComponent<LocalizationTask>();
+                        ((LocalizationTask)CurrentTask).Init(trial);
                         break;
                     case "nocursor":
                         break;
@@ -134,6 +152,7 @@ public class ExperimentController : MonoBehaviour
                         trial.End();
                         break;
                 }
+
                 break;
             default:
                 Debug.LogWarning("Experiment Type not implemented: " + 
@@ -151,9 +170,14 @@ public class ExperimentController : MonoBehaviour
         BeginNextTrial();
     }
 
-    public void OnEnterHome()
+    public void StartTimer()
     {
         currentTrialTime = Time.fixedTime;
+    }
+
+    public void EndTimer()
+    {
+        Session.CurrentTrial.result["step_time"] = Time.fixedTime - currentTrialTime;
     }
 
     public void EndAndPrepare()
@@ -179,11 +203,14 @@ public class ExperimentController : MonoBehaviour
         Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;
         Session.CurrentTrial.result["home_z"] = CurrentTask.Home.transform.localPosition.z;
 
-        Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
-        Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
-        Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
+        if (!(CurrentTask is LocalizationTask))
+        {
+            Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
+            Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
+            Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
+        }
 
-        Session.CurrentTrial.result["step_time"] = Time.fixedTime - currentTrialTime;
+        
     }
 
     /// <summary>
@@ -194,7 +221,7 @@ public class ExperimentController : MonoBehaviour
         if (trackerName.Contains(" "))
             Debug.LogError("Tracker has a space in its name. Remove the spaces.");
 
-        GameObject tracker = Instantiate(TrackerPrefab, parent);
+        GameObject tracker = Instantiate(GetPrefab("TrackerObject"), parent);
 
         tracker.name = tracker.GetComponent<PositionRotationTracker>().objectName = trackerName;
 

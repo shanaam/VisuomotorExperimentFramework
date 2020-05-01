@@ -15,8 +15,6 @@ public class ReachToTargetTask : BaseTask
     Trial trial;
     private GameObject[] targets = new GameObject[3];
 
-    private List<float> targetAngles;
-
     /// <summary>
     /// Initializes a task where you move from a starting position to
     /// a target in space
@@ -34,7 +32,7 @@ public class ReachToTargetTask : BaseTask
 
     public void Update()
     {
-        if (Input.GetKeyDown("n"))
+        if (Input.GetKeyDown(KeyCode.N))
             IncrementStep();
 
         if (Finished)
@@ -48,7 +46,7 @@ public class ReachToTargetTask : BaseTask
         // If the user enters the home, start tracking time
         if (currentStep == 1)
         {
-            ExperimentController.Instance().OnEnterHome();
+            ExperimentController.Instance().StartTimer();
             ExperimentController.Instance().CursorController.SetMovementType(reachType[2]);
 
             foreach (GameObject g in Trackers)
@@ -71,12 +69,12 @@ public class ReachToTargetTask : BaseTask
         ctrler.CursorController.SetHandVisibility(false);
 
         // Set up the dock position
-        targets[0] = Instantiate(ctrler.TargetPrefab);
+        targets[0] = Instantiate(ctrler.GetPrefab("Target"));
         targets[0].transform.position = ctrler.TargetContainer.transform.position;
         targets[0].name = "Dock";
 
         // Set up the home position
-        targets[1] = Instantiate(ctrler.TargetPrefab);
+        targets[1] = Instantiate(ctrler.GetPrefab("Target"));
         targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
         targets[1].name = "Home";
@@ -85,21 +83,22 @@ public class ReachToTargetTask : BaseTask
         // Set up the target
 
         // Get target angles from list
-        targetAngles = ctrler.Session.settings.GetFloatList(
+        var targetAngles = ctrler.Session.settings.GetFloatList(
             trial.settings.GetString("per_block_targetListToUse")
         );
 
         // Select a random angle from the list and use it as the target angle
         // Uses psuedo-random
         
-        targets[2] = Instantiate(ctrler.TargetPrefab);
+        targets[2] = Instantiate(ctrler.GetPrefab("Target"));
         targets[2].transform.rotation = Quaternion.Euler(
             0f, 
             -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f, 
             0f);
 
-        targets[2].transform.position = targets[1].transform.position + 
-            targets[2].transform.forward.normalized * (trial.settings.GetFloat("per_block_distance") / 100f);
+        targets[2].transform.position = targets[1].transform.position +
+                                        targets[2].transform.forward.normalized *
+                                        (trial.settings.GetFloat("per_block_distance") / 100f);
         
         targets[2].SetActive(false);
         targets[2].name = "Target";
@@ -110,11 +109,12 @@ public class ReachToTargetTask : BaseTask
             g.transform.SetParent(ctrler.TargetContainer.transform);
 
         // Create tracker objects
+        Trackers = new GameObject[2];
+
         Trackers[0] = ctrler.GenerateTracker("handtracker",
-            ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l" ?
-                    ctrler.CursorController.LeftHand.transform :
-                    ctrler.CursorController.RightHand.transform
-        );
+            ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
+                ? ctrler.CursorController.LeftHand.transform
+                : ctrler.CursorController.RightHand.transform);
 
         Trackers[1] = ctrler.GenerateTracker("cursortracker", ctrler.CursorController.transform);
 
