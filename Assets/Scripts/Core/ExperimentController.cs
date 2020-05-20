@@ -162,6 +162,11 @@ public class ExperimentController : MonoBehaviour
                 }
 
                 break;
+            case "pinball":
+                CurrentTask = gameObject.AddComponent<PinballTask>();
+                ((PinballTask)CurrentTask).Init(trial);
+
+                break;
             default:
                 Debug.LogWarning("Experiment Type not implemented: " + 
                                  Session.settings.GetString("experiment_mode"));
@@ -211,14 +216,14 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     private void LogParameters()
     {
-        Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.x;
-        Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;
-        Session.CurrentTrial.result["home_z"] = CurrentTask.Home.transform.localPosition.z;
-
         // Localization task uses Target as the cursor location
         // For all other tasks, the Target is the actual target
-        if (!(CurrentTask is LocalizationTask))
+        if (!(CurrentTask is LocalizationTask) && !(CurrentTask is PinballTask))
         {
+            Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.x;
+            Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;
+            Session.CurrentTrial.result["home_z"] = CurrentTask.Home.transform.localPosition.z;
+
             Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
             Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
             Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;

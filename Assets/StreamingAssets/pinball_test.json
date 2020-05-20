@@ -1,0 +1,5 @@
+{
+    "experiment_mode" : "pinball",
+    "per_block_n" :  [5],
+    "per_block_hand" : ["r"]
+}
