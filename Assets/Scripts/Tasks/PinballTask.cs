@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UXF;
 
 public class PinballTask : BaseTask
@@ -17,6 +15,8 @@ public class PinballTask : BaseTask
     private Vector3 direction;
 
     private float timer = 0f;
+
+    private float distanceToTarget;
 
     public void Init(Trial trial)
     {
@@ -38,7 +38,6 @@ public class PinballTask : BaseTask
                         directionIndicator.SetActive(true);
                         ExperimentController.Instance().StartTimer();
                     }
-                        
 
                     direction = Vector3.ClampMagnitude(pinball.transform.position - MouseToPlanePoint(), 0.1f);
 
@@ -51,47 +50,36 @@ public class PinballTask : BaseTask
                     directionIndicator.transform.position = pinball.transform.position - direction / 2f;
                     directionIndicator.transform.LookAt(pinball.transform.position);
                     directionIndicator.transform.RotateAround(directionIndicator.transform.position, transform.up, 90f);
+
+                    Debug.Log(direction.magnitude);
                 }
                 else if (Input.GetMouseButtonUp(0))
                 {
                     ExperimentController.Instance().EndTimer();
+                    direction.y = pinball.transform.position.y;
                     pinball.transform.LookAt(direction);
+                    force = direction.magnitude * 45f;
                     //force = direction.magnitude * 100f;
-                    //force *= 80f;
+                    //force *= 240f;
                     //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
-                    force = direction.magnitude * 15f;
-                    pinball.GetComponent<Rigidbody>().velocity = direction.normalized * force;
+
+                    pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * force;
                     IncrementStep();
                 }
                 break;
             case 1:
-                // ball is in motion goto next step when ball stops
+                // ball is in motion. goto next step when ball stops
+                // radius is equal to the distance between the target and home
+                Debug.Log(pinball.GetComponent<Rigidbody>().velocity.sqrMagnitude);
                 if (pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f)
                 {
                     if (timer <= 0.5f)
                         timer += Time.deltaTime;
                     else
-                    {
-                        ExperimentController ctrler = ExperimentController.Instance();
-
-                        // Convert direction to local space
-                        direction = ctrler.transform.position - direction;
-
-                        ctrler.Session.CurrentTrial.result["cursor_x"] = direction.x;
-                        ctrler.Session.CurrentTrial.result["cursor_y"] = direction.y;
-                        ctrler.Session.CurrentTrial.result["cursor_z"] = direction.z;
-
-                        ctrler.Session.CurrentTrial.result["pinball_x"] = pinball.transform.localPosition.x;
-                        ctrler.Session.CurrentTrial.result["pinball_y"] = pinball.transform.localPosition.y;
-                        ctrler.Session.CurrentTrial.result["pinball_z"] = pinball.transform.localPosition.z;
-
-                        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
-                        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
-                        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
-
-                        IncrementStep();
-                    }
+                        LogParameters();
                 }
+                else if (Vector3.Distance(pinball.transform.position, Home.transform.position) >= distanceToTarget)
+                    LogParameters();
                 break;
         }
 
@@ -99,6 +87,29 @@ public class PinballTask : BaseTask
             ExperimentController.Instance().EndAndPrepare();
     }
 
+    private void LogParameters()
+    {
+        ExperimentController ctrler = ExperimentController.Instance();
+
+        // Convert direction to local space
+        direction = ctrler.transform.position - direction;
+
+        ctrler.Session.CurrentTrial.result["cursor_x"] = direction.x;
+        ctrler.Session.CurrentTrial.result["cursor_y"] = direction.y;
+        ctrler.Session.CurrentTrial.result["cursor_z"] = direction.z;
+
+        ctrler.Session.CurrentTrial.result["pinball_x"] = pinball.transform.localPosition.x;
+        ctrler.Session.CurrentTrial.result["pinball_y"] = pinball.transform.localPosition.y;
+        ctrler.Session.CurrentTrial.result["pinball_z"] = pinball.transform.localPosition.z;
+
+        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
+        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
+        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
+
+        IncrementStep();
+    }
+
+    // Converts the mouse screen coordinates to world space along the experiment plane
     private Vector3 MouseToPlanePoint()
     {
         Vector3 mouseWorldCoords = camera.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition);
@@ -118,18 +129,16 @@ public class PinballTask : BaseTask
 
         oldMainCamera = GameObject.Find("Main Camera");
         oldMainCamera.SetActive(false);
+
+        distanceToTarget = Vector3.Distance(Target.transform.position, Home.transform.position);
+
+        // Cutoff distance is slightly more than the distance to the target
+        distanceToTarget += 0.06f;
     }
 
     protected override void OnDestroy()
     {
         Destroy(pinballSpace);
         oldMainCamera.SetActive(true);
-    }
-
-    void OnDrawGizmos()
-    {
-        Vector3 coord = camera.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition);
-
-        Gizmos.DrawLine(coord, coord + camera.transform.forward * 5f);
     }
 }
