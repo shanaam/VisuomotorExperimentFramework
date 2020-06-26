@@ -7,7 +7,6 @@ public class ArcScript : MonoBehaviour
     public float TargetDistance;
     public float Angle;
 
-    private int prevSpan = 60;
     public float width = 2f;
     public float thickness = 0.015f;
     private float lerpTimer;

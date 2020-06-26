@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UXF;
 using MovementType = CursorController.MovementType;
@@ -15,17 +16,22 @@ public class ReachToTargetTask : BaseTask
     Trial trial;
     private GameObject[] targets = new GameObject[3];
 
+    private static List<float> targetAngles = new List<float>();
+
     /// <summary>
     /// Initializes a task where you move from a starting position to
     /// a target in space
     /// </summary>
     /// <param name="reachType">Reach type from HOME to TARGET.</param>
-    public void Init(Trial trial, MovementType reachType)
+    public void Init(Trial trial, MovementType reachType, List<float> angles)
     {
         this.reachType = new MovementType[3];
         this.reachType[2] = reachType;
         this.trial = trial;
         maxSteps = 3;
+
+        if (trial.numberInBlock == 1)
+            targetAngles = angles;
 
         Setup();
     }
@@ -95,16 +101,13 @@ public class ReachToTargetTask : BaseTask
 
         // Set up the target
 
-        // Get target angles from list
-        var targetAngles = ctrler.Session.settings.GetFloatList(
-            trial.settings.GetString("per_block_targetListToUse"));
-
-        // Select a random angle from the list and use it as the target angle
-        // Uses psuedo-random
+        // Takes a target angle from the list and removes it
+        float targetAngle = targetAngles[0];
+        targetAngles.RemoveAt(0);
         
         targets[2] = Instantiate(ctrler.GetPrefab("Target"));
         targets[2].transform.rotation = Quaternion.Euler(
-            0f, -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f, 0f);
+            0f, -targetAngle + 90f, 0f);
 
         targets[2].transform.position = targets[1].transform.position +
                                         targets[2].transform.forward.normalized *

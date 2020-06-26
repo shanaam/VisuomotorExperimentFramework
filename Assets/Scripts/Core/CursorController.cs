@@ -53,6 +53,7 @@ public class CursorController : MonoBehaviour
         List<InputDevice> devices = new List<InputDevice>();
         InputDevices.GetDevices(devices);
 
+        Debug.Log("Detecting devices...");
         foreach (InputDevice device in devices)
         {
             switch (device.characteristics)
@@ -64,6 +65,8 @@ public class CursorController : MonoBehaviour
                     RightHandDevice = device;
                     break;
             }
+
+            Debug.Log("Found Device: " + device.name);
         }
 
         MoveType = MovementType.aligned;

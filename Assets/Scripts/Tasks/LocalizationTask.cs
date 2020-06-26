@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UXF;
 
 public class LocalizationTask : BaseTask
@@ -8,10 +9,16 @@ public class LocalizationTask : BaseTask
 
     private Trial trial;
 
-    public void Init(Trial trial)
+    private static List<float> targetAngles = new List<float>();
+
+    public void Init(Trial trial, List<float> angles)
     {
         maxSteps = 4;
         this.trial = trial;
+
+        if (trial.numberInBlock == 1)
+            targetAngles = angles;
+
         Setup();
     }
 
@@ -110,15 +117,15 @@ public class LocalizationTask : BaseTask
         targets[1].name = "Home";
         Home = targets[1];
 
-        var targetAngles = ctrler.Session.settings.GetFloatList(
-            trial.settings.GetString("per_block_targetListToUse")
-        );
+        // Grab an angle from the list and then remove it
+        float targetAngle = targetAngles[0];
+        targetAngles.RemoveAt(0);
 
         // Set up the arc object
         targets[2] = Instantiate(ctrler.GetPrefab("ArcTarget"));
         targets[2].transform.rotation = Quaternion.Euler(
             0f,
-            -targetAngles[Random.Range(0, targetAngles.Count - 1)] + 90f,
+            -targetAngle + 90f,
             0f);
 
         targets[2].transform.position = targets[1].transform.position;

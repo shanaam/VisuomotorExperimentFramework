@@ -133,6 +133,24 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
+        // If the current trial is the first one in the block, we need to generate a pseudo-random
+        // list of angles for the trial to pick from.
+        List<float> angles = new List<float>();
+        if (trial.numberInBlock == 1)
+        {
+            // Grab target list and shuffle
+            List<float> tempAngleList = Session.settings.GetFloatList(
+                Session.CurrentBlock.settings.GetString("per_block_targetListToUse"));
+
+            for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
+            {
+                angles.Add(tempAngleList[i % tempAngleList.Count]);
+            }
+
+            // Pseudo-random shuffle
+            angles.Shuffle();
+        }
+
         switch (Session.settings.GetString("experiment_mode")) 
         {
             case "target":
@@ -148,12 +166,12 @@ public class ExperimentController : MonoBehaviour
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
 
                         ((ReachToTargetTask) CurrentTask).Init(trial,
-                            per_block_type == "nocursor" ? MovementType.aligned : reachType);
+                            per_block_type == "nocursor" ? MovementType.aligned : reachType,
+                            angles);
                         break;
                     case "localization":
                         CurrentTask = gameObject.AddComponent<LocalizationTask>();
-
-                        ((LocalizationTask) CurrentTask).Init(trial);
+                        ((LocalizationTask) CurrentTask).Init(trial, angles);
                         break;
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
@@ -162,9 +180,10 @@ public class ExperimentController : MonoBehaviour
                 }
 
                 break;
+            case "pinball_vr":
             case "pinball":
                 CurrentTask = gameObject.AddComponent<PinballTask>();
-                ((PinballTask)CurrentTask).Init(trial);
+                ((PinballTask)CurrentTask).Init(trial, angles);
 
                 break;
             default:
