@@ -86,7 +86,7 @@ public class PinballTask : BaseTask
                         }
 
                         pinball.transform.LookAt(direction);
-                        force = direction.magnitude * 45f;
+                        force = direction.magnitude * 30f;
                         //force = direction.magnitude * 100f;
                         //force *= 240f;
                         //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
