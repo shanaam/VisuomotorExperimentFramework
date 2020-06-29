@@ -68,6 +68,11 @@ public class PinballTask : BaseTask
                     }
                     else if (Input.GetMouseButtonUp(0))
                     {
+                        // Tilt perturbation
+                        pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+                            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
+
+
                         ctrler.EndTimer();
                         direction.y = pinball.transform.position.y;
 
@@ -86,6 +91,7 @@ public class PinballTask : BaseTask
                         //force *= 240f;
                         //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
 
+                        pinball.GetComponent<Rigidbody>().useGravity = true;
                         pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * force;
                         IncrementStep();
                     }
