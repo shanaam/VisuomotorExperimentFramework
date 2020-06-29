@@ -102,9 +102,17 @@ public class PinballTask : BaseTask
                 }
                 break;
             case 1:
+                // Trial ends if the pinball crosses the center of the target (~2.5cm)
+                if (Vector3.Distance(pinball.transform.position, new Vector3(
+                        Target.transform.position.x, 
+                        pinball.transform.position.y,
+                        Target.transform.position.z)) < 0.025f)
+                {
+                    LogParameters();
+                }
+
                 // ball is in motion. goto next step when ball stops
                 // radius is equal to the distance between the target and home
-                Debug.Log(pinball.GetComponent<Rigidbody>().velocity.sqrMagnitude);
                 if (pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f)
                 {
                     if (timer <= 0.5f)
