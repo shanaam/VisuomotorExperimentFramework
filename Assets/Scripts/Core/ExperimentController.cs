@@ -126,6 +126,9 @@ public class ExperimentController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.M))
             EndAndPrepare();
+
+        if (Input.GetKey(KeyCode.Escape))
+            Application.Quit();
     }
 
     /// <summary>
