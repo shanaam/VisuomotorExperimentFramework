@@ -32,6 +32,9 @@ public class CursorController : MonoBehaviour
     // Returns the distance from the cursor to the home
     public float DistanceFromHome { get; private set; }
 
+    // Bools for when the trigger is pressed
+    private bool prevLeftTrigger, prevRightTrigger;
+
     public enum MovementType
     {
         aligned,
@@ -79,17 +82,34 @@ public class CursorController : MonoBehaviour
 
     public bool IsTriggerDown(String hand)
     {
+        if (hand == "l") {
+            return LeftHandDevice == null
+                ? false
+                : LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+        } else {
+            return RightHandDevice == null
+                ? false
+                : RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+        }
+    }
+
+    // Returns true if the trigger was released on this frame
+    public bool OnTriggerUp()
+    {
+        return OnTriggerUp(CurrentTaskHand);
+    }
+
+    public bool OnTriggerUp(String hand)
+    {
         if (hand == "l")
         {
             return LeftHandDevice == null
                 ? false
-                : LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
-        }
-        else
-        {
+                : !LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val) && prevLeftTrigger;
+        } else {
             return RightHandDevice == null
                 ? false
-                : RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+                : !RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val) && prevRightTrigger;
         }
     }
 
@@ -99,6 +119,15 @@ public class CursorController : MonoBehaviour
     public GameObject CurrentHand()
     {
         return CurrentTaskHand == "l" ? LeftHand : RightHand;
+    }
+
+    /// <summary>
+    /// Returns the GameObject that represents the current task's hand collider
+    /// </summary>
+    /// <returns></returns>
+    public GameObject CurrentCollider()
+    {
+        return CurrentTaskHand == "l" ? leftHandCollider : rightHandCollider;
     }
 
     /// <summary>
@@ -164,6 +193,9 @@ public class CursorController : MonoBehaviour
 
         previousPosition = realHandPosition;
         DistanceFromHome = (transform.position - ExperimentController.Instance().CurrentTask.Home.transform.position).magnitude;
+
+        prevLeftTrigger = IsTriggerDown("l");
+        prevRightTrigger = IsTriggerDown("r");
     }
 
     /// <summary>

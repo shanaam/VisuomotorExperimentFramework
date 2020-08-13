@@ -22,6 +22,11 @@ public class PinballTask : BaseTask
 
     private static List<float> targetAngles = new List<float>();
 
+    // True when the participant is holding the trigger down to aim the pinball
+    private bool aiming;
+
+    private GameObject currentHand;
+
     public void Init(Trial trial, List<float> angles)
     {
         maxSteps = 2;
@@ -63,42 +68,44 @@ public class PinballTask : BaseTask
                         directionIndicator.transform.LookAt(pinball.transform.position);
                         directionIndicator.transform.RotateAround(directionIndicator.transform.position, transform.up,
                             90f);
-
-                        Debug.Log(direction.magnitude);
                     }
                     else if (Input.GetMouseButtonUp(0))
-                    {
-                        // Tilt perturbation
-                        pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-                            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
-
-
-                        ctrler.EndTimer();
-                        direction.y = pinball.transform.position.y;
-
-                        // Perturbation
-                        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
-                        {
-                            float angle = ExperimentController.Instance().Session.CurrentTrial.settings
-                                .GetFloat("per_block_rotation");
-
-                            direction = Quaternion.Euler(0f, -angle, 0f) * direction;
-                        }
-
-                        pinball.transform.LookAt(direction);
-                        force = direction.magnitude * 40f;
-                        //force = direction.magnitude * 100f;
-                        //force *= 240f;
-                        //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
-
-                        pinball.GetComponent<Rigidbody>().useGravity = true;
-                        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * force;
-                        IncrementStep();
-                    }
+                        FirePinball();
                 }
                 else
                 {
-                    // TODO
+                    if (ExperimentController.Instance().CursorController.IsTriggerDown() &&
+                        pinball.GetComponent<Grabbable>().Grabbed)
+                    {
+                        // If the user presses the trigger while hovering over the pinball, move to next step
+                        aiming = true;
+                        
+                        directionIndicator.SetActive(true);
+                        ctrler.StartTimer();
+                    }
+                    else if (ExperimentController.Instance().CursorController.OnTriggerUp() && aiming)
+                        FirePinball();
+                    else if (aiming)
+                    {
+                        
+                        Vector3 handCoordinates = new Vector3(
+                            currentHand.transform.position.x,
+                            pinball.transform.position.y,
+                            currentHand.transform.position.z);
+
+                        direction = Vector3.ClampMagnitude(pinball.transform.position - handCoordinates, 0.1f);
+
+                        directionIndicator.transform.localScale = new Vector3(
+                            direction.magnitude,
+                            directionIndicator.transform.localScale.y,
+                            directionIndicator.transform.localScale.z
+                        );
+
+                        directionIndicator.transform.position = pinball.transform.position - direction / 2f;
+                        directionIndicator.transform.LookAt(pinball.transform.position);
+                        directionIndicator.transform.RotateAround(directionIndicator.transform.position, transform.up,
+                            90f);
+                    }
                 }
                 break;
             case 1:
@@ -127,6 +134,35 @@ public class PinballTask : BaseTask
 
         if (Finished)
             ctrler.EndAndPrepare();
+    }
+
+    private void FirePinball()
+    {
+        // Tilt perturbation
+        pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
+
+        ctrler.EndTimer();
+        direction.y = pinball.transform.position.y;
+
+        // Perturbation
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
+        {
+            float angle = ExperimentController.Instance().Session.CurrentTrial.settings
+                .GetFloat("per_block_rotation");
+
+            direction = Quaternion.Euler(0f, -angle, 0f) * direction;
+        }
+
+        pinball.transform.LookAt(direction);
+        force = direction.magnitude * 40f;
+        //force = direction.magnitude * 100f;
+        //force *= 240f;
+        //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
+
+        pinball.GetComponent<Rigidbody>().useGravity = true;
+        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * force;
+        IncrementStep();
     }
 
     private void LogParameters()
@@ -192,6 +228,8 @@ public class PinballTask : BaseTask
 
         // Cutoff distance is 15cm more than the distance to the target
         distanceToTarget += 0.15f;
+
+        currentHand = ExperimentController.Instance().CursorController.CurrentHand();
     }
 
     protected override void OnDestroy()
