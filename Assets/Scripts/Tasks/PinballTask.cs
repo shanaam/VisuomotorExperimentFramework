@@ -72,22 +72,28 @@ public class PinballTask : BaseTask
                     else if (Input.GetMouseButtonUp(0))
                         FirePinball();
                 }
-                else
+                else //maybe else if for clarity
                 {
+                    //Debug.Log(ExperimentController.Instance().CursorController.IsTriggerDown());
                     if (ExperimentController.Instance().CursorController.IsTriggerDown() &&
                         pinball.GetComponent<Grabbable>().Grabbed)
                     {
                         // If the user presses the trigger while hovering over the pinball, move to next step
                         aiming = true;
+                        Debug.Log("should be grabbed");
                         
                         directionIndicator.SetActive(true);
                         ctrler.StartTimer();
                     }
                     else if (ExperimentController.Instance().CursorController.OnTriggerUp() && aiming)
                         FirePinball();
+                    //else if(ExperimentController.Instance().CursorController.IsTriggerDown())
+                    //    Debug.Log("TriggerDown");
+                    //else if (ExperimentController.Instance().CursorController.OnTriggerUp())
+                    //    Debug.Log("trigger up");
                     else if (aiming)
                     {
-                        
+
                         Vector3 handCoordinates = new Vector3(
                             currentHand.transform.position.x,
                             pinball.transform.position.y,
