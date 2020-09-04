@@ -268,4 +268,14 @@ public class CursorController : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
+
+    /// <summary>
+    /// Maps the mouse cursor position to the plane's Y coordinate.
+    /// A camera must be provided to determine the mouse position.
+    /// </summary>
+    public Vector3 MouseToPlanePoint(Vector3 plane, Camera camera)
+    {
+        Vector3 mouseWorldCoords = camera.ScreenToWorldPoint(Input.mousePosition);
+        return new Vector3(mouseWorldCoords.x, plane.y, mouseWorldCoords.z);
+    }
 }

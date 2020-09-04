@@ -189,6 +189,10 @@ public class ExperimentController : MonoBehaviour
                 ((PinballTask)CurrentTask).Init(trial, angles);
 
                 break;
+            case "tool":
+                CurrentTask = gameObject.AddComponent<ToolTask>();
+                ((ToolTask)CurrentTask).Init(trial, angles);
+                break;
             default:
                 Debug.LogWarning("Experiment Type not implemented: " + 
                                  Session.settings.GetString("experiment_mode"));
