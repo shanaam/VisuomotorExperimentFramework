@@ -39,9 +39,13 @@ public class PinballTask : BaseTask
         Setup();
     }
 
+
     // Update is called once per frame
     void Update()
     {
+        //make sure that this is still centred on the exp controller
+        pinballSpace.transform.position = ctrler.transform.position; //this should probably just happen once but doing so on setup doesn't work for the first trial.
+
         switch (currentStep)
         {
             case 0:
@@ -74,7 +78,11 @@ public class PinballTask : BaseTask
                 }
                 else //maybe else if for clarity
                 {
-                    //Debug.Log(ExperimentController.Instance().CursorController.IsTriggerDown());
+                    //if (ExperimentController.Instance().CursorController.IsTriggerDown())
+                    //    Debug.Log("Trigger is down");
+                    //if (ExperimentController.Instance().CursorController.triggerUp)
+                    //    Debug.Log("Trigger Up");
+
                     if (ExperimentController.Instance().CursorController.IsTriggerDown() &&
                         pinball.GetComponent<Grabbable>().Grabbed)
                     {
@@ -85,12 +93,9 @@ public class PinballTask : BaseTask
                         directionIndicator.SetActive(true);
                         ctrler.StartTimer();
                     }
-                    else if (ExperimentController.Instance().CursorController.OnTriggerUp() && aiming)
+                    else if (ExperimentController.Instance().CursorController.triggerUp && aiming)
                         FirePinball();
-                    //else if(ExperimentController.Instance().CursorController.IsTriggerDown())
-                    //    Debug.Log("TriggerDown");
-                    //else if (ExperimentController.Instance().CursorController.OnTriggerUp())
-                    //    Debug.Log("trigger up");
+
                     else if (aiming)
                     {
 
@@ -139,7 +144,11 @@ public class PinballTask : BaseTask
         }
 
         if (Finished)
+        {
+            Debug.Log("Trial Finished");
             ctrler.EndAndPrepare();
+        }
+          
     }
 
     private void FirePinball()
@@ -202,7 +211,11 @@ public class PinballTask : BaseTask
 
     protected override void Setup()
     {
+
+
         pinballSpace = Instantiate(ctrler.GetPrefab("PinballPrefab"));
+    
+
         pinball = GameObject.Find("Pinball");
         Home = GameObject.Find("PinballHome");
         Target = GameObject.Find("PinballTarget");

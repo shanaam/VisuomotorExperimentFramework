@@ -4,14 +4,36 @@ public class Grabbable : MonoBehaviour
 {
     public bool Grabbed { get; private set; }
 
-    void OnCollisionStay(Collision collider)
+    //void OnCollisionStay(Collision collider)
+    //{
+    //    {
+    //        collider_name = collider.gameObject.name;
+    //        Grabbed = ExperimentController.Instance().CursorController.CurrentCollider().name == collider.gameObject.name &&
+    //            ExperimentController.Instance().CursorController.IsTriggerDown();
+
+    //        Debug.Log(collider_name);
+    //    }
+
+    //}
+
+    void OnTriggerStay(Collider other)
     {
-        Grabbed = ExperimentController.Instance().CursorController.CurrentCollider().name == collider.gameObject.name &&
+        // set Grabbed to True when trigger is down AND cursor model is inside this collider
+        Grabbed = "CursorModel" == other.gameObject.name &&
             ExperimentController.Instance().CursorController.IsTriggerDown();
     }
 
-    void OnCollisionExit(Collision collider)
+    void OnTriggerExit(Collider other)
     {
         Grabbed = false;
     }
+
+    private void Update()
+    {
+        if (ExperimentController.Instance().CursorController.triggerUp)
+        {
+            //Debug.Log("Trigger Up");
+            Grabbed = false;
+        }
+    }         
 }

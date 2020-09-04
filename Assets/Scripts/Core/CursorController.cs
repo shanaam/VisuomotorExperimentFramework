@@ -9,6 +9,10 @@ public class CursorController : MonoBehaviour
     // The visible representation of the cursor. A blue sphere
     public GameObject Model;
 
+    public bool triggerUp = false;
+    // to check whether it's being pressed
+    public bool IsPressed { get; private set; }
+
     // References to the left and right hand positions
     public GameObject LeftHand, RightHand;
     private GameObject leftHandModel, rightHandModel;
@@ -54,23 +58,30 @@ public class CursorController : MonoBehaviour
         rightHandCollider = RightHand.transform.Find("RightHandCollider").gameObject;
 
         List<InputDevice> devices = new List<InputDevice>();
-        InputDevices.GetDevices(devices);
+        //InputDevices.GetDevices(devices);
+
+        InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right, devices);
+
+        RightHandDevice = devices[0];
 
         Debug.Log("Detecting devices...");
-        foreach (InputDevice device in devices)
-        {
-            switch (device.characteristics)
-            {
-                case InputDeviceCharacteristics.Left:
-                    LeftHandDevice = device;
-                    break;
-                case InputDeviceCharacteristics.Right:
-                    RightHandDevice = device;
-                    break;
-            }
+        Debug.Log("Found Right Device: " + RightHandDevice);
 
-            Debug.Log("Found Device: " + device.name);
-        }
+        
+        //foreach (InputDevice device in devices)
+        //{
+        //    switch (device.characteristics)
+        //    {
+        //        case InputDeviceCharacteristics.Left:
+        //            LeftHandDevice = device;
+        //            break;
+        //        case InputDeviceCharacteristics.Right:
+        //            RightHandDevice = device;
+        //            break;
+        //    }
+
+        //    Debug.Log("Found Device: " + device.name);
+        //}
 
         MoveType = MovementType.aligned;
     }
@@ -87,9 +98,11 @@ public class CursorController : MonoBehaviour
                 ? false
                 : LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
         } else {
+
             return RightHandDevice == null
                 ? false
-                : RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+                : RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val) && val;
+            // THE ABOVE CODE WORKS!
         }
     }
 
@@ -177,6 +190,25 @@ public class CursorController : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
+        triggerUp = false;
+
+        if (RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val) && val)
+        {
+            // if start pressing, trigger event
+            if (!IsPressed)
+            {
+                IsPressed = true;
+                Debug.Log("Trig down now");
+            }
+        }
+        // check for button release
+        else if (IsPressed)
+        {
+            IsPressed = false;
+            triggerUp = true;
+        }
+        // above code should work for ontriggerup (this means clean-up is required on current onTriggerUp method)
+
         if (ExperimentController.Instance().CurrentTask == null) return;
 
         Vector3 realHandPosition = CurrentTaskHand == "l"
@@ -198,6 +230,7 @@ public class CursorController : MonoBehaviour
         prevRightTrigger = IsTriggerDown("r");
     }
 
+  
     /// <summary>
     /// Converts the user's hand location into the transformed cursor location
     /// </summary>
