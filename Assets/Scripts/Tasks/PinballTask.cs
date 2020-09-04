@@ -244,6 +244,7 @@ public class PinballTask : BaseTask
 
         // Parent to experiment controller
         pinballSpace.transform.SetParent(ExperimentController.Instance().transform);
+        pinballSpace.transform.localPosition = Vector3.zero;
     }
 
     protected override void OnDestroy()
