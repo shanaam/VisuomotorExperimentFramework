@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UXF;
 
@@ -44,8 +44,8 @@ public class PinballTask : BaseTask
     void Update()
     {
         //make sure that this is still centred on the exp controller
-        pinballSpace.transform.position = ctrler.transform.position; //this should probably just happen once but doing so on setup doesn't work for the first trial.
-
+        //pinballSpace.transform.position = ctrler.transform.position; //this should probably just happen once but doing so on setup doesn't work for the first trial.
+        Debug.Log(Vector3.Distance(pinball.transform.position, Home.transform.position));
         switch (currentStep)
         {
             case 0:
@@ -95,9 +95,6 @@ public class PinballTask : BaseTask
                         directionIndicator.SetActive(true);
                         ctrler.StartTimer();
                     }
-                    else if (ExperimentController.Instance().CursorController.triggerUp && aiming)
-                        FirePinball();
-
                     else if (aiming)
                     {
 
@@ -118,6 +115,9 @@ public class PinballTask : BaseTask
                         directionIndicator.transform.LookAt(pinball.transform.position);
                         directionIndicator.transform.RotateAround(directionIndicator.transform.position, transform.up,
                             90f);
+
+                        if (ExperimentController.Instance().CursorController.triggerUp)
+                            FirePinball();
                     }
                 }
                 break;
@@ -150,7 +150,6 @@ public class PinballTask : BaseTask
             Debug.Log("Trial Finished");
             ctrler.EndAndPrepare();
         }
-          
     }
 
     private void FirePinball()
@@ -206,8 +205,6 @@ public class PinballTask : BaseTask
 
     protected override void Setup()
     {
-
-
         pinballSpace = Instantiate(ctrler.GetPrefab("PinballPrefab"));
     
 
@@ -244,6 +241,9 @@ public class PinballTask : BaseTask
         distanceToTarget += 0.15f;
 
         currentHand = ExperimentController.Instance().CursorController.CurrentHand();
+
+        // Parent to experiment controller
+        pinballSpace.transform.SetParent(ExperimentController.Instance().transform);
     }
 
     protected override void OnDestroy()

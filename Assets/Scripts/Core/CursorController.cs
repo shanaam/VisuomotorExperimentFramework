@@ -62,7 +62,14 @@ public class CursorController : MonoBehaviour
 
         InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right, devices);
 
-        RightHandDevice = devices[0];
+        if (devices.Count > 0)
+        {
+            RightHandDevice = devices[0];
+        }
+        else
+        {
+            Debug.Log("No devices detected.");
+        }
 
         Debug.Log("Detecting devices...");
         Debug.Log("Found Right Device: " + RightHandDevice);
