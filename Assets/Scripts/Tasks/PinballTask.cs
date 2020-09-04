@@ -56,7 +56,9 @@ public class PinballTask : BaseTask
                             ctrler.StartTimer();
                         }
 
-                        direction = Vector3.ClampMagnitude(pinball.transform.position - MouseToPlanePoint(), 0.1f);
+                        direction = Vector3.ClampMagnitude(pinball.transform.position - 
+                                                           ctrler.CursorController.MouseToPlanePoint(pinball.transform.position, 
+                                                               pinballCam.GetComponent<Camera>()), 0.1f);
 
                         directionIndicator.transform.localScale = new Vector3(
                             direction.magnitude,
@@ -191,13 +193,6 @@ public class PinballTask : BaseTask
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
 
         IncrementStep();
-    }
-
-    // Converts the mouse screen coordinates to world space along the experiment plane
-    private Vector3 MouseToPlanePoint()
-    {
-        Vector3 mouseWorldCoords = pinballCam.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition);
-        return new Vector3(mouseWorldCoords.x, pinball.transform.position.y, mouseWorldCoords.z);
     }
 
     protected override void Setup()
