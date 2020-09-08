@@ -45,7 +45,7 @@ public class ToolTask : BaseTask
         Setup();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         // Position is tied to either mouse position or the hand
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
@@ -53,9 +53,9 @@ public class ToolTask : BaseTask
             Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(new Vector3(
                 0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
-            mousePoint.Set(mousePoint.x, mousePoint.y,
-                Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
-                    toolSurface.transform.position.z + 0.05f));
+            //mousePoint.Set(mousePoint.x, mousePoint.y,
+            //    Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
+            //        toolSurface.transform.position.z + 0.05f));
 
             tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
         }
@@ -101,7 +101,8 @@ public class ToolTask : BaseTask
     void LateUpdate()
     {
         // Lock rotation axis of cube. This is only a visual effect
-        visualCube.transform.rotation = Quaternion.identity;
+        if (visualCube != null)
+            visualCube.transform.rotation = Quaternion.Inverse(obj.transform.rotation);
     }
 
     protected override void Setup()
@@ -147,22 +148,24 @@ public class ToolTask : BaseTask
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_static_friction");
 
         // Set up tool friction
-        obj.GetComponent<BoxCollider>().material.dynamicFriction =
+        /*
+        obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
 
-        obj.GetComponent<BoxCollider>().material.dynamicFriction =
+        obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
+        */
+        obj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
+        tool.GetComponent<BoxCollider>().material.bounciness = 1f;
 
-
+        visualCube = GameObject.Find("ToolVisualCube");
+        cubeRot = visualCube.transform.rotation;
 
         // Set up object type
         if (ctrler.Session.CurrentTrial.settings.GetString("per_block_object_type") == "sphere")
             GameObject.Find("ToolVisualCube").SetActive(false);
         else
             GameObject.Find("ToolVisualSphere").SetActive(false);
-
-        visualCube = GameObject.Find("ToolVisualCube");
-        cubeRot = visualCube.transform.rotation;
     }
 
     private void LogParameters()
