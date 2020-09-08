@@ -9,6 +9,7 @@ public class PinballTask : BaseTask
     private GameObject pinballCam;
     private GameObject pinball;
     private GameObject directionIndicator;
+    private GameObject XRRig;
 
     private Trial trial;
     private ExperimentController ctrler;
@@ -164,6 +165,13 @@ public class PinballTask : BaseTask
         pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
 
+        // Tilt VR space too
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        {
+            XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
+        }
+
         ctrler.EndTimer();
         direction.y = pinball.transform.position.y;
 
@@ -189,7 +197,7 @@ public class PinballTask : BaseTask
         // ensure that direction is on horizontal plane for force calc
         direction.y = 0f;
 
-        force = direction.magnitude * 80f;
+        force = direction.magnitude * 50f;
         //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
@@ -236,6 +244,11 @@ public class PinballTask : BaseTask
         directionIndicator = GameObject.Find("PinballSpring");
         directionIndicator.SetActive(false);
 
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        {
+            XRRig = GameObject.Find("XR Rig");
+        }
+
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
 
@@ -273,6 +286,13 @@ public class PinballTask : BaseTask
 
     protected override void OnDestroy()
     {
+        // Tilt back if required
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        {
+            XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt") * -1);
+        }
+
         Destroy(pinballSpace);
 
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball" &&
