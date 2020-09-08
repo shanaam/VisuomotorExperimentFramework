@@ -10,6 +10,7 @@ public class PinballTask : BaseTask
     private GameObject pinball;
     private GameObject directionIndicator;
     private GameObject XRRig;
+    private GameObject testCube;
 
     private Trial trial;
     private ExperimentController ctrler;
@@ -188,6 +189,9 @@ public class PinballTask : BaseTask
 
         Debug.Log("direction: " + direction.ToString("F5"));
 
+        // purely for testing
+        testCube.transform.position = direction + pinball.transform.position + (Vector3.down * pinball.transform.position.y);
+
         // have pinball face the direction to be fired
         Vector3 lookAtPosition = pinball.transform.position - direction;
         lookAtPosition.y = pinball.transform.position.y;
@@ -248,6 +252,9 @@ public class PinballTask : BaseTask
         {
             XRRig = GameObject.Find("XR Rig");
         }
+
+        // purely for testing
+        testCube = GameObject.Find("TestCube");
 
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
