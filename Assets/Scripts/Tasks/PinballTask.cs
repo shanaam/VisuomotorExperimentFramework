@@ -45,7 +45,8 @@ public class PinballTask : BaseTask
     {
         //make sure that this is still centred on the exp controller
         //pinballSpace.transform.position = ctrler.transform.position; //this should probably just happen once but doing so on setup doesn't work for the first trial.
-        Debug.Log(Vector3.Distance(pinball.transform.position, Home.transform.position));
+        // Debug.Log(Vector3.Distance(pinball.transform.position, Home.transform.position));
+
         switch (currentStep)
         {
             case 0:
@@ -76,7 +77,10 @@ public class PinballTask : BaseTask
                             90f);
                     }
                     else if (Input.GetMouseButtonUp(0))
-                        FirePinball();
+                    {
+                            FirePinball();
+                    }
+             
                 }
                 else //maybe else if for clarity
                 {
@@ -90,7 +94,7 @@ public class PinballTask : BaseTask
                     {
                         // If the user presses the trigger while hovering over the pinball, move to next step
                         aiming = true;
-                        Debug.Log("should be grabbed");
+                        //Debug.Log("should be grabbed");
                         
                         directionIndicator.SetActive(true);
                         ctrler.StartTimer();
@@ -117,7 +121,9 @@ public class PinballTask : BaseTask
                             90f);
 
                         if (ExperimentController.Instance().CursorController.triggerUp)
+                        {
                             FirePinball();
+                        }
                     }
                 }
                 break;
@@ -170,14 +176,29 @@ public class PinballTask : BaseTask
             direction = Quaternion.Euler(0f, -angle, 0f) * direction;
         }
 
-        pinball.transform.LookAt(direction);
-        force = direction.magnitude * 40f;
-        //force = direction.magnitude * 100f;
-        //force *= 240f;
+        Debug.Log("PB pos before fire: " + pinball.transform.position.ToString("F5"));
+
+        Debug.Log("direction: " + direction.ToString("F5"));
+
+        // have pinball face the direction to be fired
+        Vector3 lookAtPosition = pinball.transform.position - direction;
+        lookAtPosition.y = pinball.transform.position.y;
+
+        pinball.transform.LookAt(lookAtPosition);
+
+        // ensure that direction is on horizontal plane for force calc
+        direction.y = 0f;
+
+        force = direction.magnitude * 80f;
         //pinball.GetComponent<Rigidbody>().AddForce(pinball.transform.forward.normalized * force);
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
-        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * force;
+        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * force * -1;
+
+        Debug.Log("forward for PB: " + pinball.transform.forward.ToString("F5"));
+
+        Debug.Log("force applied: " + force.ToString("F5"));
+
         IncrementStep();
     }
 
@@ -245,6 +266,9 @@ public class PinballTask : BaseTask
         // Parent to experiment controller
         pinballSpace.transform.SetParent(ExperimentController.Instance().transform);
         pinballSpace.transform.localPosition = Vector3.zero;
+
+        //Debug.Log("Exp controller position: " + ExperimentController.Instance().transform.position.ToString("F5"));
+        Debug.Log("PB world position: " + pinballSpace.transform.position.ToString("F5"));
     }
 
     protected override void OnDestroy()
