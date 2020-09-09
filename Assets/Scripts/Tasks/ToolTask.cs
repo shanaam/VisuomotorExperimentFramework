@@ -140,6 +140,7 @@ public class ToolTask : BaseTask
         distanceToTarget = Vector3.Distance(Target.transform.position, Home.transform.position);
         distanceToTarget += 0.15f;
         
+        /*
         // Set up surface friction
         toolSurface.GetComponent<BoxCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_dynamic_friction");
@@ -148,7 +149,7 @@ public class ToolTask : BaseTask
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_static_friction");
 
         // Set up tool friction
-        /*
+        
         obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
 
