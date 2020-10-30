@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: fecf08a696e8ac54baf86c5f1051084e, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -132,6 +132,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: left_touch_controller_model_skel
       objectReference: {fileID: 0}
+    - target: {fileID: 100036, guid: 1bf8f52eeebe8e149b9d6e3477251532, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 400036, guid: 1bf8f52eeebe8e149b9d6e3477251532, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -175,6 +179,10 @@ PrefabInstance:
     - target: {fileID: 400036, guid: 1bf8f52eeebe8e149b9d6e3477251532, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: 1bf8f52eeebe8e149b9d6e3477251532, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 13700000, guid: 1bf8f52eeebe8e149b9d6e3477251532, type: 3}
       propertyPath: m_Materials.Array.data[0]
