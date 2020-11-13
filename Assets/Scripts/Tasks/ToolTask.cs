@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -57,7 +57,8 @@ public class ToolTask : BaseTask
             //    Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
             //        toolSurface.transform.position.z + 0.05f));
 
-            tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
+            //tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
+            tool.transform.position = mousePoint;
         }
         else
         {

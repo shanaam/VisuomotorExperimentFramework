@@ -175,9 +175,7 @@ public class PinballTask : BaseTask
                 // Track a point every 25 milliseconds
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
-
-                        pinballPoints.Add(pinball.transform.position);
-
+                    pinballPoints.Add(pinball.transform.position);
                 }
 
                 // Trial ends if the pinball crosses the center of the target (5cm) OR
@@ -188,7 +186,8 @@ public class PinballTask : BaseTask
                     Target.transform.position.x,
                     pinball.transform.position.y,
                     Target.transform.position.z));
-                if (distanceToTarget < 0.05f ||
+
+                if (distanceToTarget < 0.03f ||
                     pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
                     Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
                 {
@@ -199,16 +198,20 @@ public class PinballTask : BaseTask
                 // Pause the screen for 1.5 seconds
                 if (timer == 0f)
                 {
-                    if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                    pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+
+                    // If the pinball is inside the diameter of the target
+                    if (distanceToTarget < 0.03f)
                     {
-                        // If the pinball is inside the diameter of the target
-                        if (distanceToTarget < 0.05f)
-                        {
+                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback")) {
+
                             pinballSpace.GetComponent<LineRenderer>().startColor =
                                 pinballSpace.GetComponent<LineRenderer>().endColor = Color.green;
 
                             Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
                         }
+
+                        pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
                     }
 
                     // Freezes pinball in place
@@ -217,6 +220,7 @@ public class PinballTask : BaseTask
 
                     pinballSpace.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
                     pinballSpace.GetComponent<LineRenderer>().SetPositions(pinballPoints.ToArray());
+                    pinballSpace.GetComponent<AudioSource>().Play();
                     timer += Time.deltaTime;
                 }
                 if (timer < 1.5f)
