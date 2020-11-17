@@ -46,6 +46,10 @@ public class PinballTask : BaseTask
 
     private float distanceToTarget;
 
+    // Pinball Camera Offset
+    Vector3 pinballCamOffset = new Vector3(0f, 0.725f, -0.535f);
+    private float pinballAngle = 35f;
+
     public void Init(Trial trial, List<float> angles)
     {
         maxSteps = 3;
@@ -271,7 +275,9 @@ public class PinballTask : BaseTask
         Debug.Log("direction: " + direction.ToString("F5"));
 
         // purely for testing
-        testCube.transform.position = direction + pinball.transform.position + (Vector3.down * pinball.transform.position.y);
+        //testCube.transform.position = direction + 
+        //                              pinball.transform.position + 
+        //                              (Vector3.down * pinball.transform.position.y);
 
         // have pinball face the direction to be fired
         Vector3 lookAtPosition = pinball.transform.position - direction;
@@ -346,7 +352,7 @@ public class PinballTask : BaseTask
         XRRig = GameObject.Find("XR Rig");
 
         // purely for testing
-        testCube = GameObject.Find("TestCube");
+        //testCube = GameObject.Find("TestCube");
 
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
@@ -361,6 +367,10 @@ public class PinballTask : BaseTask
         // Use static camera for non-vr version of pinball
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
         {
+            // Setup Pinball Camera Offset
+            pinballCam.transform.position = pinballCamOffset;
+            pinballCam.transform.rotation = Quaternion.Euler(pinballAngle, 0f, 0f);
+
             oldMainCamera = GameObject.Find("Main Camera");
             oldMainCamera.GetComponent<TrackedPoseDriver>().enabled = false;
             oldMainCamera.transform.localPosition = 
