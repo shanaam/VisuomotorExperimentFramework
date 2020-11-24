@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -57,7 +57,8 @@ public class ToolTask : BaseTask
             //    Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
             //        toolSurface.transform.position.z + 0.05f));
 
-            tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
+            //tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
+            tool.transform.position = mousePoint;
         }
         else
         {
@@ -140,6 +141,7 @@ public class ToolTask : BaseTask
         distanceToTarget = Vector3.Distance(Target.transform.position, Home.transform.position);
         distanceToTarget += 0.15f;
         
+        /*
         // Set up surface friction
         toolSurface.GetComponent<BoxCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_dynamic_friction");
@@ -148,7 +150,7 @@ public class ToolTask : BaseTask
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_static_friction");
 
         // Set up tool friction
-        /*
+        
         obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
 
