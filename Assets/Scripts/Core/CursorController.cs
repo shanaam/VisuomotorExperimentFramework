@@ -280,9 +280,16 @@ public class CursorController : MonoBehaviour
     /// Maps the mouse cursor position to the plane's Y coordinate.
     /// A camera must be provided to determine the mouse position.
     /// </summary>
-    public Vector3 MouseToPlanePoint(Vector3 plane, Camera camera)
+    public Vector3 MouseToPlanePoint(Vector3 planePos, Camera camera)
     {
-        Vector3 mouseWorldCoords = camera.ScreenToWorldPoint(Input.mousePosition);
-        return new Vector3(mouseWorldCoords.x, plane.y, mouseWorldCoords.z);
+        Vector3 pos = camera.ScreenToWorldPoint(new Vector3(
+            Input.mousePosition.x, Input.mousePosition.y, camera.nearClipPlane));
+
+        Vector3 direction = (pos - camera.transform.position).normalized;
+
+        Plane plane = new Plane(Vector3.up, planePos);
+        Ray r = new Ray(camera.transform.position, direction);
+
+        return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
     }
 }

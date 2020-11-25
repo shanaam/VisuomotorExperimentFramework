@@ -29,7 +29,10 @@ public class ExperimentController : MonoBehaviour
 
     public GameObject[] PrefabList;
 
+    public AudioClip[] SoundEffects;
+
     public Dictionary<String, GameObject> Prefabs = new Dictionary<string, GameObject>();
+    public Dictionary<String, AudioClip> AudioClips = new Dictionary<string, AudioClip>();
     
     public CursorController CursorController { get; private set; }
 
@@ -61,6 +64,9 @@ public class ExperimentController : MonoBehaviour
 
         foreach (GameObject g in PrefabList)
             Prefabs[g.name] = g;
+
+        foreach (AudioClip c in SoundEffects)
+            AudioClips[c.name] = c;
 
         BeginNextTrial();
     }
