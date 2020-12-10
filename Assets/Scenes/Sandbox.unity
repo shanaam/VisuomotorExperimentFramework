@@ -2224,6 +2224,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: 270ca9aaa39af4d4bb26754fdce0c971, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 13700000, guid: 270ca9aaa39af4d4bb26754fdce0c971, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -2340,7 +2344,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1840732356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
