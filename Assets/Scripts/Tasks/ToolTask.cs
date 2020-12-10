@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UXF;
 using MovementType = CursorController.MovementType;
 
@@ -31,11 +32,13 @@ public class ToolTask : BaseTask
 
     private GameObject visualCube;
     private Quaternion cubeRot;
+    private Vector3 previousPosition;
+    private float missTimer;
 
     public void Init(Trial trial, List<float> angles)
     {
         this.trial = trial;
-        maxSteps = 2;
+        maxSteps = 4;
 
         ctrler = ExperimentController.Instance();
 
@@ -47,27 +50,66 @@ public class ToolTask : BaseTask
 
     void FixedUpdate()
     {
-        // Position is tied to either mouse position or the hand
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-        {
-            Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(new Vector3(
-                0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(new Vector3(
+            0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
-            //mousePoint.Set(mousePoint.x, mousePoint.y,
-            //    Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
-            //        toolSurface.transform.position.z + 0.05f));
+        tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-            //tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
-            tool.transform.position = mousePoint;
-        }
-        else
-        {
-            tool.GetComponent<Rigidbody>().MovePosition(ctrler.CursorController.CurrentHand().transform.position);
-        }
+        if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f && currentStep == 0) return;
 
         switch (currentStep)
         {
-            case 1:
+            case 0: // Return to home position phase
+            case 1: // User hits the object phase
+                // Position is tied to either mouse position or the hand
+                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+                {
+                    tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
+
+                    Vector3 dir = mousePoint - tool.transform.position;
+                    dir /= Time.fixedDeltaTime;
+
+                    tool.GetComponent<Rigidbody>().velocity = dir;
+                    tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
+
+                    //mousePoint.Set(mousePoint.x, mousePoint.y,
+                    //    Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
+                    //        toolSurface.transform.position.z + 0.05f));
+
+                    //tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
+                    //tool.transform.position = mousePoint;
+                }
+                else
+                {
+                    tool.GetComponent<Rigidbody>().MovePosition(ctrler.CursorController.CurrentHand().transform.position);
+                }
+
+                break;
+            case 2: // After the user hits the object
+                // Used to determine if the object hit by the tool is heading away from the target
+                // Current distance from pinball to the target
+                float currentDistance = Vector3.Distance(obj.transform.position, Target.transform.position);
+
+                // Only check when the distance from pinball to target is less than half of the distance
+                // between the target and home position and if the pinball is NOT approaching the target
+                if (currentDistance <= distanceToTarget / 2f &&
+                    currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                {
+                    // The object only has 500ms of total time to move away from the target
+                    // After 500ms, the trial ends
+                    if (missTimer < 0.5f)
+                    {
+                        missTimer += Time.fixedDeltaTime;
+                    }
+                    else
+                    {
+                        IncrementStep();
+                    }
+                }
+
+                previousPosition = obj.transform.position;
+                break;
+            case 3: // 
                 if (Vector3.Distance(obj.transform.position, new Vector3(
                     Target.transform.position.x,
                     obj.transform.position.y,
@@ -91,12 +133,22 @@ public class ToolTask : BaseTask
                         LogParameters();
                 }
                 break;
-            case 2:
-                break;
         }
 
         if (Finished)
             ctrler.EndAndPrepare();
+    }
+
+    public override bool IncrementStep()
+    {
+        if (currentStep == 0)
+        {
+            obj.SetActive(true);
+            Home.GetComponent<BaseTarget>().enabled = false;
+            Home.GetComponent<MeshRenderer>().enabled = false;
+        }
+
+        return base.IncrementStep();
     }
 
     void LateUpdate()
@@ -113,7 +165,6 @@ public class ToolTask : BaseTask
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
         tool = GameObject.Find("Tool");
         obj = GameObject.Find("ToolObject");
-        Home = GameObject.Find("ToolHome");
         Target = GameObject.Find("ToolTarget");
         toolCamera = GameObject.Find("ToolCamera");
         toolSurface = GameObject.Find("ToolPlane");
@@ -122,6 +173,13 @@ public class ToolTask : BaseTask
         // plus thickness of surface (0.05) plus the half the width of the tool (0.075)
         height = toolSurface.transform.position.y + 0.08f;
 
+        // Set up home position
+        Home = Instantiate(ctrler.GetPrefab("Target"));
+        Home.transform.position = tool.transform.position;
+        Home.name = "Home";
+        Home.transform.SetParent(toolSpace.transform);
+
+        // Set up target
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
 
@@ -131,6 +189,7 @@ public class ToolTask : BaseTask
 
         Target.transform.position += Target.transform.forward.normalized * 0.55f;
 
+        // Set up camera for non VR and VR modes
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             oldMainCamera = GameObject.Find("Main Camera");
@@ -138,9 +197,10 @@ public class ToolTask : BaseTask
         }
         else toolCamera.SetActive(false);
 
-        distanceToTarget = Vector3.Distance(Target.transform.position, Home.transform.position);
+        distanceToTarget = Vector3.Distance(Target.transform.position, obj.transform.position);
         distanceToTarget += 0.15f;
-        
+
+
         /*
         // Set up surface friction
         toolSurface.GetComponent<BoxCollider>().material.dynamicFriction =
@@ -150,6 +210,8 @@ public class ToolTask : BaseTask
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_static_friction");
 
         // Set up tool friction
+
+        // Set up object
         
         obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
@@ -157,8 +219,10 @@ public class ToolTask : BaseTask
         obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
         */
+        
         obj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
         tool.GetComponent<BoxCollider>().material.bounciness = 1f;
+        tool.GetComponent<BoxCollider>().enabled = false;
 
         visualCube = GameObject.Find("ToolVisualCube");
         cubeRot = visualCube.transform.rotation;
@@ -168,6 +232,11 @@ public class ToolTask : BaseTask
             GameObject.Find("ToolVisualCube").SetActive(false);
         else
             GameObject.Find("ToolVisualSphere").SetActive(false);
+
+        
+
+        // Disable object for first step
+        obj.SetActive(false);
     }
 
     private void LogParameters()
@@ -191,5 +260,14 @@ public class ToolTask : BaseTask
 
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool" && oldMainCamera != null)
             oldMainCamera.SetActive(true);
+    }
+
+    void OnDrawGizmos()
+    {
+        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(new Vector3(
+            0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+        Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
+
     }
 }

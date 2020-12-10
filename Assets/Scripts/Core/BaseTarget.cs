@@ -6,6 +6,13 @@ using UnityEngine;
 public class BaseTarget : MonoBehaviour
 {
     ExperimentController ctrler;
+    public bool Collided { get; private set; }
+    public Collider CollidedWith { get; private set; }
+
+    /// <summary>
+    /// When true, objects attached with this script will not increment the step upon collision
+    /// </summary>
+    public bool CollisionModeOnly = false;
 
     private void Start()
     {
@@ -19,14 +26,28 @@ public class BaseTarget : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        switch (other.gameObject.tag)
+        if (!enabled) return;
+
+        if (!CollisionModeOnly)
         {
-            case "Hand":
-                AdvanceStep();
-                break;
-            default:
-                Debug.LogWarning("Tag not implemented");
-                break;
+            switch (other.gameObject.tag)
+            {
+                case "Hand":
+                    AdvanceStep();
+                    break;
+                default:
+                    Debug.LogWarning("Tag not implemented");
+                    break;
+            }
         }
+
+        Collided = true;
+        CollidedWith = other;
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        Collided = false;
+        CollidedWith = null;
     }
 }

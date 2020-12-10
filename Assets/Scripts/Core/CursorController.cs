@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR;
 using UXF;
+using CommonUsages = UnityEngine.XR.CommonUsages;
+using InputDevice = UnityEngine.XR.InputDevice;
 
 public class CursorController : MonoBehaviour
 {
@@ -282,14 +285,23 @@ public class CursorController : MonoBehaviour
     /// </summary>
     public Vector3 MouseToPlanePoint(Vector3 planePos, Camera camera)
     {
-        Vector3 pos = camera.ScreenToWorldPoint(new Vector3(
-            Input.mousePosition.x, Input.mousePosition.y, camera.nearClipPlane));
+        if (camera.orthographic)
+        {
+              
+            Vector3 mouseCoords = camera.ScreenToWorldPoint(Input.mousePosition);
+            return new Vector3(mouseCoords.x, planePos.y, mouseCoords.z);
+        }
+        else
+        {
+            Vector3 pos = camera.ScreenToWorldPoint(new Vector3(
+                Input.mousePosition.x, Input.mousePosition.y, camera.nearClipPlane));
 
-        Vector3 direction = (pos - camera.transform.position).normalized;
+            Vector3 direction = (pos - camera.transform.position).normalized;
 
-        Plane plane = new Plane(Vector3.up, planePos);
-        Ray r = new Ray(camera.transform.position, direction);
+            Plane plane = new Plane(Vector3.up, planePos);
+            Ray r = new Ray(camera.transform.position, direction);
 
-        return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
+            return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
+        }
     }
 }

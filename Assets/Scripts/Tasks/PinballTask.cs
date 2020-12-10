@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Windows.Forms;
 using UnityEngine;
 using UnityEngine.SpatialTracking;
 using UXF;
@@ -86,6 +87,12 @@ public class PinballTask : BaseTask
                     IncrementStep();
                 }
             }
+
+            previousPosition = pinball.transform.position;
+        }
+        else if (currentStep == 2)
+        {
+
         }
     }
 
@@ -127,7 +134,7 @@ public class PinballTask : BaseTask
                     }
                     else if (Input.GetMouseButtonUp(0))
                     {
-                            FirePinball();
+                        FirePinball();
                     }
              
                 }
@@ -218,18 +225,28 @@ public class PinballTask : BaseTask
                         pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
                     }
 
-                    // Freezes pinball in place
-                    pinball.GetComponent<Rigidbody>().isKinematic = true;
-
-
-                    pinballSpace.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
-                    pinballSpace.GetComponent<LineRenderer>().SetPositions(pinballPoints.ToArray());
+                    
                     pinballSpace.GetComponent<AudioSource>().Play();
                     timer += Time.deltaTime;
                 }
+
                 if (timer < 1.5f)
                 {
                     timer += Time.deltaTime;
+
+                    if (timer > 0.08f)
+                    {
+                        // Freezes pinball in place
+                        pinball.GetComponent<Rigidbody>().isKinematic = true;
+
+                        // Set pinball trail
+                        pinballSpace.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
+                        pinballSpace.GetComponent<LineRenderer>().SetPositions(pinballPoints.ToArray());
+                    }
+                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback")) 
+                    { 
+                        pinballPoints.Add(pinball.transform.position);
+                    }
                 }
                 else
                 {
@@ -251,11 +268,18 @@ public class PinballTask : BaseTask
         pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
 
-        // Tilt VR space too
-        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        // Should the participant be able to see the tilt relative to the environment?
+        if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_visual_tilt"))
         {
-            XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
+            // Tilt VR space too
+            if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+            {
+                XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+                    ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
+            }
+
+            // Rotate the entire experiment space
+            // TODO
         }
 
         ctrler.EndTimer();
