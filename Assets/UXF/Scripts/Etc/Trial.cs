@@ -13,7 +13,7 @@ namespace UXF
     /// The base unit of experiments. A Trial is usually a singular attempt at a task by a participant after/during the presentation of a stimulus.
     /// </summary>
     [Serializable]
-    public class Trial : ISettingsContainer
+    public class Trial : ISettingsContainer, IDataAssociatable
     {
 
         /// <summary>
@@ -78,14 +78,15 @@ namespace UXF
         /// </summary>
         public void Begin()
         {
+            if (session.InTrial) session.CurrentTrial.End();
+
             session.currentTrialNum = number;
             session.currentBlockNum = block.number;
 
             status = TrialStatus.InProgress;
             startTime = Time.time;
-            result = new ResultsDictionary(session.Headers, session.adHocHeaderAdd);
+            result = new ResultsDictionary(session.Headers, true);
 
-            result["directory"] = Extensions.CombinePaths(session.experimentName, session.ppid, session.FolderName).Replace('\\', '/');
             result["experiment"] = session.experimentName;
             result["ppid"] = session.ppid;
             result["session_num"] = session.number;
@@ -96,7 +97,14 @@ namespace UXF
 
             foreach (Tracker tracker in session.trackedObjects)
             {
-                tracker.StartRecording();
+                try
+                {
+                    tracker.StartRecording();
+                }
+                catch (NullReferenceException)
+                {
+                    Utilities.UXFDebugLogWarning("An item in the Tracked Objects field of the UXF session if empty (null)!");
+                }
             }
             session.onTrialBegin.Invoke(this);
         }
@@ -108,14 +116,29 @@ namespace UXF
         {
             status = TrialStatus.Done;
             endTime = Time.time;
-            result["end_time"] = endTime;            
+            result["end_time"] = endTime;
+
+            // check no duplicate trackers
+            List<string> duplicateTrackers = session.trackedObjects.Where(tracker => tracker != null)
+              .GroupBy(tracker => tracker.dataName)
+              .Where(g => g.Count() > 1)
+              .Select(y => y.Key)
+              .ToList(); 
+
+            if (duplicateTrackers.Any()) throw new InvalidOperationException(string.Format("Two or more trackers in the Tracked Objects field in the Session Inspector have the following object name and descriptor pair, please change the object name fields on the trackers to make them unique: {0}", string.Join(",", duplicateTrackers)));
 
             // log tracked objects
             foreach (Tracker tracker in session.trackedObjects)
             {
-                tracker.StopRecording();
-                string dataName = session.SaveTrackerData(tracker);
-                result[tracker.filenameHeader] = dataName;
+                try
+                {
+                    tracker.StopRecording();
+                    SaveDataTable(tracker.data, tracker.dataName, dataType: UXFDataType.Trackers);
+                }
+                catch (NullReferenceException)
+                {
+                    Utilities.UXFDebugLogWarning("An item in the Tracked Objects field of the UXF session if empty (null)!");
+                }
             }
 
             // log any settings we need to for this trial
@@ -123,8 +146,118 @@ namespace UXF
             {
                 result[s] = settings.GetObject(s);
             }
+
             session.onTrialEnd.Invoke(this);
         }
+
+        public bool CheckDataTypeIsValid(string dataName, UXFDataType dataType)
+        {
+            if (dataType.GetDataLevel() != UXFDataLevel.PerTrial)
+            {
+                Utilities.UXFDebugLogErrorFormat(
+                    "Error trying to save data '{0}' of type UXFDataType.{1} associated with the Trial. The valid types for this method are {2}. Reverting to type UXFDataType.OtherTrialData.",
+                    dataName,
+                    dataType,
+                    string.Join(", ", UXFDataLevel.PerTrial.GetValidDataTypes())
+                    );
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Saves a DataTable to the storage locations(s) for this trial. A column will be added in the trial_results CSV listing the location(s) of these data.
+        /// </summary>
+        /// <param name="table">The data to be saved.</param>
+        /// <param name="dataName">Name to be used in saving. It will be appended with the trial number.</param>
+        /// <param name="dataType"></param>
+        public void SaveDataTable(UXFDataTable table, string dataName, UXFDataType dataType = UXFDataType.OtherTrialData)
+        {
+            if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
+
+            int i = 0;
+            foreach(var dataHandler in session.ActiveDataHandlers)
+            {
+                string location = dataHandler.HandleDataTable(table, session.experimentName, session.ppid, session.number, dataName, dataType, number);
+                result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
+            }
+        }
+
+        /// <summary>
+        /// Saves a JSON Serializable Object to the storage locations(s) for this trial. A column will be added in the trial_results CSV listing the location(s) of these data.
+        /// </summary>
+        /// <param name="serializableObject">The data to be saved.</param>
+        /// <param name="dataName">Name to be used in saving. It will be appended with the trial number.</param>
+        /// <param name="dataType"></param>
+        public void SaveJSONSerializableObject(List<object> serializableObject, string dataName, UXFDataType dataType = UXFDataType.OtherTrialData)
+        {
+            if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
+
+            int i = 0;
+            foreach(var dataHandler in session.ActiveDataHandlers)
+            {              
+                string location = dataHandler.HandleJSONSerializableObject(serializableObject, session.experimentName, session.ppid, session.number, dataName, dataType, number);
+                result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
+            }
+        }
+
+        /// <summary>
+        /// Saves a JSON Serializable Object to the storage locations(s) for this trial. A column will be added in the trial_results CSV listing the location(s) of these data.
+        /// </summary>
+        /// <param name="serializableObject">The data to be saved.</param>
+        /// <param name="dataName">Name to be used in saving. It will be appended with the trial number.</param>
+        /// <param name="dataType"></param>
+        public void SaveJSONSerializableObject(Dictionary<string, object> serializableObject, string dataName, UXFDataType dataType = UXFDataType.OtherTrialData)
+        {
+            if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
+
+            int i = 0;
+            foreach(var dataHandler in session.ActiveDataHandlers)
+            {
+                string location = dataHandler.HandleJSONSerializableObject(serializableObject, session.experimentName, session.ppid, session.number, dataName, dataType, number);
+                result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
+            }
+        }
+
+        /// <summary>
+        /// Saves a string of text to the storage locations(s) for this trial. A column will be added in the trial_results CSV listing the location(s) of these data.
+        /// </summary>
+        /// <param name="text">The data to be saved.</param>
+        /// <param name="dataName">Name to be used in saving. It will be appended with the trial number.</param>
+        /// <param name="dataType"></param>
+        public void SaveText(string text, string dataName, UXFDataType dataType = UXFDataType.OtherTrialData)
+        {
+            if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
+            
+            int i = 0;
+            foreach(var dataHandler in session.ActiveDataHandlers)
+            {
+                string location = dataHandler.HandleText(text, session.experimentName, session.ppid, session.number, dataName, dataType, number);
+                result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
+            }
+        }
+
+        /// <summary>
+        /// Saves an array of bytes to the storage locations(s) for this trial. A column will be added in the trial_results CSV listing the location(s) of these data.
+        /// </summary>
+        /// <param name="bytes">The data to be saved.</param>
+        /// <param name="dataName">Name to be used in saving. It will be appended with the trial number.</param>
+        /// <param name="dataType"></param>
+        public void SaveBytes(byte[] bytes, string dataName, UXFDataType dataType = UXFDataType.OtherTrialData)
+        {            
+            if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
+            
+            int i = 0;
+            foreach(var dataHandler in session.ActiveDataHandlers)
+            {
+                string location = dataHandler.HandleBytes(bytes, session.experimentName, session.ppid, session.number, dataName, dataType, number);
+                result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
+            }
+        }
+
 
     }
 

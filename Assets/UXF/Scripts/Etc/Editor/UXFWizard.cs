@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace UXFTools
+namespace UXF.EditorUtils
 {
 
     [InitializeOnLoad]
@@ -18,6 +19,8 @@ namespace UXFTools
 #endif
         static string settingsKey { get { return PlayerSettings.productName + ":uxf_seen_wizard"; } }
 
+        static string version;
+
         static UXFWizard()
         {
 #if UNITY_2018_1_OR_NEWER
@@ -31,10 +34,20 @@ namespace UXFTools
         [MenuItem("UXF/Show setup wizard")]
         static void Init()
         {
-            var window = (UXFWizard) EditorWindow.GetWindow(typeof(UXFWizard), true, "UXF Wizard");
+            var window = (UXFWizard) EditorWindow.GetWindow(typeof(UXFWizard), false, "UXF Wizard");
             window.minSize = new Vector2(300, 501);
 			window.titleContent = new GUIContent("UXF Wizard");
             window.Show();
+
+            
+            if (File.Exists("Assets/UXF/VERSION.txt"))
+            {
+                version = File.ReadAllText("Assets/UXF/VERSION.txt");
+            }
+            else
+            {
+                version = "unknown";
+            }
         }
 
         static void OnProjectChanged()
@@ -70,6 +83,12 @@ namespace UXFTools
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.Label("UXF: Unity Experiment Framework", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+			GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.Label("Version " + version, EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal();
 
@@ -118,6 +137,26 @@ namespace UXFTools
                     PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Standalone, targetApiLevel);
                 }
             }
+
+
+            EditorGUILayout.Separator();
+
+            GUILayout.Label("WebGL", EditorStyles.boldLabel);
+
+            if (PlayerSettings.WebGL.template == "PROJECT:UXF WebGL")
+            {
+                EditorGUILayout.HelpBox("UXF WebGL template is set correctly.", MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("UXF WebGL template is not selected as the WebGL Template in Player Settings.", MessageType.Warning);
+                if (GUILayout.Button("Fix"))
+                {
+                    PlayerSettings.WebGL.template = "PROJECT:UXF WebGL";
+                }
+            }
+
+
 
             EditorGUILayout.Separator();
             EditorGUILayout.HelpBox("To show this window again go to UXF -> Show setup wizard in the menubar.", MessageType.None);

@@ -4,25 +4,26 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace UXF 
+namespace UXF.UI
 {
     /// <summary>
     /// A script that allows any GUI object to be draggable
     /// </summary>
     public class DraggableUI : MonoBehaviour, IDragHandler
     {
-        private RectTransform rectTransform;
+        public Transform transformToRaise;
+        public RectTransform visibleRect;
         private Vector2 screenSize;
 
         void Start()
         {
-            rectTransform = GetComponent<RectTransform>();
             screenSize = new Vector2(Screen.width, Screen.height);
         }
         
         public void OnDrag(PointerEventData eventData)
         {
-            transform.position += CalculateNewTransformOffset(eventData.delta);
+            visibleRect.transform.position += CalculateNewTransformOffset(eventData.delta);
+            transformToRaise.SetAsLastSibling(); // bring to front
         }
 
         /// <summary>
@@ -34,7 +35,7 @@ namespace UXF
         {
             // returns an array of corners, from bottom left clockwise.
             Vector3[] corners = new Vector3[4];
-            rectTransform.GetWorldCorners(corners);
+            visibleRect.GetWorldCorners(corners);
 
             float rectLeft = corners[0].x;
             float rectBottom = corners[0].y;

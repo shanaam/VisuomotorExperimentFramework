@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UXF 
+namespace UXF.UI
 {
 	/// <summary>
 	/// A script to control the NotesPanel
 	/// </summary>
 	public class NotesController : MonoBehaviour 
 	{
+		public GameObject panel;
 		public GameObject contentParent;
 		public GameObject notePrefab;
 
@@ -22,12 +23,9 @@ namespace UXF
 		[Space]
 		public Session session;
 
-		private Canvas canvas;
-
 		void Start()
 		{
-			canvas = GetComponent<Canvas>();
-			session.cleanUp += WriteNotes; // will write notes when session is finished
+			session.preSessionEnd.AddListener(WriteNotes); // will write notes when session is finished
 		}
 
 		/// <summary>
@@ -63,13 +61,13 @@ namespace UXF
 		/// </summary>
 		public void ToggleVisibility()
 		{
-			canvas.enabled = canvas.enabled ? false : true;
+			panel.SetActive(!panel.activeSelf);
 		}
 		
 		/// <summary>
 		/// Writes the session notes to a json file. File includes whether the session is marked as bad and any note added by the experimenter
 		/// </summary>
-		private void WriteNotes()
+		private void WriteNotes(Session session)
 		{
 			Dictionary<string, object> sessionNotes = new Dictionary<string, object>()
 			{
@@ -90,8 +88,7 @@ namespace UXF
 			}
 
 			sessionNotes.Add(notesKey, notesValue);
-
-			session.WriteDictToSessionFolder(sessionNotes, "notes");
+			session.SaveJSONSerializableObject(sessionNotes, "notes");
 		}
 
 		/// <summary>

@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UXF{
+namespace UXF.UI
+{
 	public class PopupController : MonoBehaviour {
 
 		public Text popupTitle;
@@ -18,6 +19,7 @@ namespace UXF{
 			popupMessage.text = popup.message;
 			nextAction = popup.onOK;
 			gameObject.SetActive(true);
+			transform.SetAsLastSibling();
 		}
 
 		public void OkPress()

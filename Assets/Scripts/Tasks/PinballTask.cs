@@ -23,9 +23,10 @@ public class PinballTask : BaseTask
     private float timer = 0f;
 
     private float cutoffDistance;
+
     // Minimum distance to score any points. this is also the cutoff distance
     // for starting the miss timer
-    private const float SCORING_DISTANCE = 0.10f; 
+    private const float SCORING_DISTANCE = 0.10f;
     private const float TARGET_DISTANCE = 0.55f; // Target distance from home
 
     private static List<float> targetAngles = new List<float>();
@@ -37,6 +38,7 @@ public class PinballTask : BaseTask
 
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();
+
     // Used to time polling the position of the pinball
     private float pointTimer;
     private bool endOfTrial;
@@ -90,10 +92,6 @@ public class PinballTask : BaseTask
 
             previousPosition = pinball.transform.position;
         }
-        else if (currentStep == 2)
-        {
-
-        }
     }
 
     // Update is called once per frame
@@ -117,8 +115,9 @@ public class PinballTask : BaseTask
                             ctrler.StartTimer();
                         }
 
-                        direction = Vector3.ClampMagnitude(pinball.transform.position - 
-                                                           ctrler.CursorController.MouseToPlanePoint(pinball.transform.position, 
+                        direction = Vector3.ClampMagnitude(pinball.transform.position -
+                                                           ctrler.CursorController.MouseToPlanePoint(
+                                                               pinball.transform.position,
                                                                pinballCam.GetComponent<Camera>()), 0.1f);
 
                         directionIndicator.transform.localScale = new Vector3(
@@ -136,7 +135,7 @@ public class PinballTask : BaseTask
                     {
                         FirePinball();
                     }
-             
+
                 }
                 else //maybe else if for clarity
                 {
@@ -151,7 +150,7 @@ public class PinballTask : BaseTask
                         // If the user presses the trigger while hovering over the pinball, move to next step
                         aiming = true;
                         //Debug.Log("should be grabbed");
-                        
+
                         directionIndicator.SetActive(true);
                         ctrler.StartTimer();
                     }
@@ -181,6 +180,7 @@ public class PinballTask : BaseTask
                         }
                     }
                 }
+
                 break;
             case 1:
                 // Track a point every 25 milliseconds
@@ -204,6 +204,7 @@ public class PinballTask : BaseTask
                 {
                     IncrementStep();
                 }
+
                 break;
             case 2:
                 // Pause the screen for 1.5 seconds
@@ -214,7 +215,8 @@ public class PinballTask : BaseTask
                     // If the pinball is inside the diameter of the target
                     if (distanceToTarget < 0.03f)
                     {
-                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback")) {
+                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        {
 
                             pinballSpace.GetComponent<LineRenderer>().startColor =
                                 pinballSpace.GetComponent<LineRenderer>().endColor = Color.green;
@@ -225,7 +227,7 @@ public class PinballTask : BaseTask
                         pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
                     }
 
-                    
+
                     pinballSpace.GetComponent<AudioSource>().Play();
                     timer += Time.deltaTime;
                 }
@@ -243,8 +245,8 @@ public class PinballTask : BaseTask
                         pinballSpace.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
                         pinballSpace.GetComponent<LineRenderer>().SetPositions(pinballPoints.ToArray());
                     }
-                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback")) 
-                    { 
+                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                    {
                         pinballPoints.Add(pinball.transform.position);
                     }
                 }
@@ -252,6 +254,7 @@ public class PinballTask : BaseTask
                 {
                     LogParameters();
                 }
+
                 break;
         }
 
@@ -397,7 +400,7 @@ public class PinballTask : BaseTask
 
             oldMainCamera = GameObject.Find("Main Camera");
             oldMainCamera.GetComponent<TrackedPoseDriver>().enabled = false;
-            oldMainCamera.transform.localPosition = 
+            oldMainCamera.transform.localPosition =
                 oldMainCamera.transform.InverseTransformPoint(pinballCam.transform.position);
             oldMainCamera.transform.rotation = pinballCam.transform.rotation;
             oldMainCamera.SetActive(false);
@@ -432,7 +435,7 @@ public class PinballTask : BaseTask
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
         {
             XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt") * -1);
+                ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt") * -1);
         }
 
         pinballSpace.SetActive(false);
