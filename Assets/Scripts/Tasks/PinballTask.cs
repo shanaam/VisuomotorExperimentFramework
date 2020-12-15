@@ -86,6 +86,20 @@ public class PinballTask : BaseTask
                 }
             }
 
+            // Trial ends if the pinball crosses the center of the target (5cm) OR
+            // The ball stops moving OR
+            // The distance between the home position and the pinball exceeds the distance
+            // between the pinball and the target
+
+            // TODO: FIX CUTOFF DISTANCES AND ORIENTATION OF VISUAL TARGET OBJECT
+
+            if (currentDistance < 0.07f ||
+                pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
+                Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
+            {
+                IncrementStep();
+            }
+
             previousPosition = pinball.transform.position;
         }
     }
@@ -184,23 +198,6 @@ public class PinballTask : BaseTask
                 {
                     pinballPoints.Add(pinball.transform.position);
                 }
-
-                // Trial ends if the pinball crosses the center of the target (5cm) OR
-                // The ball stops moving OR
-                // The distance between the home position and the pinball exceeds the distance
-                // between the pinball and the target
-                distanceToTarget = Vector3.Distance(pinball.transform.position, new Vector3(
-                    Target.transform.position.x,
-                    pinball.transform.position.y,
-                    Target.transform.position.z));
-
-                if (distanceToTarget < 0.03f ||
-                    pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
-                    Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
-                {
-                    IncrementStep();
-                }
-
                 break;
             case 2:
                 // Pause the screen for 1.5 seconds
@@ -263,6 +260,9 @@ public class PinballTask : BaseTask
 
     private void FirePinball()
     {
+        Vector3 oldCameraPosition = pinballCam.transform.position;
+        Quaternion oldCameraRotation = pinballCam.transform.rotation;
+        
         // Tilt perturbation
         pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
@@ -279,6 +279,11 @@ public class PinballTask : BaseTask
 
             // Rotate the entire experiment space
             // TODO
+        }
+        else
+        {
+            // Put the camera back to where it was if visual tilt is disabled
+            pinballCam.transform.SetPositionAndRotation(oldCameraPosition, oldCameraRotation);
         }
 
         ctrler.EndTimer();
@@ -378,7 +383,7 @@ public class PinballTask : BaseTask
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
 
-        Target.transform.position = new Vector3(0f, 0.003f, 0f);
+        Target.transform.position = new Vector3(0f, 0.075f, 0f);
         Target.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
