@@ -6,6 +6,7 @@ using UXF;
 
 public class PinballTask : BaseTask
 {
+    // Task gameobjects
     private GameObject pinballSpace;
     private GameObject oldMainCamera;
     private GameObject pinballCam;
@@ -14,13 +15,13 @@ public class PinballTask : BaseTask
     private GameObject XRRig;
     private GameObject testCube;
 
-    private Trial trial;
     private ExperimentController ctrler;
 
+    // Used for pinball aiming
     private float force;
     private Vector3 direction;
 
-    private float timer = 0f;
+    private float timer;
 
     private float cutoffDistance;
 
@@ -39,12 +40,8 @@ public class PinballTask : BaseTask
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();
 
-    // Used to time polling the position of the pinball
-    private float pointTimer;
-    private bool endOfTrial;
-
     // When the pinball is within a
-    private float missTimer = 0;
+    private float missTimer;
     private Vector3 previousPosition;
 
     private float distanceToTarget;
@@ -56,7 +53,6 @@ public class PinballTask : BaseTask
     public void Init(Trial trial, List<float> angles)
     {
         maxSteps = 3;
-        this.trial = trial;
         ctrler = ExperimentController.Instance();
 
         if (trial.numberInBlock == 1)
@@ -301,14 +297,12 @@ public class PinballTask : BaseTask
 
         Debug.Log("direction: " + direction.ToString("F5"));
 
-        // purely for testing
-        //testCube.transform.position = direction + 
-        //                              pinball.transform.position + 
-        //                              (Vector3.down * pinball.transform.position.y);
+        // Rotates direction by 90 degrees to reflect "forwards" direction
+        Quaternion q = Quaternion.AngleAxis(90, directionIndicator.transform.up);
 
         // have pinball face the direction to be fired
-        Vector3 lookAtPosition = pinball.transform.position - direction;
-        lookAtPosition.y = pinball.transform.position.y;
+        Vector3 lookAtPosition = pinball.transform.position + 
+                                 q * directionIndicator.transform.forward.normalized;
 
         pinball.transform.LookAt(lookAtPosition);
 
