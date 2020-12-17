@@ -50,6 +50,8 @@ public class PinballTask : BaseTask
     Vector3 pinballCamOffset = new Vector3(0f, 0.725f, -0.535f);
     private float pinballAngle = 35f;
 
+    private Vector3 lastPositionInTarget, lastLocalPositionInTarget;
+
     public void Init(Trial trial, List<float> angles)
     {
         maxSteps = 3;
@@ -67,12 +69,12 @@ public class PinballTask : BaseTask
         if (currentStep == 1)
         {
             // Current distance from pinball to the target
-            float currentDistance = Vector3.Distance(pinball.transform.position, Target.transform.position);
+            distanceToTarget = Vector3.Distance(pinball.transform.position, Target.transform.position);
 
             // Only check when the distance from pinball to target is less than half of the distance
             // between the target and home position and if the pinball is NOT approaching the target
-            if (currentDistance <= TARGET_DISTANCE / 2f &&
-                currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+            if (distanceToTarget <= TARGET_DISTANCE / 2f &&
+                distanceToTarget > Vector3.Distance(previousPosition, Target.transform.position))
             {
                 // The pinball only has 500ms of total time to move away from the target
                 // After 500ms, the trial ends
@@ -90,15 +92,21 @@ public class PinballTask : BaseTask
             // The ball stops moving OR
             // The distance between the home position and the pinball exceeds the distance
             // between the pinball and the target
-
-            // TODO: FIX CUTOFF DISTANCES AND ORIENTATION OF VISUAL TARGET OBJECT
-
-            if (currentDistance < 0.07f ||
-                pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
-                Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
+            if (pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
+                Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance ||
+                Target.GetComponent<BaseTarget>().Collided)
             {
                 IncrementStep();
             }
+
+            if (distanceToTarget < 0.05f)
+            {
+                // set a temp variable to the pinballs position
+                lastPositionInTarget = pinball.transform.position;
+                lastLocalPositionInTarget = pinball.transform.localPosition;
+            }
+
+
 
             previousPosition = pinball.transform.position;
         }
@@ -206,13 +214,14 @@ public class PinballTask : BaseTask
                     pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
 
                     // If the pinball is inside the diameter of the target
-                    if (distanceToTarget < 0.03f)
+                    distanceToTarget = Vector3.Distance(lastPositionInTarget, Target.transform.position);
+                    if (distanceToTarget < 0.05f)
                     {
                         if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
-
                             pinballSpace.GetComponent<LineRenderer>().startColor =
-                                pinballSpace.GetComponent<LineRenderer>().endColor = Color.green;
+                                pinballSpace.GetComponent<LineRenderer>().endColor =
+                                    Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
 
                             Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
                         }
@@ -338,9 +347,11 @@ public class PinballTask : BaseTask
         ctrler.Session.CurrentTrial.result["cursor_y"] = direction.y;
         ctrler.Session.CurrentTrial.result["cursor_z"] = direction.z;
 
-        ctrler.Session.CurrentTrial.result["pinball_x"] = pinball.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["pinball_y"] = pinball.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["pinball_z"] = pinball.transform.localPosition.z;
+        // Note: Vector used is the last updated position of the pinball if it was within 5cm
+        // of the target.
+        ctrler.Session.CurrentTrial.result["pinball_x"] = lastLocalPositionInTarget.x;
+        ctrler.Session.CurrentTrial.result["pinball_y"] = lastLocalPositionInTarget.y;
+        ctrler.Session.CurrentTrial.result["pinball_z"] = lastLocalPositionInTarget.z;
 
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
@@ -447,5 +458,14 @@ public class PinballTask : BaseTask
             oldMainCamera.GetComponent<TrackedPoseDriver>().enabled = true;
             oldMainCamera.SetActive(true);
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (currentStep >= 1)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(lastPositionInTarget, 0.025f);
+        } 
     }
 }
