@@ -1085,6 +1085,7 @@ MonoBehaviour:
   - {fileID: 2406072035776469984, guid: 448b9c4e72ca9d9478dadd3f5680bbfd, type: 3}
   - {fileID: 3485569088281754252, guid: 040ae3255abf100409ca7d2928cd7efb, type: 3}
   - {fileID: 3880917273283088885, guid: cd2eb155d55367b4b8cfcc7b93167b0a, type: 3}
+  - {fileID: 7753726368987689519, guid: c2d149f569c6a9e4cb664434526a88f1, type: 3}
   SoundEffects:
   - {fileID: 8300000, guid: cb132b47806af9d489d50855b0abf4d7, type: 3}
   - {fileID: 8300000, guid: 323d999887e1e8e4c9164f54a7798f7c, type: 3}

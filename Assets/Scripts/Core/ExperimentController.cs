@@ -41,6 +41,11 @@ public class ExperimentController : MonoBehaviour
     private float currentTrialTime;
 
     /// <summary>
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
     /// Gets the singleton instance of our experiment controller. Use it for
     /// Getting the state of the experiment (input, current trial, etc)
     /// </summary>
@@ -142,6 +147,7 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
+
         // If the current trial is the first one in the block, we need to generate a pseudo-random
         // list of angles for the trial to pick from.
         List<float> angles = new List<float>();
@@ -160,13 +166,29 @@ public class ExperimentController : MonoBehaviour
             angles.Shuffle();
         }
 
-        switch (Session.settings.GetString("experiment_mode")) 
+
+        String per_block_type = trial.settings.GetString("per_block_type");
+
+
+        Debug.Log("this per block type:  " + per_block_type);
+
+        if (per_block_type == "instruction")
+        {
+            Debug.Log("I'm Here");
+        }
+
+
+
+
+        switch (Session.settings.GetString("experiment_mode"))
         {
             case "target":
-                String per_block_type = trial.settings.GetString("per_block_type");
+                
 
                 switch (per_block_type)
                 {
+                    
+               
                     case "aligned":
                     case "rotated":
                     case "clamped":
@@ -174,13 +196,13 @@ public class ExperimentController : MonoBehaviour
                         Enum.TryParse(per_block_type, out MovementType reachType);
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
 
-                        ((ReachToTargetTask) CurrentTask).Init(trial,
+                        ((ReachToTargetTask)CurrentTask).Init(trial,
                             per_block_type == "nocursor" ? MovementType.aligned : reachType,
                             angles);
                         break;
                     case "localization":
                         CurrentTask = gameObject.AddComponent<LocalizationTask>();
-                        ((LocalizationTask) CurrentTask).Init(trial, angles);
+                        ((LocalizationTask)CurrentTask).Init(trial, angles);
                         break;
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
@@ -200,11 +222,13 @@ public class ExperimentController : MonoBehaviour
                 ((ToolTask)CurrentTask).Init(trial, angles);
                 break;
             default:
-                Debug.LogWarning("Experiment Type not implemented: " + 
-                                 Session.settings.GetString("experiment_mode"));
+                Debug.LogWarning("Experiment Type not implemented: " +
+                                    Session.settings.GetString("experiment_mode"));
                 trial.End();
                 break;
         }
+
+    
     }
 
     /// <summary>
