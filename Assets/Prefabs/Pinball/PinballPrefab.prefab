@@ -59,7 +59,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3485569087964679534}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0367, y: 0.075, z: 0.001}
+  m_LocalPosition: {x: -0.0501, y: 0.075, z: 0.001}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_Children: []
   m_Father: {fileID: 3485569088281754255}
@@ -125,7 +125,7 @@ SphereCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.375
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &3485569087964679520
 Rigidbody:
@@ -249,7 +249,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3485569088216326240}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.375
   m_Height: 2
@@ -688,7 +688,6 @@ GameObject:
   - component: {fileID: 969290299641821584}
   - component: {fileID: 7720008588339332506}
   - component: {fileID: 3742347389178457995}
-  - component: {fileID: 1918230095412901959}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -704,7 +703,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3539840637454565281}
   m_LocalRotation: {x: 1, y: 0, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.38199997, z: 0}
   m_LocalScale: {x: 1, y: 0.1, z: 1}
   m_Children: []
   m_Father: {fileID: 3485569088216326243}
@@ -759,20 +758,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &1918230095412901959
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3539840637454565281}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 0
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &8498450972500159036
 GameObject:
   m_ObjectHideFlags: 0
@@ -1023,7 +1008,7 @@ PrefabInstance:
     - target: {fileID: -2358434389837026275, guid: 70e99dcdf0ab35b4eb61a80b547d42c9,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.113
+      value: -0.269
       objectReference: {fileID: 0}
     - target: {fileID: -2358434389837026275, guid: 70e99dcdf0ab35b4eb61a80b547d42c9,
         type: 3}
@@ -1104,6 +1089,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Color.b
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407274012794059495, guid: 70e99dcdf0ab35b4eb61a80b547d42c9,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: -1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 7243324766535440047, guid: 70e99dcdf0ab35b4eb61a80b547d42c9,
