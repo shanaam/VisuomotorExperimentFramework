@@ -354,17 +354,17 @@ public class PinballTask : BaseTask
         ctrler.Session.CurrentTrial.result["pinball_z"] = lastLocalPositionInTarget.z;
 
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
+        ctrler.Session.CurrentTrial.result["target_y"] = Target.transform.localPosition.y;
+        ctrler.Session.CurrentTrial.result["target_z"] = Target.transform.localPosition.z;
 
         Debug.Log("Distance to target: " + distanceToTarget);
+
         // Cutoff distances
-        if (distanceToTarget < 0.05f)
+        if (Target.GetComponent<BaseTarget>().Collided)
         {
             ctrler.Session.CurrentTrial.result["score"] = 2;
-
         }
-        else if (distanceToTarget < SCORING_DISTANCE)
+        else if (distanceToTarget < 0.05f)
         {
             ctrler.Session.CurrentTrial.result["score"] = 1;
         }
