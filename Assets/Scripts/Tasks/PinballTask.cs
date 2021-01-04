@@ -57,6 +57,7 @@ public class PinballTask : BaseTask
         maxSteps = 3;
         ctrler = ExperimentController.Instance();
 
+        //what is this for?
         if (trial.numberInBlock == 1)
             targetAngles = angles;
 

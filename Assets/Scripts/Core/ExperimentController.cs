@@ -168,22 +168,25 @@ public class ExperimentController : MonoBehaviour
 
 
         String per_block_type = trial.settings.GetString("per_block_type");
-
-
-        Debug.Log("this per block type:  " + per_block_type);
-
+        
         if (per_block_type == "instruction")
         {
-            Debug.Log("I'm Here");
+            String per_block_instruction = trial.settings.GetString("per_block_instruction");
+
+            if(per_block_instruction != null)
+            {
+                string instruction = trial.settings.GetString(per_block_instruction);
+               
+                CurrentTask = gameObject.AddComponent<InstructionTask>();
+                ((InstructionTask)CurrentTask).init(trial, instruction);
+            }
+
+            return;
         }
-
-
-
 
         switch (Session.settings.GetString("experiment_mode"))
         {
             case "target":
-                
 
                 switch (per_block_type)
                 {
