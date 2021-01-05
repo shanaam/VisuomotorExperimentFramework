@@ -277,7 +277,7 @@ public class ExperimentController : MonoBehaviour
     {
         // Localization task uses Target as the cursor location
         // For all other tasks, the Target is the actual target
-        if (!(CurrentTask is LocalizationTask) && !(CurrentTask is PinballTask))
+        if (!(CurrentTask is LocalizationTask) && !(CurrentTask is PinballTask) && !(CurrentTask is InstructionTask))
         {
             Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.x;
             Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;

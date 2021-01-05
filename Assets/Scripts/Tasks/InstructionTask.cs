@@ -49,7 +49,8 @@ public class InstructionTask : BaseTask
         Timer.GetComponent<Text>().text = System.Math.Round(timeRemaing, 2).ToString();
 
         //add event listener to done button
-        Done.GetComponent<Button>().onClick.AddListener(delegate { End(); });
+        Done.GetComponent<Button>().onClick.AddListener(()=>End() );
+        Debug.Log("Im here");
 
     }
 
@@ -64,7 +65,7 @@ public class InstructionTask : BaseTask
         else
         {
             //Enable Done Button
-            //Done.GetComponent<Button>().interactable = true;
+            Done.GetComponent<Button>().interactable = true;
 
         }
     }
@@ -72,7 +73,11 @@ public class InstructionTask : BaseTask
 
     void End()
     {
+
+        
         ctrler.EndAndPrepare();
+
+    
     }
 
 
