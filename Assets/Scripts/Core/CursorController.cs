@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.SpatialTracking;
 using UnityEngine.XR;
 using UXF;
 using CommonUsages = UnityEngine.XR.CommonUsages;
@@ -20,6 +20,8 @@ public class CursorController : MonoBehaviour
     public GameObject LeftHand, RightHand;
     private GameObject leftHandModel, rightHandModel;
     private GameObject leftHandCollider, rightHandCollider;
+
+    private GameObject vrCamera;
 
     public bool CursorVisible { get; private set; }
     public bool LeftHandVisible { get; private set; }
@@ -76,6 +78,8 @@ public class CursorController : MonoBehaviour
 
         Debug.Log("Detecting devices...");
         Debug.Log("Found Right Device: " + RightHandDevice);
+
+        vrCamera = GameObject.Find("Main Camera");
 
         
         //foreach (InputDevice device in devices)
@@ -234,7 +238,16 @@ public class CursorController : MonoBehaviour
             PauseTime += Time.deltaTime;
 
         previousPosition = realHandPosition;
-        DistanceFromHome = (transform.position - ExperimentController.Instance().CurrentTask.Home.transform.position).magnitude;
+
+        if (ExperimentController.Instance().CurrentTask.Home != null)
+        {
+            DistanceFromHome =
+                (transform.position - ExperimentController.Instance().CurrentTask.Home.transform.position).magnitude;
+        }
+        else
+        {
+            DistanceFromHome = -1f;
+        }
 
         prevLeftTrigger = IsTriggerDown("l");
         prevRightTrigger = IsTriggerDown("r");
@@ -283,7 +296,7 @@ public class CursorController : MonoBehaviour
     /// Maps the mouse cursor position to the plane's Y coordinate.
     /// A camera must be provided to determine the mouse position.
     /// </summary>
-    public Vector3 MouseToPlanePoint(Vector3 planePos, Camera camera)
+    public Vector3 MouseToPlanePoint(Vector3 planeNormal, Vector3 planePos, Camera camera)
     {
         if (camera.orthographic)
         {
@@ -298,10 +311,28 @@ public class CursorController : MonoBehaviour
 
             Vector3 direction = (pos - camera.transform.position).normalized;
 
-            Plane plane = new Plane(Vector3.up, planePos);
+            Plane plane = new Plane(planeNormal, planePos);
             Ray r = new Ray(camera.transform.position, direction);
 
             return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
+        }
+    }
+
+    /// <summary>
+    /// Enable or disable the VR Camera. Required for experiments with a specific camera
+    /// </summary>
+    /// <param name="state"></param>
+    public void SetVRCamera(bool state)
+    {
+        if (state)
+        {
+            vrCamera.SetActive(true);
+            vrCamera.GetComponent<TrackedPoseDriver>().enabled = true;
+        }
+        else
+        {
+            vrCamera.GetComponent<TrackedPoseDriver>().enabled = false;
+            vrCamera.SetActive(false);
         }
     }
 }

@@ -178,7 +178,7 @@ public class ExperimentController : MonoBehaviour
                 string instruction = trial.settings.GetString(per_block_instruction);
                
                 CurrentTask = gameObject.AddComponent<InstructionTask>();
-                ((InstructionTask)CurrentTask).init(trial, instruction);
+                ((InstructionTask)CurrentTask).Init(trial, instruction);
             }
 
             return;

@@ -15,17 +15,16 @@ public class InstructionTask : BaseTask
     private ExperimentController ctrler;
 
     private string ins;
-    private double timeRemaing = 10f;
+    private double timeRemaining = 10f;
 
+    private GameObject instructionPanel;
+    private GameObject instruction;
+    private GameObject timer;
+    private GameObject done;
 
-    private GameObject InstrucitonPanel;
-    private GameObject Instruction;
-    private GameObject Timer;
-    private GameObject Done;
+    private Camera tempMainCamera;
 
-
-
-    public void init(Trial trial, string instruction)
+    public void Init(Trial trial, string instruction)
     {
         ctrler = ExperimentController.Instance();
         ins = instruction;
@@ -33,63 +32,54 @@ public class InstructionTask : BaseTask
         Setup();
     }
 
-
     protected override void Setup()
     {
+        // Temporarily disable VR Camera
+        // TODO: This needs to be changed when we implement instruction task for VR
+        ctrler.CursorController.SetVRCamera(false);
+
         //Task GameObjects
-        InstrucitonPanel = Instantiate(ctrler.GetPrefab("InstrucitonPanel"), this.transform);
+        instructionPanel = Instantiate(ctrler.GetPrefab("InstructionPanel"), this.transform);
 
-        Instruction = GameObject.Find("Instruction");
-        Timer = GameObject.Find("Timer");
-        Done = GameObject.Find("Done");
+        instruction = GameObject.Find("Instruction");
+        timer = GameObject.Find("Timer");
+        done = GameObject.Find("Done");
 
-        Instruction.GetComponent<Text>().text = ins;
+        instruction.GetComponent<Text>().text = ins;
 
         //countdown Timer start
-        Timer.GetComponent<Text>().text = System.Math.Round(timeRemaing, 2).ToString();
+        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
 
         //add event listener to done button
-        Done.GetComponent<Button>().onClick.AddListener(()=>End() );
-        Debug.Log("Im here");
-
+        done.GetComponent<Button>().onClick.AddListener(()=>End() );
     }
 
     private void Update()
     {
-        
-        if(timeRemaing > 0)
+        if(timeRemaining > 0)
         {
-            timeRemaing = timeRemaing - Time.deltaTime;
-            Timer.GetComponent<Text>().text = System.Math.Round(timeRemaing, 2).ToString();
+            timeRemaining = timeRemaining - Time.deltaTime;
+            timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
         }
         else
         {
             //Enable Done Button
-            Done.GetComponent<Button>().interactable = true;
-
+            done.GetComponent<Button>().interactable = true;
         }
     }
 
-
     void End()
     {
-
-        
         ctrler.EndAndPrepare();
-
-    
     }
-
-
-
 
     protected override void OnDestroy()
     {
+        instructionPanel.SetActive(false);
+        Destroy(instructionPanel);
 
-        InstrucitonPanel.SetActive(false);
-        Destroy(InstrucitonPanel);
+        // Turn VR Camera back on
+        // TODO: See Setup()
+        ctrler.CursorController.SetVRCamera(true);
     }
-
-
-
 }

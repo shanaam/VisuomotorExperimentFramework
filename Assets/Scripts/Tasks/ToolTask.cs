@@ -50,7 +50,7 @@ public class ToolTask : BaseTask
 
     void FixedUpdate()
     {
-        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(new Vector3(
+        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
             0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
         tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
@@ -264,7 +264,7 @@ public class ToolTask : BaseTask
 
     void OnDrawGizmos()
     {
-        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(new Vector3(
+        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
             0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
         Gizmos.DrawLine(toolCamera.transform.position, mousePoint);

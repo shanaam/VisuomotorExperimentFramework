@@ -16,28 +16,16 @@ public abstract class BaseTask : MonoBehaviour
     private GameObject[] trackers;
 
     // This task's "home" position
-    public virtual GameObject Home 
+    public virtual GameObject Home
     {
-        get
-        {
-            if (home == null)
-                Debug.LogWarning("Home is not set for this task.");
-
-            return home;
-        }
+        get => home;
         protected set => home = value;
     }
 
     // This task's "target" position
     public virtual GameObject Target
     {
-        get
-        {
-            if (target == null)
-                Debug.LogWarning("Target is not set for this task.");
-
-            return target;
-        }
+        get => target;
         protected set => target = value;
     }
 
@@ -71,7 +59,6 @@ public abstract class BaseTask : MonoBehaviour
     /// Logic for setting up a specific trial type
     /// </summary>
     protected abstract void Setup();
-
 
     protected virtual void OnDestroy()
     {
