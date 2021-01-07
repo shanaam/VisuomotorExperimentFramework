@@ -311,7 +311,7 @@ public class CursorController : MonoBehaviour
 
             Vector3 direction = (pos - camera.transform.position).normalized;
 
-            Plane plane = new Plane(planeNormal, planePos);
+            Plane plane = new Plane(planeNormal.normalized, planePos);
             Ray r = new Ray(camera.transform.position, direction);
 
             return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;

@@ -13,12 +13,10 @@ public class PinballTask : BaseTask
 
     // Task gameobjects
     private GameObject pinballSpace;
-    private GameObject oldMainCamera;
     private GameObject pinballCam;
     private GameObject pinball;
     private GameObject directionIndicator;
     private GameObject XRRig;
-    private GameObject testCube;
     private GameObject pinballPlane;
     private GameObject pinballWall;
 
@@ -63,7 +61,10 @@ public class PinballTask : BaseTask
     private bool enteredTarget = false;
 
     // When true, the indicator will be placed in front of the pinball
-    private bool indicatorPosition = false;
+    private bool indicatorPosition = true;
+
+    // Distance from pinball in meters the indicator will be shown
+    private float indicatorLength = 0.2f;
 
     public void Init(Trial trial, List<float> angles)
     {
@@ -158,11 +159,12 @@ public class PinballTask : BaseTask
 
                         // Direction is calculated by projecting the mouse position onto the 
                         // pinball plane and clamping it to a maximum length of 10 centimeters
-                        direction = Vector3.ClampMagnitude(pinball.transform.position -
-                            ctrler.CursorController.MouseToPlanePoint(
-                                pinballPlane.transform.up * pinball.transform.position.y,
-                                pinball.transform.position,
-                                pinballCam.GetComponent<Camera>()), 0.1f);
+                        Vector3 mouse = ctrler.CursorController.MouseToPlanePoint(
+                            pinballPlane.transform.up * pinball.transform.position.y,
+                            pinball.transform.position,
+                            pinballCam.GetComponent<Camera>());
+
+                        direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
 
                         // Setup visual feedback for where the participant is aiming
 
@@ -191,7 +193,6 @@ public class PinballTask : BaseTask
                     {
                         // If the user presses the trigger while hovering over the pinball, move to next step
                         aiming = true;
-                        //Debug.Log("should be grabbed");
 
                         directionIndicator.SetActive(true);
                         ctrler.StartTimer();
@@ -256,7 +257,6 @@ public class PinballTask : BaseTask
                         pinball.GetComponent<Rigidbody>().isKinematic = true;
                     }
 
-
                     pinballSpace.GetComponent<AudioSource>().Play();
                     timer += Time.deltaTime;
                 }
@@ -284,7 +284,6 @@ public class PinballTask : BaseTask
                             pinball.transform.position = pinballSpace.GetComponent<LineRenderer>().GetPosition(
                                 pinballSpace.GetComponent<LineRenderer>().positionCount - 1);
                         }
-                        
                     }
                     else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") && !enteredTarget)
                     {
@@ -311,20 +310,12 @@ public class PinballTask : BaseTask
     {
         ctrler.EndTimer();
 
+        // Face firing direction and set velocity
+        pinball.transform.LookAt(pinball.transform.position - direction.normalized);
+
         if (ctrler.Session.CurrentBlock.settings.GetInt("per_block_visual_tilt") != VISUAL_TILT_VISIBLE)
         {
             SetTilt();
-
-            if (ctrler.Session.CurrentBlock.settings.GetInt("per_block_visual_tilt") == VISUAL_TILT_VISIBLE_RELEASE)
-            {
-                // Direction needs to be recalculated as the tilt is set afterwards
-                direction = Vector3.ClampMagnitude(
-                    pinball.transform.position -
-                    ctrler.CursorController.MouseToPlanePoint(
-                        pinballPlane.transform.up * pinball.transform.position.y,
-                        pinball.transform.position,
-                        pinballCam.GetComponent<Camera>()), 0.1f);
-            }
         }
         
         // Perturbation
@@ -336,11 +327,11 @@ public class PinballTask : BaseTask
             direction = Quaternion.Euler(0f, -angle, 0f) * direction;
         }
 
-        // Face firing direction and set velocity
-        pinball.transform.LookAt(pinball.transform.position + direction.normalized);
-
         pinball.GetComponent<Rigidbody>().useGravity = true;
-        pinball.GetComponent<Rigidbody>().velocity = direction * 50f;
+        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * 
+                                                     5f * (direction.magnitude / 0.2f);
+
+        directionIndicator.GetComponent<AudioSource>().Play();
 
         IncrementStep();
     }
@@ -419,15 +410,6 @@ public class PinballTask : BaseTask
             pinballCam.transform.rotation = Quaternion.Euler(pinballAngle, 0f, 0f);
 
             ctrler.CursorController.SetVRCamera(false);
-            
-            /*
-            oldMainCamera = GameObject.Find("Main Camera");
-            oldMainCamera.GetComponent<TrackedPoseDriver>().enabled = false;
-            oldMainCamera.transform.localPosition =
-                oldMainCamera.transform.InverseTransformPoint(pinballCam.transform.position);
-            oldMainCamera.transform.rotation = pinballCam.transform.rotation;
-            oldMainCamera.SetActive(false);
-            */
         }
         else
         {
@@ -500,14 +482,6 @@ public class PinballTask : BaseTask
         Destroy(pinballSpace);
 
         ctrler.CursorController.SetVRCamera(true);
-
-        /*
-        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball" &&
-            oldMainCamera != null)
-        {
-            oldMainCamera.GetComponent<TrackedPoseDriver>().enabled = true;
-        }
-        */
     }
 
     private Vector3 mousePoint;
@@ -519,25 +493,29 @@ public class PinballTask : BaseTask
             Gizmos.DrawSphere(lastPositionInTarget, 0.025f);
         }
 
+        Vector3 dir = Vector3.zero;
         if (currentStep < 1)
         {
-            mousePoint = ctrler.CursorController.MouseToPlanePoint(pinballPlane.transform.up * pinball.transform.position.y, new Vector3(
-                0f, pinball.transform.position.y, 0f), pinballCam.GetComponent<Camera>());
+            Quaternion rot = Quaternion.AngleAxis(
+                ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"), pinballSpace.transform.forward);
+
+            mousePoint = ctrler.CursorController.MouseToPlanePoint(pinballPlane.transform.up * pinball.transform.position.y,
+                pinball.transform.position,
+                pinballCam.GetComponent<Camera>());
+
+            dir = mousePoint - pinball.transform.position;
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir * 5f);
         }
 
         Gizmos.color = Color.magenta;
         Gizmos.DrawLine(pinballCam.transform.position, mousePoint);
 
         Gizmos.color = Color.cyan;
-        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + direction.normalized * 2f);
+        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir.normalized * 0.1f);
 
         Gizmos.color = Color.red;
-        // Rotates direction by 90 degrees to reflect "forwards" direction
-        Quaternion q = Quaternion.AngleAxis(90, directionIndicator.transform.up);
-
-        // have pinball face the direction to be fired
-        Vector3 lookAtPosition = pinball.transform.position + q * direction.normalized;
-
-        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + lookAtPosition.normalized * 2f);
+        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + pinball.transform.forward * 2f);
     }
 }
