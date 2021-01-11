@@ -1,13 +1,15 @@
 {
     "experiment_mode" : "pinball",
-    "per_block_type" : ["aligned", "aligned", "aligned", "aligned", "rotated", "rotated", "rotated"],
-    "per_block_rotation" : [0, 0, 0, 0, 30, 30, 30],
-    "per_block_tilt" : [0, 10, 10, 10, 0, 10, 10],
-    "per_block_n" :  [5, 3, 3, 3, 3, 3, 3],
-    "per_block_hand" : ["r", "r", "r", "r", "r", "r", "r"],
-    "per_block_targetListToUse": ["tl2", "tl2", "tl1", "tl1", "tl2", "tl1", "tl2"],
-    "per_block_visual_feedback": [true, true, true, true, true, true, true],
-    "per_block_visual_tilt": [0, 0, 1, 2, 0, 1, 2],
+    "per_block_type" : ["instruction", "aligned", "aligned", "aligned", "aligned", "rotated", "rotated", "rotated"],
+    "per_block_rotation" : [0, 0, 0, 0, 0, 30, 30, 30],
+    "per_block_tilt" : [0, 0, 10, 10, 10, 0, 10, 10],
+    "per_block_n" :  [1, 5, 3, 3, 3, 3, 3, 3],
+    "per_block_hand" : ["r", "r", "r", "r", "r", "r", "r", "r"],
+    "per_block_instruction" : ["inst1", null, null, null, null, null, null, null],
+    "per_block_targetListToUse": ["tl1", "tl2", "tl2", "tl1", "tl1", "tl2", "tl1", "tl2"],
+    "per_block_visual_feedback": [true, true, true, true, true, true, true, true],
+    "per_block_visual_tilt": [0, 0, 0, 1, 2, 0, 1, 2],
     "tl2": [60, 80, 100, 120],
-    "tl1": [30, 45, 60, 75, 90]
+    "tl1": [30, 45, 60, 75, 90],
+    "inst1": "this is an instruction"
 }
