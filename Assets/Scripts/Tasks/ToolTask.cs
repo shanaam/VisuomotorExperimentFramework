@@ -8,12 +8,21 @@ using MovementType = CursorController.MovementType;
 public class ToolTask : BaseTask
 {
 
+    //TODO: 
+    /// <summary>
+    /// 
+    /// 1_add material changing capabilities 
+    /// 
+    /// 
+    /// 
+    /// </summary>
+
     private MovementType[] reachType;
     private Trial trial;
 
     private GameObject toolSpace;
     private GameObject tool;
-    private GameObject obj;
+    private GameObject obj; 
     private GameObject toolCamera;
     private GameObject toolSurface;
 
@@ -21,7 +30,7 @@ public class ToolTask : BaseTask
 
     private ExperimentController ctrler;
 
-    private float timer, distanceToTarget;
+    private float  distanceToTarget;
 
     private GameObject oldMainCamera;
 
@@ -33,7 +42,7 @@ public class ToolTask : BaseTask
     private GameObject visualCube;
     private Quaternion cubeRot;
     private Vector3 previousPosition;
-    private float missTimer;
+    private float Timer;
 
     public void Init(Trial trial, List<float> angles)
     {
@@ -50,56 +59,48 @@ public class ToolTask : BaseTask
 
     void FixedUpdate()
     {
-        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
-            0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+        Debug.Log("current step :" + currentStep);
+        
+        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, 
+            new Vector3(0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
         tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
         if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f && currentStep == 0) return;
 
+        
+
         switch (currentStep)
         {
-            case 0: // Return to home position phase
-            case 1: // User hits the object phase
-                // Position is tied to either mouse position or the hand
-                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-                {
-                    tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
+            // Return to home position phase
+            case 0:
+            
 
-                    Vector3 dir = mousePoint - tool.transform.position;
-                    dir /= Time.fixedDeltaTime;
+            // After the user hits the object
+            // Used to determine if the object hit by the tool is heading away from the target
+            // Current distance from pinball to the target`
+            case 1:
 
-                    tool.GetComponent<Rigidbody>().velocity = dir;
-                    tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
-
-                    //mousePoint.Set(mousePoint.x, mousePoint.y,
-                    //    Mathf.Clamp(mousePoint.z, toolSurface.transform.position.z - 1f,
-                    //        toolSurface.transform.position.z + 0.05f));
-
-                    //tool.GetComponent<Rigidbody>().MovePosition(mousePoint);
-                    //tool.transform.position = mousePoint;
-                }
-                else
-                {
-                    tool.GetComponent<Rigidbody>().MovePosition(ctrler.CursorController.CurrentHand().transform.position);
-                }
-
+                RacketMovment(mousePoint);
                 break;
-            case 2: // After the user hits the object
-                // Used to determine if the object hit by the tool is heading away from the target
-                // Current distance from pinball to the target
+
+            case 2:
+                RacketMovment(mousePoint);
                 float currentDistance = Vector3.Distance(obj.transform.position, Target.transform.position);
+                //Debug.Log("this is distance of ball from object: " + currentDistance);
+
 
                 // Only check when the distance from pinball to target is less than half of the distance
                 // between the target and home position and if the pinball is NOT approaching the target
-                if (currentDistance <= distanceToTarget / 2f &&
-                    currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                if (currentDistance <= distanceToTarget / 2f && currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
                 {
+
                     // The object only has 500ms of total time to move away from the target
                     // After 500ms, the trial ends
-                    if (missTimer < 0.5f)
+                    if (Timer < 1f)
                     {
-                        missTimer += Time.fixedDeltaTime;
+                        Timer += Time.fixedDeltaTime;
                     }
                     else
                     {
@@ -108,35 +109,34 @@ public class ToolTask : BaseTask
                 }
 
                 previousPosition = obj.transform.position;
+                
+
                 break;
-            case 3: // 
-                if (Vector3.Distance(obj.transform.position, new Vector3(
-                    Target.transform.position.x,
-                    obj.transform.position.y,
-                    Target.transform.position.z)) < 0.025f)
+            
+
+
+           
+            case 3:
+
+                // if the user hits the target show the results
+                // else give them another try
+                if (Target.GetComponent<BaseTarget>().Collided)//(Vector3.Distance(obj.transform.position, Target.transform.position) < 0.025f)
                 {
+
+                    Debug.Log("we hit the Target");
                     LogParameters();
                 }
-
-                if (initialDelayTimer <= 1.0f)
-                    initialDelayTimer += Time.deltaTime;
                 else
                 {
-                    if (obj.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f)
-                    {
-                        if (timer <= 0.5f)
-                            timer += Time.deltaTime;
-                        else
-                            LogParameters();
-                    }
-                    else if (Vector3.Distance(obj.transform.position, Home.transform.position) >= distanceToTarget)
-                        LogParameters();
+                    Debug.Log("we DID NOT hit the Target");
                 }
+
                 break;
         }
 
         if (Finished)
-            ctrler.EndAndPrepare();
+           ctrler.EndAndPrepare();
+
     }
 
     public override bool IncrementStep()
@@ -163,9 +163,10 @@ public class ToolTask : BaseTask
         ExperimentController ctrler = ExperimentController.Instance();
 
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
+
         tool = GameObject.Find("Tool");
-        obj = GameObject.Find("ToolObject");
-        Target = GameObject.Find("ToolTarget");
+        obj = GameObject.Find("PuckObject");
+        Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         toolSurface = GameObject.Find("ToolPlane");
 
@@ -224,17 +225,16 @@ public class ToolTask : BaseTask
         tool.GetComponent<BoxCollider>().material.bounciness = 1f;
         tool.GetComponent<BoxCollider>().enabled = false;
 
-        visualCube = GameObject.Find("ToolVisualCube");
-        cubeRot = visualCube.transform.rotation;
+        //visualCube = GameObject.Find("ToolVisualCube");
+        //cubeRot = visualCube.transform.rotation;
 
-        // Set up object type
+/*        // Set up object type
         if (ctrler.Session.CurrentTrial.settings.GetString("per_block_object_type") == "sphere")
             GameObject.Find("ToolVisualCube").SetActive(false);
         else
-            GameObject.Find("ToolVisualSphere").SetActive(false);
+            GameObject.Find("ToolVisualSphere").SetActive(false);*/
 
         
-
         // Disable object for first step
         obj.SetActive(false);
     }
@@ -252,6 +252,24 @@ public class ToolTask : BaseTask
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
 
         IncrementStep();
+    }
+
+
+    private void RacketMovment(Vector3 mousePoint)
+    {
+        // Position is tied to either mouse position or the hand
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+        {
+            tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
+            Vector3 dir = mousePoint - tool.transform.position;
+            dir /= Time.fixedDeltaTime;
+            tool.GetComponent<Rigidbody>().velocity = dir;
+            tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
+        }
+        else
+        {
+            tool.GetComponent<Rigidbody>().MovePosition(ctrler.CursorController.CurrentHand().transform.position);
+        }
     }
 
     protected override void OnDestroy()
