@@ -31,6 +31,8 @@ public class ExperimentController : MonoBehaviour
 
     public AudioClip[] SoundEffects;
 
+    public Material[] SurfaceMaterials;
+
     public Dictionary<String, GameObject> Prefabs = new Dictionary<string, GameObject>();
     public Dictionary<String, AudioClip> AudioClips = new Dictionary<string, AudioClip>();
     
@@ -41,9 +43,6 @@ public class ExperimentController : MonoBehaviour
     private float currentTrialTime;
 
     /// <summary>
-    /// 
-    /// 
-    /// 
     /// 
     /// 
     /// Gets the singleton instance of our experiment controller. Use it for

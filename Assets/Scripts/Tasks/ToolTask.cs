@@ -128,12 +128,6 @@ public class ToolTask : BaseTask
                     }
                 }
 
-                //Debug.Log("Current distance to  Target" + currentDistance);
-
-                if (InitialDistanceToTarget < 0.05f)
-                {
-                    enterdTarget = true;
-                }
 
                 if (enterdTarget)
                 {
@@ -141,13 +135,32 @@ public class ToolTask : BaseTask
                     float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
 
                     // We are now going away from the target, end trial immediately
-                    if (InitialDistanceToTarget > previousDistanceToTarget)
+                    if (currentDistance > previousDistanceToTarget)
                     {
                         //lastPositionInTarget = previousPosition;
                         IncrementStep();
                         return;
                     }
                 }
+
+
+                // Trial ends if the ball stops moving OR
+                // The distance between the home position and the pinball exceeds the distance
+                // between the pinball and the target
+                if (Puckobj.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
+                    Vector3.Distance(Puckobj.transform.position, Home.transform.position) >= InitialDistanceToTarget)
+                {
+                    IncrementStep();
+                }
+
+
+                //Debug.Log("Current distance to  Target" + currentDistance);
+
+                if (currentDistance < 0.05f)
+                {
+                    enterdTarget = true;
+                }
+
 
 
                 previousPosition = Puckobj.transform.position;
@@ -285,6 +298,15 @@ public class ToolTask : BaseTask
 
         InitialDistanceToTarget = Vector3.Distance(Target.transform.position, Puckobj.transform.position);
         InitialDistanceToTarget += 0.15f;
+
+
+
+
+        if(ctrler.Session.settings.GetString("per_block_surface_materials") == "fabric")
+        {
+            Debug.Log("set fabric matriel");
+        }
+
 
 
         /*
