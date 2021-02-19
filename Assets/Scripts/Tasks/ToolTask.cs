@@ -22,16 +22,15 @@ public class ToolTask : BaseTask
 
     private GameObject toolSpace;
     private GameObject tool;
-    private GameObject obj; 
+    private GameObject Puckobj; 
     private GameObject toolCamera;
     private GameObject toolSurface;
 
     private static List<float> targetAngles = new List<float>();
 
     private ExperimentController ctrler;
-
     private float  distanceToTarget;
-
+    private List<Vector3> PuckPoints = new List<Vector3>();
     private GameObject oldMainCamera;
 
     private float height;
@@ -43,6 +42,8 @@ public class ToolTask : BaseTask
     private Quaternion cubeRot;
     private Vector3 previousPosition;
     private float Timer;
+    private bool enterdTarget = false;
+
 
     public void Init(Trial trial, List<float> angles)
     {
@@ -57,7 +58,7 @@ public class ToolTask : BaseTask
         Setup();
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
 
         Debug.Log("current step :" + currentStep);
@@ -75,30 +76,47 @@ public class ToolTask : BaseTask
         {
             // Return to home position phase
             case 0:
-            
+
+                tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f && currentStep == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    IncrementStep();
+                }
+
+                break;
+
+            case 1:
+
+                RacketMouseMovment(mousePoint);
+
+                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                {
+                    PuckPoints.Add(Puckobj.transform.position);
+                }
+                break;
 
             // After the user hits the object
             // Used to determine if the object hit by the tool is heading away from the target
             // Current distance from pinball to the target`
-            case 1:
-
-                RacketMovment(mousePoint);
-                break;
-
             case 2:
-                RacketMovment(mousePoint);
-                float currentDistance = Vector3.Distance(obj.transform.position, Target.transform.position);
+                RacketMouseMovment(mousePoint);
+                float currentDistance = Vector3.Distance(Puckobj.transform.position, Target.transform.position);
                 //Debug.Log("this is distance of ball from object: " + currentDistance);
 
 
                 // Only check when the distance from pinball to target is less than half of the distance
                 // between the target and home position and if the pinball is NOT approaching the target
-                if (currentDistance <= distanceToTarget / 2f && currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                if (currentDistance <= distanceToTarget / 2f && 
+                    currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
                 {
 
                     // The object only has 500ms of total time to move away from the target
                     // After 500ms, the trial ends
-                    if (Timer < 1f)
+                    if (Timer < 0.5f)
                     {
                         Timer += Time.fixedDeltaTime;
                     }
@@ -108,16 +126,110 @@ public class ToolTask : BaseTask
                     }
                 }
 
-                previousPosition = obj.transform.position;
-                
+                if (enterdTarget)
+                {
+                    // if distance increases from the previous frame, end trial immediately
+                    float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
 
+                    // We are now going away from the target, end trial immediately
+                    if (distanceToTarget > previousDistanceToTarget)
+                    {
+                        //lastPositionInTarget = previousPosition;
+                        IncrementStep();
+                        return;
+                    }
+                }
+
+                if (distanceToTarget < 0.05f)
+                {
+                    enterdTarget = true;
+                }
+
+              
+                previousPosition = Puckobj.transform.position;
+                
                 break;
             
 
-
-           
+            // after the either hit the Target or passed by it
             case 3:
 
+                if(Timer == 0)
+                {
+                    //get Audio Component
+                    toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+
+                    distanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+                    
+                    if(distanceToTarget < 0.05f)
+                    {
+                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        {
+                            toolSpace.GetComponent<LineRenderer>().startColor =
+                                toolSpace.GetComponent<LineRenderer>().endColor =
+                                    Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
+                            Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+
+                        }
+
+                        toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
+
+                        //Freeze puck
+                        Puckobj.GetComponent<Rigidbody>().isKinematic = true;
+
+                    }
+
+
+                }
+
+                if(Timer < 1.5f)
+                {
+                    Timer += Time.deltaTime;
+
+                    if(Timer > 0.08f)
+                    {   
+                        //freeze pinball in space
+                        Puckobj.GetComponent<Rigidbody>().isKinematic = true;
+
+
+                        // set pinball trail
+                        toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
+                        toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
+
+                        if (enterdTarget)
+                        {
+                            Puckobj.transform.position = previousPosition;
+                        }
+                        else
+                        {
+                            Puckobj.transform.position = toolSpace.GetComponent<LineRenderer>().GetPosition(
+                                toolSpace.GetComponent<LineRenderer>().positionCount - 1);
+                        }
+
+                    }
+                    else if(ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") && !enterdTarget)
+                    {
+
+                        // Add points to show feedback past the target only if they missed
+                        // Points along the path are not added if they hit the target
+                        PuckPoints.Add(Puckobj.transform.position);
+
+
+                    }
+
+
+                }
+                else
+                {
+                    LogParameters();
+                }
+                break;
+
+
+
+
+
+/*
                 // if the user hits the target show the results
                 // else give them another try
                 if (Target.GetComponent<BaseTarget>().Collided)//(Vector3.Distance(obj.transform.position, Target.transform.position) < 0.025f)
@@ -132,6 +244,7 @@ public class ToolTask : BaseTask
                 }
 
                 break;
+*/
         }
 
         if (Finished)
@@ -139,23 +252,17 @@ public class ToolTask : BaseTask
 
     }
 
+
     public override bool IncrementStep()
     {
         if (currentStep == 0)
         {
-            obj.SetActive(true);
-            Home.GetComponent<BaseTarget>().enabled = false;
-            Home.GetComponent<MeshRenderer>().enabled = false;
+            Puckobj.SetActive(true);
+            //Home.GetComponent<BaseTarget>().enabled = false;
+            //Home.GetComponent<MeshRenderer>().enabled = false;
         }
 
         return base.IncrementStep();
-    }
-
-    void LateUpdate()
-    {
-        // Lock rotation axis of cube. This is only a visual effect
-        if (visualCube != null)
-            visualCube.transform.rotation = Quaternion.Inverse(obj.transform.rotation);
     }
 
     protected override void Setup()
@@ -165,7 +272,7 @@ public class ToolTask : BaseTask
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
 
         tool = GameObject.Find("Tool");
-        obj = GameObject.Find("PuckObject");
+        Puckobj = GameObject.Find("PuckObject");
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         toolSurface = GameObject.Find("ToolPlane");
@@ -175,16 +282,14 @@ public class ToolTask : BaseTask
         height = toolSurface.transform.position.y + 0.08f;
 
         // Set up home position
-        Home = Instantiate(ctrler.GetPrefab("Target"));
-        Home.transform.position = tool.transform.position;
-        Home.name = "Home";
-        Home.transform.SetParent(toolSpace.transform);
+        Home = GameObject.Find("HomePosition");
+
 
         // Set up target
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
 
-        Target.transform.position = new Vector3(0f, 0.05f, 0f);
+        Target.transform.position = new Vector3(0f, 0.08f, 0f);
         Target.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
@@ -198,7 +303,7 @@ public class ToolTask : BaseTask
         }
         else toolCamera.SetActive(false);
 
-        distanceToTarget = Vector3.Distance(Target.transform.position, obj.transform.position);
+        distanceToTarget = Vector3.Distance(Target.transform.position, Puckobj.transform.position);
         distanceToTarget += 0.15f;
 
 
@@ -220,32 +325,32 @@ public class ToolTask : BaseTask
         obj.GetComponent<SphereCollider>().material.dynamicFriction =
             ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
         */
-        
-        obj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
+
+        Puckobj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
         tool.GetComponent<BoxCollider>().material.bounciness = 1f;
         tool.GetComponent<BoxCollider>().enabled = false;
 
         //visualCube = GameObject.Find("ToolVisualCube");
         //cubeRot = visualCube.transform.rotation;
 
-/*        // Set up object type
-        if (ctrler.Session.CurrentTrial.settings.GetString("per_block_object_type") == "sphere")
-            GameObject.Find("ToolVisualCube").SetActive(false);
-        else
-            GameObject.Find("ToolVisualSphere").SetActive(false);*/
+        /*        // Set up object type
+                if (ctrler.Session.CurrentTrial.settings.GetString("per_block_object_type") == "sphere")
+                    GameObject.Find("ToolVisualCube").SetActive(false);
+                else
+                    GameObject.Find("ToolVisualSphere").SetActive(false);*/
 
-        
+
         // Disable object for first step
-        obj.SetActive(false);
+        Puckobj.SetActive(false);
     }
 
     private void LogParameters()
     {
         ExperimentController ctrler = ExperimentController.Instance();
 
-        ctrler.Session.CurrentTrial.result["obj"] = obj.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["obj"] = obj.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["obj"] = obj.transform.localPosition.z;
+        ctrler.Session.CurrentTrial.result["Puckobj"] = Puckobj.transform.localPosition.x;
+        ctrler.Session.CurrentTrial.result["Puckobj"] = Puckobj.transform.localPosition.y;
+        ctrler.Session.CurrentTrial.result["Puckobj"] = Puckobj.transform.localPosition.z;
 
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
@@ -255,21 +360,15 @@ public class ToolTask : BaseTask
     }
 
 
-    private void RacketMovment(Vector3 mousePoint)
+    private void RacketMouseMovment(Vector3 mousePoint)
     {
-        // Position is tied to either mouse position or the hand
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-        {
-            tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
-            Vector3 dir = mousePoint - tool.transform.position;
-            dir /= Time.fixedDeltaTime;
-            tool.GetComponent<Rigidbody>().velocity = dir;
-            tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
-        }
-        else
-        {
-            tool.GetComponent<Rigidbody>().MovePosition(ctrler.CursorController.CurrentHand().transform.position);
-        }
+
+        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
+        Vector3 dir = mousePoint - tool.transform.position;
+        dir /= Time.fixedDeltaTime;
+        tool.GetComponent<Rigidbody>().velocity = dir;
+        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
+
     }
 
     protected override void OnDestroy()
