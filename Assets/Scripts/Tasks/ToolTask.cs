@@ -27,9 +27,9 @@ public class ToolTask : BaseTask
     private GameObject toolSurface;
 
     private static List<float> targetAngles = new List<float>();
-
+    private const float TARGET_DISTANCE = 0.55f;
     private ExperimentController ctrler;
-    private float  distanceToTarget;
+    private float  InitialDistanceToTarget;
     private List<Vector3> PuckPoints = new List<Vector3>();
     private GameObject oldMainCamera;
 
@@ -41,6 +41,7 @@ public class ToolTask : BaseTask
     private GameObject visualCube;
     private Quaternion cubeRot;
     private Vector3 previousPosition;
+    private float missTimer;
     private float Timer;
     private bool enterdTarget = false;
 
@@ -93,6 +94,7 @@ public class ToolTask : BaseTask
 
                 RacketMouseMovment(mousePoint);
 
+                // Track a point every 25 milliseconds
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
                     PuckPoints.Add(Puckobj.transform.position);
@@ -105,25 +107,32 @@ public class ToolTask : BaseTask
             case 2:
                 RacketMouseMovment(mousePoint);
                 float currentDistance = Vector3.Distance(Puckobj.transform.position, Target.transform.position);
-                //Debug.Log("this is distance of ball from object: " + currentDistance);
+                //Debug.Log("this is distance of puck from Target: " + currentDistance);
 
 
                 // Only check when the distance from pinball to target is less than half of the distance
                 // between the target and home position and if the pinball is NOT approaching the target
-                if (currentDistance <= distanceToTarget / 2f && 
+                if (currentDistance <= TARGET_DISTANCE / 2f && 
                     currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
                 {
 
                     // The object only has 500ms of total time to move away from the target
                     // After 500ms, the trial ends
-                    if (Timer < 0.5f)
+                    if (missTimer < 0.5f)
                     {
-                        Timer += Time.fixedDeltaTime;
+                        missTimer += Time.fixedDeltaTime;
                     }
                     else
                     {
                         IncrementStep();
                     }
+                }
+
+                //Debug.Log("Current distance to  Target" + currentDistance);
+
+                if (InitialDistanceToTarget < 0.05f)
+                {
+                    enterdTarget = true;
                 }
 
                 if (enterdTarget)
@@ -132,7 +141,7 @@ public class ToolTask : BaseTask
                     float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
 
                     // We are now going away from the target, end trial immediately
-                    if (distanceToTarget > previousDistanceToTarget)
+                    if (InitialDistanceToTarget > previousDistanceToTarget)
                     {
                         //lastPositionInTarget = previousPosition;
                         IncrementStep();
@@ -140,18 +149,13 @@ public class ToolTask : BaseTask
                     }
                 }
 
-                if (distanceToTarget < 0.05f)
-                {
-                    enterdTarget = true;
-                }
 
-              
                 previousPosition = Puckobj.transform.position;
                 
                 break;
             
 
-            // after the either hit the Target or passed by it
+            // after we either hit the Target or passed by it
             case 3:
 
                 if(Timer == 0)
@@ -159,9 +163,9 @@ public class ToolTask : BaseTask
                     //get Audio Component
                     toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
 
-                    distanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+                    float CurrentDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
                     
-                    if(distanceToTarget < 0.05f)
+                    if(CurrentDistanceToTarget < 0.05f)
                     {
                         if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
@@ -178,8 +182,6 @@ public class ToolTask : BaseTask
                         Puckobj.GetComponent<Rigidbody>().isKinematic = true;
 
                     }
-
-
                 }
 
                 if(Timer < 1.5f)
@@ -216,8 +218,6 @@ public class ToolTask : BaseTask
 
 
                     }
-
-
                 }
                 else
                 {
@@ -225,26 +225,6 @@ public class ToolTask : BaseTask
                 }
                 break;
 
-
-
-
-
-/*
-                // if the user hits the target show the results
-                // else give them another try
-                if (Target.GetComponent<BaseTarget>().Collided)//(Vector3.Distance(obj.transform.position, Target.transform.position) < 0.025f)
-                {
-
-                    Debug.Log("we hit the Target");
-                    LogParameters();
-                }
-                else
-                {
-                    Debug.Log("we DID NOT hit the Target");
-                }
-
-                break;
-*/
         }
 
         if (Finished)
@@ -293,7 +273,7 @@ public class ToolTask : BaseTask
         Target.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
-        Target.transform.position += Target.transform.forward.normalized * 0.55f;
+        Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
 
         // Set up camera for non VR and VR modes
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
@@ -303,8 +283,8 @@ public class ToolTask : BaseTask
         }
         else toolCamera.SetActive(false);
 
-        distanceToTarget = Vector3.Distance(Target.transform.position, Puckobj.transform.position);
-        distanceToTarget += 0.15f;
+        InitialDistanceToTarget = Vector3.Distance(Target.transform.position, Puckobj.transform.position);
+        InitialDistanceToTarget += 0.15f;
 
 
         /*
@@ -359,14 +339,15 @@ public class ToolTask : BaseTask
         IncrementStep();
     }
 
-
     private void RacketMouseMovment(Vector3 mousePoint)
     {
 
         tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
+
         Vector3 dir = mousePoint - tool.transform.position;
         dir /= Time.fixedDeltaTime;
         tool.GetComponent<Rigidbody>().velocity = dir;
+
         tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
 
     }
