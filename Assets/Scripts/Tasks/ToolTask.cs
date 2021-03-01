@@ -19,6 +19,14 @@ public class ToolTask : BaseTask
 
     private MovementType[] reachType;
     private Trial trial;
+    private float height;
+    // Allows a delay when the participant initially hits the object
+    private float initialDelayTimer;
+    private GameObject visualCube;
+    private Quaternion cubeRot;
+    private float InitialDistanceToTarget;
+
+
 
     private GameObject toolSpace;
     private GameObject tool;
@@ -29,20 +37,16 @@ public class ToolTask : BaseTask
     private static List<float> targetAngles = new List<float>();
     private const float TARGET_DISTANCE = 0.55f;
     private ExperimentController ctrler;
-    private float  InitialDistanceToTarget;
+    
     private List<Vector3> PuckPoints = new List<Vector3>();
     private GameObject oldMainCamera;
 
-    private float height;
 
-    // Allows a delay when the participant initially hits the object
-    private float initialDelayTimer;
 
-    private GameObject visualCube;
-    private Quaternion cubeRot;
     private Vector3 previousPosition;
     private float missTimer;
     private float Timer;
+    private float DelayTimer;
     private bool enterdTarget = false;
 
 
@@ -143,15 +147,26 @@ public class ToolTask : BaseTask
                     }
                 }
 
+                //Debug.Log("Ouck object Velocity: " + Puckobj.GetComponent<Rigidbody>().velocity.magnitude);
 
                 // Trial ends if the ball stops moving OR
                 // The distance between the home position and the pinball exceeds the distance
                 // between the pinball and the target
-                if (Puckobj.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
-                    Vector3.Distance(Puckobj.transform.position, Home.transform.position) >= InitialDistanceToTarget)
+
+                if(DelayTimer > 0.1f)
                 {
-                    IncrementStep();
+                    if (Puckobj.GetComponent<Rigidbody>().velocity.magnitude < 0.01f ||
+    Vector3.Distance(Puckobj.transform.position, Home.transform.position) >= InitialDistanceToTarget)
+                    {
+                        IncrementStep();
+                    }
+
                 }
+                else
+                {
+                    DelayTimer += Time.fixedDeltaTime;
+                }
+
 
 
                 //Debug.Log("Current distance to  Target" + currentDistance);
@@ -160,7 +175,6 @@ public class ToolTask : BaseTask
                 {
                     enterdTarget = true;
                 }
-
 
 
                 previousPosition = Puckobj.transform.position;
@@ -245,7 +259,6 @@ public class ToolTask : BaseTask
 
     }
 
-
     public override bool IncrementStep()
     {
         if (currentStep == 0)
@@ -302,44 +315,19 @@ public class ToolTask : BaseTask
 
 
 
-        if(ctrler.Session.settings.GetString("per_block_surface_materials") == "fabric")
-        {
-            Debug.Log("set fabric matriel");
-        }
+        //if(ctrler.Session.settings.GetString("per_block_surface_materials") == "fabric")
+        //{
+            
+        //}
+        //Debug.Log(ctrler.Session.settings.GetString("per_block_surface_materials").Length);
 
 
 
-        /*
-        // Set up surface friction
-        toolSurface.GetComponent<BoxCollider>().material.dynamicFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_dynamic_friction");
-
-        toolSurface.GetComponent<BoxCollider>().material.staticFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_static_friction");
-
-        // Set up tool friction
-
-        // Set up object
-        
-        obj.GetComponent<SphereCollider>().material.dynamicFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
-
-        obj.GetComponent<SphereCollider>().material.dynamicFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
-        */
 
         Puckobj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
         tool.GetComponent<BoxCollider>().material.bounciness = 1f;
         tool.GetComponent<BoxCollider>().enabled = false;
 
-        //visualCube = GameObject.Find("ToolVisualCube");
-        //cubeRot = visualCube.transform.rotation;
-
-        /*        // Set up object type
-                if (ctrler.Session.CurrentTrial.settings.GetString("per_block_object_type") == "sphere")
-                    GameObject.Find("ToolVisualCube").SetActive(false);
-                else
-                    GameObject.Find("ToolVisualSphere").SetActive(false);*/
 
 
         // Disable object for first step
@@ -364,13 +352,14 @@ public class ToolTask : BaseTask
     private void RacketMouseMovment(Vector3 mousePoint)
     {
 
-        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
+        
 
         Vector3 dir = mousePoint - tool.transform.position;
         dir /= Time.fixedDeltaTime;
         tool.GetComponent<Rigidbody>().velocity = dir;
 
-        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
+        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f
+            + ctrler.transform.position.z;
 
     }
 
