@@ -33,6 +33,7 @@ public class ToolTask : BaseTask
     private GameObject Puckobj; 
     private GameObject toolCamera;
     private GameObject toolSurface;
+    private GameObject grid;
 
     private static List<float> targetAngles = new List<float>();
     private const float TARGET_DISTANCE = 0.55f;
@@ -147,16 +148,14 @@ public class ToolTask : BaseTask
                     }
                 }
 
-                //Debug.Log("Ouck object Velocity: " + Puckobj.GetComponent<Rigidbody>().velocity.magnitude);
-
                 // Trial ends if the ball stops moving OR
                 // The distance between the home position and the pinball exceeds the distance
                 // between the pinball and the target
 
                 if(DelayTimer > 0.1f)
                 {
-                    if (Puckobj.GetComponent<Rigidbody>().velocity.magnitude < 0.01f ||
-    Vector3.Distance(Puckobj.transform.position, Home.transform.position) >= InitialDistanceToTarget)
+                    if (Puckobj.GetComponent<Rigidbody>().velocity.magnitude < 0.0001f ||
+                        Vector3.Distance(Puckobj.transform.position, Home.transform.position) >= InitialDistanceToTarget)
                     {
                         IncrementStep();
                     }
@@ -166,10 +165,6 @@ public class ToolTask : BaseTask
                 {
                     DelayTimer += Time.fixedDeltaTime;
                 }
-
-
-
-                //Debug.Log("Current distance to  Target" + currentDistance);
 
                 if (currentDistance < 0.05f)
                 {
@@ -206,6 +201,7 @@ public class ToolTask : BaseTask
                         toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
 
                         //Freeze puck
+                        Puckobj.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
                         Puckobj.GetComponent<Rigidbody>().isKinematic = true;
 
                     }
@@ -216,8 +212,11 @@ public class ToolTask : BaseTask
                     Timer += Time.deltaTime;
 
                     if(Timer > 0.08f)
-                    {   
+                    {
+
+
                         //freeze pinball in space
+                        Puckobj.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
                         Puckobj.GetComponent<Rigidbody>().isKinematic = true;
 
 
@@ -282,6 +281,7 @@ public class ToolTask : BaseTask
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         toolSurface = GameObject.Find("ToolPlane");
+        grid = GameObject.Find("Grid");
 
         // Height above the surface. Height is y position of plane
         // plus thickness of surface (0.05) plus the half the width of the tool (0.075)
@@ -313,16 +313,18 @@ public class ToolTask : BaseTask
         InitialDistanceToTarget += 0.15f;
 
 
+        
+        // set up surface materials for the plane
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "fabric")
+        {
+            grid.SetActive(false);
+            toolSurface.GetComponent<MeshRenderer>().material = ctrler.SurfaceMaterials[0];
 
-
-        //if(ctrler.Session.settings.GetString("per_block_surface_materials") == "fabric")
-        //{
-            
-        //}
-        //Debug.Log(ctrler.Session.settings.GetString("per_block_surface_materials").Length);
-
-
-
+        }else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "ice")
+        {
+            grid.SetActive(false);
+            toolSurface.GetComponent<MeshRenderer>().material = ctrler.SurfaceMaterials[1];
+        }
 
         Puckobj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
         tool.GetComponent<BoxCollider>().material.bounciness = 1f;
