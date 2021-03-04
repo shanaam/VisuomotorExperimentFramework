@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class BlockComponent : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public UIBlock BlockController;
+    public ConfigurationBlockManager BlockController;
     public int BlockID;
 
     public void OnBeginDrag(PointerEventData eventData)

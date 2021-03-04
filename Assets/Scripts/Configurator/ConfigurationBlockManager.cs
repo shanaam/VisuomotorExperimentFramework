@@ -6,11 +6,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using Button = UnityEngine.UI.Button;
 
-public class UIBlock : MonoBehaviour
+public class ConfigurationBlockManager : MonoBehaviour
 {
     public List<GameObject> Blocks = new List<GameObject>();
     public GameObject BlockPrefab;
-
 
     public GameObject Content;
 
@@ -18,6 +17,27 @@ public class UIBlock : MonoBehaviour
 
     private ExperimentContainer expContainer;
     private ConfigurationUIManager uiManager;
+
+    private HashSet<GameObject> selectedBlocks = new HashSet<GameObject>();
+
+    private ColorBlock selectedColourPalette, normalColourPalette;
+
+    public void Start()
+    {
+        normalColourPalette.normalColor = Color.white;
+        normalColourPalette.selectedColor = Color.white;
+        normalColourPalette.disabledColor = new Color(0.78f, 0.78f, 0.78f, 0.5f);
+        normalColourPalette.pressedColor = new Color(0.78f, 0.78f, 0.78f);
+        normalColourPalette.highlightedColor = new Color(0.96f, 0.96f, 0.96f);
+        normalColourPalette.colorMultiplier = 1.0f;
+
+        selectedColourPalette.normalColor = new Color(1f, 0.85f, 0.49f);
+        selectedColourPalette.selectedColor = selectedColourPalette.normalColor;
+        selectedColourPalette.pressedColor = Color.yellow;
+        selectedColourPalette.highlightedColor = Color.yellow;
+        selectedColourPalette.disabledColor = new Color(0.78f, 0.78f, 0.78f, 0.5f);
+        selectedColourPalette.colorMultiplier = 1.0f;
+    }
 
     public void InitializeBlockPrefabs(ConfigurationUIManager manager, ExperimentContainer expContainer)
     {
@@ -30,6 +50,7 @@ public class UIBlock : MonoBehaviour
         }
         
         Blocks.Clear();
+        selectedBlocks.Clear();
 
         List<object> per_block_type = expContainer.Data["per_block_type"] as List<object>;
         
@@ -49,16 +70,47 @@ public class UIBlock : MonoBehaviour
 
             Blocks.Add(g);
 
-            g.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                uiManager.OnClickBlock(g);
-            });
+            g.GetComponent<Button>().onClick.AddListener(
+                () => { uiManager.OnClickBlock(g); });
+
+            g.GetComponent<Button>().onClick.AddListener(
+                () => { OnClickBlock(g); });
         }
     }
 
     void Update()
     {
         GetComponent<ScrollRect>().enabled = !Dragged;
+    }
+
+    public void OnClickBlock(GameObject block)
+    {
+        if (Dragged) return;
+
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            if (!selectedBlocks.Contains(block))
+            {
+                selectedBlocks.Add(block);
+            }
+        }
+        else
+        {
+            selectedBlocks.Clear();
+            selectedBlocks.Add(block);
+        }
+
+        foreach (GameObject g in Blocks)
+        {
+            if (selectedBlocks.Contains(g))
+            {
+                g.GetComponent<Button>().colors = selectedColourPalette;
+            }
+            else
+            {
+                g.GetComponent<Button>().colors = normalColourPalette;
+            }
+        }
     }
 
     public void OnBlockBeginDrag(GameObject draggedObject)
@@ -74,11 +126,11 @@ public class UIBlock : MonoBehaviour
     {
         // Snaps the blocks into its correct position as the user drags the block
         // around the screen
-
+        
         int j = 0, k = Blocks.Count;
         for (int i = 0; i < Blocks.Count; i++)
         {
-            if (Blocks[i] != draggedObject)
+            if (Blocks[i] != draggedObject && !selectedBlocks.Contains(Blocks[i]))
             {
                 if (Blocks[i].transform.position.x < draggedObject.transform.position.x)
                 {
@@ -97,10 +149,22 @@ public class UIBlock : MonoBehaviour
 
         for (int i = k; i < Blocks.Count; i++)
         {
-            if (Blocks[i] != draggedObject)
+            if (Blocks[i] != draggedObject && !selectedBlocks.Contains(Blocks[i]))
             {
                 Blocks[i].transform.position = new Vector3(
                     -390f + (j * 100f), 0f, 0f) + transform.position;
+                j++;
+            }
+        }
+        
+        // If user selected multiple blocks, also attach them to the mouse
+        j = 0;
+        foreach (GameObject g in selectedBlocks)
+        {
+            if (g != draggedObject)
+            {
+                g.transform.position = draggedObject.transform.position +
+                                       new Vector3(100f * j, 0f, 0f);
                 j++;
             }
         }
@@ -112,6 +176,15 @@ public class UIBlock : MonoBehaviour
     /// <param name="draggedObject"></param>
     public void OnEndDrag(GameObject draggedObject)
     {
+        // Squish selected blocks to be next to each other
+        int j = 0;
+        foreach (GameObject g in selectedBlocks)
+        {
+            if (g != draggedObject)
+            {
+            }
+        }
+
         // Reorganize the blocks based on their x coordinate
         Blocks.Sort((a, b) =>
             a.GetComponent<RectTransform>().position.x.CompareTo(
@@ -192,6 +265,9 @@ public class UIBlock : MonoBehaviour
         // Add listener for onClick function
         g.GetComponent<Button>().onClick.AddListener(
             () => { uiManager.OnClickBlock(g); });
+
+        g.GetComponent<Button>().onClick.AddListener(
+                () => { OnClickBlock(g); });
 
         Blocks.Add(g);
 

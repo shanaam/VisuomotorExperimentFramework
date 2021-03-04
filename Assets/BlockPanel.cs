@@ -120,7 +120,7 @@ public class BlockPanel : MonoBehaviour
         ((List<object>) uiManager.ExpContainer.Data[selectedParameter])[index] =
             DropdownInputField.GetComponent<Dropdown>().options[option].text;
 
-        uiManager.BlockView.GetComponent<UIBlock>().UpdateBlockText();
+        uiManager.BlockView.GetComponent<ConfigurationBlockManager>().UpdateBlockText();
 
         uiManager.Dirty = true;
     }

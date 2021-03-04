@@ -20,6 +20,8 @@ public class ConfigurationUIManager : MonoBehaviour
     // GameObjects for the various UI components
     public GameObject ConfirmationPopup, FileDropdown, BlockView, DirtyText, FileSaveDialog;
 
+    public GameObject BlockTab, PropertyTab;
+
     // When true, the user has made a modification to the JSON without saving.
     // We use this to let the user know in the UI they have unsaved changes.
     private bool dirty;
@@ -200,7 +202,13 @@ public class ConfigurationUIManager : MonoBehaviour
 
         ExpContainer = new ExperimentContainer(fileParameters, masterParameters);
 
-        BlockView.GetComponent<UIBlock>().InitializeBlockPrefabs(this, ExpContainer);
+        // Default to show the block tab
+        PropertyTab.SetActive(false);
+        BlockTab.SetActive(true);
+
+        BlockView.GetComponent<ConfigurationBlockManager>().InitializeBlockPrefabs(this, ExpContainer);
+        
+        // TODO: Set up property editor
         /*
         // Set up property editor
         PropertyDropdown.GetComponent<Dropdown>().ClearOptions();
@@ -273,7 +281,7 @@ public class ConfigurationUIManager : MonoBehaviour
 
             Dirty = true;
 
-            BlockView.GetComponent<UIBlock>().InitializeBlockPrefabs(this, ExpContainer);
+            BlockView.GetComponent<ConfigurationBlockManager>().InitializeBlockPrefabs(this, ExpContainer);
             FileDropdown.GetComponent<Dropdown>().value = 0;
         }
     }
@@ -297,7 +305,8 @@ public class ConfigurationUIManager : MonoBehaviour
     /// </summary>
     public void OnClickBlock(GameObject btn)
     {
-        if (!BlockView.GetComponent<UIBlock>().Dragged)
+        if (!BlockView.GetComponent<ConfigurationBlockManager>().Dragged && 
+            !Input.GetKeyDown(KeyCode.LeftShift))
         {
             BlockPanel.GetComponent<BlockPanel>().Populate(btn.GetComponent<BlockComponent>().BlockID);
             CurrentSelectedBlock = btn.GetComponent<BlockComponent>().BlockID;
