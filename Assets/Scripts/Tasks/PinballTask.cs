@@ -527,16 +527,16 @@ public class PinballTask : BaseTask
         
         Gizmos.color = Color.green;
         Gizmos.DrawSphere(
-            lastPositionInTarget, 0.02f
+            lastPositionInTarget - ctrler.transform.position, 0.02f
             );
 
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(
-            Target.transform.position, 0.02f
+            Target.transform.position - ctrler.transform.position, 0.02f
             );
 
         Gizmos.color = Color.blue;
-        Gizmos.DrawSphere(directionIndicator.transform.position, 0.02f);
+        Gizmos.DrawSphere(directionIndicator.transform.position - ctrler.transform.position, 0.02f);
         
     }
 }
