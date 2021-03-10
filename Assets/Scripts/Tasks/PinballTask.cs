@@ -123,6 +123,7 @@ public class PinballTask : BaseTask
             if (pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
                 Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
             {
+                lastPositionInTarget = pinball.transform.position;
                 IncrementStep();
             }
 
@@ -130,7 +131,6 @@ public class PinballTask : BaseTask
             {
                 // set a temp variable to the pinballs position
                 lastPositionInTarget = pinball.transform.position;
-                lastLocalPositionInTarget = pinball.transform.localPosition;
                 enteredTarget = true;
             }
 
@@ -177,7 +177,7 @@ public class PinballTask : BaseTask
                         {
                             directionIndicator.transform.position = pinball.transform.position - direction / 2f;
                         }
-                        
+
                         directionIndicator.transform.LookAt(pinball.transform.position);
                     }
                     else if (Input.GetMouseButtonUp(0))
@@ -257,6 +257,16 @@ public class PinballTask : BaseTask
                         pinball.GetComponent<Rigidbody>().isKinematic = true;
                     }
 
+                    // Scoring
+                    if (Target.GetComponent<BaseTarget>().Collided)
+                    {
+                        ctrler.Score += 2;
+                    }
+                    else if (distanceToTarget < 0.05f)
+                    {
+                        ctrler.Score += 1;
+                    }
+
                     pinballSpace.GetComponent<AudioSource>().Play();
                     timer += Time.deltaTime;
                 }
@@ -317,7 +327,7 @@ public class PinballTask : BaseTask
         {
             SetTilt();
         }
-        
+
         // Perturbation
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
         {
@@ -328,7 +338,7 @@ public class PinballTask : BaseTask
         }
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
-        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward * 
+        pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward *
                                                      5f * (direction.magnitude / 0.2f);
 
         directionIndicator.GetComponent<AudioSource>().Play();
@@ -340,41 +350,27 @@ public class PinballTask : BaseTask
     {
         ExperimentController ctrler = ExperimentController.Instance();
 
-        // Convert direction to local space
-        direction = ctrler.transform.position - direction;
+        // Note: ALL vectors are in world space
 
-        ctrler.Session.CurrentTrial.result["cursor_x"] = direction.x;
-        ctrler.Session.CurrentTrial.result["cursor_y"] = direction.y;
-        ctrler.Session.CurrentTrial.result["cursor_z"] = direction.z;
+        ctrler.Session.CurrentTrial.result["cursor_x"] = directionIndicator.transform.position.x;
+        ctrler.Session.CurrentTrial.result["cursor_y"] = directionIndicator.transform.position.y;
+        ctrler.Session.CurrentTrial.result["cursor_z"] = directionIndicator.transform.position.z;
 
         // Note: Vector used is the last updated position of the pinball if it was within 5cm
         // of the target.
-        ctrler.Session.CurrentTrial.result["pinball_x"] = lastLocalPositionInTarget.x;
-        ctrler.Session.CurrentTrial.result["pinball_y"] = lastLocalPositionInTarget.y;
-        ctrler.Session.CurrentTrial.result["pinball_z"] = lastLocalPositionInTarget.z;
 
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["target_y"] = Target.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["target_z"] = Target.transform.localPosition.z;
+        ctrler.Session.CurrentTrial.result["pinball_x"] = lastPositionInTarget.x;
+        ctrler.Session.CurrentTrial.result["pinball_y"] = lastPositionInTarget.y;
+        ctrler.Session.CurrentTrial.result["pinball_z"] = lastPositionInTarget.z;
+
+        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.position.x;
+        ctrler.Session.CurrentTrial.result["target_y"] = Target.transform.position.y;
+        ctrler.Session.CurrentTrial.result["target_z"] = Target.transform.position.z;
 
         ctrler.Session.CurrentTrial.result["error_size"] =
-            (Target.transform.localPosition - lastLocalPositionInTarget).magnitude;
+            (Target.transform.position - lastLocalPositionInTarget).magnitude;
 
         Debug.Log("Distance to target: " + distanceToTarget);
-
-        // Cutoff distances
-        if (Target.GetComponent<BaseTarget>().Collided)
-        {
-            ctrler.Session.CurrentTrial.result["score"] = 2;
-        }
-        else if (distanceToTarget < 0.05f)
-        {
-            ctrler.Session.CurrentTrial.result["score"] = 1;
-        }
-        else
-        {
-            ctrler.Session.CurrentTrial.result["score"] = 0;
-        }
 
         IncrementStep();
     }
@@ -487,6 +483,7 @@ public class PinballTask : BaseTask
     private Vector3 mousePoint;
     void OnDrawGizmos()
     {
+        /*
         if (currentStep >= 1)
         {
             Gizmos.color = Color.blue;
@@ -509,13 +506,37 @@ public class PinballTask : BaseTask
             Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir * 5f);
         }
 
+        // Represents the vector of where the mouse is pointing at in world space
         Gizmos.color = Color.magenta;
         Gizmos.DrawLine(pinballCam.transform.position, mousePoint);
 
+        // Represents the direction of where the pinball is hit towards
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir.normalized * 0.1f);
 
+        // Represents the forward direction of the pinball
         Gizmos.color = Color.red;
         Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + pinball.transform.forward * 2f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(
+            direction, 0.02f
+            );
+        */
+        // Positions that are saved for data collection
+        
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(
+            lastPositionInTarget, 0.02f
+            );
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(
+            Target.transform.position, 0.02f
+            );
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawSphere(directionIndicator.transform.position, 0.02f);
+        
     }
 }

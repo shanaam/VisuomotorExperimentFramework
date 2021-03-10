@@ -1100,6 +1100,7 @@ MonoBehaviour:
   SoundEffects:
   - {fileID: 8300000, guid: cb132b47806af9d489d50855b0abf4d7, type: 3}
   - {fileID: 8300000, guid: 323d999887e1e8e4c9164f54a7798f7c, type: 3}
+  Score: 0
 --- !u!114 &1000910855
 MonoBehaviour:
   m_ObjectHideFlags: 0
