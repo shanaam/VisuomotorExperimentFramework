@@ -40,6 +40,8 @@ public class ExperimentController : MonoBehaviour
 
     private float currentTrialTime;
 
+    public int Score = 0;
+
     /// <summary>
     /// 
     /// 
@@ -286,6 +288,13 @@ public class ExperimentController : MonoBehaviour
             Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
             Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
             Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
+        }
+        
+        // Track score if score tracking is enabled in the JSON
+        // Defaults to disabled if property does not exist in JSON
+        if (Session.settings.GetBool("track_score", false))
+        {
+            Session.CurrentTrial.result["score"] = Score;
         }
 
         EndTimer();

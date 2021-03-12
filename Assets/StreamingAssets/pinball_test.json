@@ -1,5 +1,6 @@
 {
     "experiment_mode" : "pinball",
+    "track_score" : true,
     "per_block_type" : ["aligned", "aligned", "aligned", "aligned", "rotated", "rotated", "rotated"],
     "per_block_rotation" : [0, 0, 0, 0, 30, 30, 30],
     "per_block_tilt" : [20, 20, 10, 10, 0, 10, 10],
