@@ -5,6 +5,8 @@ public class BlockComponent : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 {
     public ConfigurationBlockManager BlockController;
     public int BlockID;
+    public GameObject Notch;
+    public GameObject Block;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -16,8 +18,8 @@ public class BlockComponent : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
     public void OnDrag(PointerEventData eventData)
     {
-        transform.position = eventData.position;
-        BlockController.OnBlockDrag(gameObject);
+        //transform.position = eventData.position;
+        BlockController.OnBlockDrag(gameObject, eventData.position);
     }
 
     public void OnEndDrag(PointerEventData eventData)

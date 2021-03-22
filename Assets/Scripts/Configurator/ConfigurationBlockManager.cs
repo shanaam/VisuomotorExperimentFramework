@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
 
 public class ConfigurationBlockManager : MonoBehaviour
@@ -12,15 +14,24 @@ public class ConfigurationBlockManager : MonoBehaviour
     public GameObject BlockPrefab;
 
     public GameObject Content;
+    public GameObject SelectedBlockText;
+    public GameObject InsertInstructionButton;
+    public GameObject Dummy;
 
     public bool Dragged;
 
     private ExperimentContainer expContainer;
     private ConfigurationUIManager uiManager;
 
-    private HashSet<GameObject> selectedBlocks = new HashSet<GameObject>();
+    public HashSet<GameObject> SelectedBlocks = new HashSet<GameObject>();
+    public HashSet<GameObject> SelectedNotches = new HashSet<GameObject>();
 
     private ColorBlock selectedColourPalette, normalColourPalette;
+
+    private const float BLOCK_SPACING = 110f;
+    private const float INITIAL_OFFSET = -390f;
+
+    private float blockViewLeftSide, blockViewRightSide;
 
     public void Start()
     {
@@ -37,6 +48,11 @@ public class ConfigurationBlockManager : MonoBehaviour
         selectedColourPalette.highlightedColor = Color.yellow;
         selectedColourPalette.disabledColor = new Color(0.78f, 0.78f, 0.78f, 0.5f);
         selectedColourPalette.colorMultiplier = 1.0f;
+
+        Vector3[] corners = new Vector3[4];
+        GetComponent<RectTransform>().GetWorldCorners(corners);
+        blockViewLeftSide = corners[0].x;
+        blockViewRightSide = corners[2].x;
     }
 
     public void InitializeBlockPrefabs(ConfigurationUIManager manager, ExperimentContainer expContainer)
@@ -50,7 +66,7 @@ public class ConfigurationBlockManager : MonoBehaviour
         }
         
         Blocks.Clear();
-        selectedBlocks.Clear();
+        SelectedBlocks.Clear();
 
         List<object> per_block_type = expContainer.Data["per_block_type"] as List<object>;
         
@@ -58,29 +74,136 @@ public class ConfigurationBlockManager : MonoBehaviour
         {
             GameObject g = Instantiate(BlockPrefab, Content.transform);
             g.name = "Block " + i;
-            g.GetComponentInChildren<Text>().text = 
+
+            BlockComponent blckCmp = g.GetComponent<BlockComponent>();
+
+            blckCmp.Block.GetComponentInChildren<Text>().text = 
                 g.name + "\n" + Convert.ToString(per_block_type[i]);
 
             g.transform.position = new Vector3(
-                -390 + (i * 100), 0f, 0f) + transform.position;
+                INITIAL_OFFSET + (i * BLOCK_SPACING), 0f, 0f) + transform.position;
 
-            g.GetComponent<BlockComponent>().BlockController = this;
-
-            g.GetComponent<BlockComponent>().BlockID = i;
+            blckCmp.BlockController = this;
+            blckCmp.BlockID = i;
 
             Blocks.Add(g);
 
-            g.GetComponent<Button>().onClick.AddListener(
+            blckCmp.Block.GetComponent<Button>().onClick.AddListener(
                 () => { uiManager.OnClickBlock(g); });
 
-            g.GetComponent<Button>().onClick.AddListener(
+            blckCmp.Block.GetComponent<Button>().onClick.AddListener(
                 () => { OnClickBlock(g); });
+
+            blckCmp.Notch.GetComponent<Button>().onClick.AddListener(
+                () => { OnNotchPress(blckCmp.Notch); });
         }
     }
 
     void Update()
     {
         GetComponent<ScrollRect>().enabled = !Dragged;
+
+        if (Dragged)
+        {
+            // Adjust scroll view position
+            GetComponent<ScrollRect>().enabled = true;
+            if (Input.mousePosition.x <= blockViewLeftSide)
+            {
+                GetComponent<ScrollRect>().horizontalNormalizedPosition -= 0.8f * Time.deltaTime;
+            }
+            else if (Input.mousePosition.x >= blockViewRightSide)
+            {
+                GetComponent<ScrollRect>().horizontalNormalizedPosition += 0.8f * Time.deltaTime;
+            }
+            GetComponent<ScrollRect>().enabled = false;
+        }
+        else
+        {
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.A))
+            {
+                if (SelectedBlocks.Count != Blocks.Count)
+                {
+                    foreach (GameObject g in Blocks)
+                    {
+                        SelectedBlocks.Add(g);
+                    }
+                    SelectedNotches.Clear();
+
+                    UpdateNotchButtons();
+                    UpdateBlockButtons();
+                }
+            }
+        }
+    }
+
+    private void UpdateBlockButtons()
+    {
+        SelectedBlockText.GetComponent<Text>().text = "Selected Blocks: ";
+        foreach (GameObject g in Blocks)
+        {
+            GameObject block = g.GetComponent<BlockComponent>().Block;
+            if (SelectedBlocks.Contains(g))
+            {
+                block.GetComponent<Button>().colors = selectedColourPalette;
+
+                SelectedBlockText.GetComponent<Text>().text +=
+                    g.GetComponent<BlockComponent>().BlockID + ", ";
+            }
+            else
+            {
+                block.GetComponent<Button>().colors = normalColourPalette;
+            }
+
+        }
+
+        
+        string s = 
+            SelectedBlockText.GetComponent<Text>().text.Substring(0,
+                SelectedBlockText.GetComponent<Text>().text.Length - 2);
+
+        SelectedBlockText.GetComponent<Text>().text = s;
+    }
+
+    private void UpdateNotchButtons()
+    {
+        if (SelectedBlocks.Count == 0)
+        {
+            SelectedBlockText.GetComponent<Text>().text = "Selected Blocks: None";
+        }
+
+        foreach (GameObject g in Blocks)
+        {
+            GameObject notch = g.GetComponent<BlockComponent>().Notch;
+            if (SelectedNotches.Contains(notch))
+            {
+                notch.GetComponent<Button>().colors = selectedColourPalette;
+            }
+            else
+            {
+                notch.GetComponent<Button>().colors = normalColourPalette;
+            }
+        }
+    }
+
+    public void OnNotchPress(GameObject notch)
+    {
+        if (Dragged) return;
+
+        if (SelectedNotches.Contains(notch))
+        {
+            SelectedNotches.Remove(notch);
+        }
+        else
+        {
+            SelectedNotches.Add(notch);
+        }
+
+        SelectedBlocks.Clear();
+
+        InsertInstructionButton.SetActive(SelectedNotches.Count > 0);
+
+        UpdateBlockButtons();
+        UpdateNotchButtons();
     }
 
     public void OnClickBlock(GameObject block)
@@ -89,53 +212,93 @@ public class ConfigurationBlockManager : MonoBehaviour
 
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            if (!selectedBlocks.Contains(block))
+            if (!SelectedBlocks.Contains(block))
             {
-                selectedBlocks.Add(block);
+                SelectedBlocks.Add(block);
             }
         }
         else
         {
-            selectedBlocks.Clear();
-            selectedBlocks.Add(block);
+            SelectedBlocks.Clear();
+            SelectedBlocks.Add(block);
         }
 
-        foreach (GameObject g in Blocks)
-        {
-            if (selectedBlocks.Contains(g))
-            {
-                g.GetComponent<Button>().colors = selectedColourPalette;
-            }
-            else
-            {
-                g.GetComponent<Button>().colors = normalColourPalette;
-            }
-        }
+        // If a user selects a block, remove all selected notches
+        SelectedNotches.Clear();
+
+        UpdateBlockButtons();
+        UpdateNotchButtons();
     }
 
+    /// <summary>
+    /// Executes ONCE on the frame the user begins dragging a block
+    /// </summary>
+    /// <param name="draggedObject"></param>
     public void OnBlockBeginDrag(GameObject draggedObject)
     {
-        
+        if (!SelectedBlocks.Contains(draggedObject))
+        {
+            // If the user drags a block they did not highlight when the
+            // user has already selected a block(s), 
+            if (SelectedBlocks.Count > 0)
+            {
+                SelectedBlocks.Clear();
+            }
+
+            SelectedBlocks.Add(draggedObject);
+            UpdateBlockButtons();
+        }
+
+        // If the user selected notches, remove them from the selection
+        // since we are dragging a block
+        SelectedNotches.Clear();
+        UpdateNotchButtons();
+
+        // Unparent
+        foreach (GameObject g in SelectedBlocks)
+        {
+            g.transform.SetParent(gameObject.transform);
+        }
+
+        // Enable dummy object to act as a spacer
+        Dummy.SetActive(true);
     }
 
     /// <summary>
     /// Executes when the user clicks and drags a block
     /// </summary>
     /// <param name="draggedObject"></param>
-    public void OnBlockDrag(GameObject draggedObject)
+    public void OnBlockDrag(GameObject draggedObject, Vector2 mousePosition)
     {
+        // If user selected multiple blocks, also attach them to the mouse
+        int j = 0;
+        foreach (GameObject g in Blocks)
+        {
+            if (SelectedBlocks.Contains(g))
+            {
+                g.transform.position = 
+                    new Vector3((BLOCK_SPACING * j) + mousePosition.x, mousePosition.y, 0f);
+                j++;
+            }
+        }
+
         // Snaps the blocks into its correct position as the user drags the block
         // around the screen
-        
-        int j = 0, k = Blocks.Count;
+
+        // Position blocks left of the cursor
+        int k = Blocks.Count;
+        j = 0;
         for (int i = 0; i < Blocks.Count; i++)
         {
-            if (Blocks[i] != draggedObject && !selectedBlocks.Contains(Blocks[i]))
+            if (!SelectedBlocks.Contains(Blocks[i]))
             {
-                if (Blocks[i].transform.position.x < draggedObject.transform.position.x)
+                if (Blocks[i].transform.position.x < mousePosition.x)
                 {
+                    /*
                     Blocks[i].transform.position = new Vector3(
-                        -390f + (j * 100f), 0f, 0f) + transform.position;
+                        INITIAL_OFFSET + (j * BLOCK_SPACING), 0f, 0f) + transform.position;
+                    */
+                    Blocks[i].transform.SetSiblingIndex(j);
                     j++;
                 }
                 else
@@ -147,24 +310,18 @@ public class ConfigurationBlockManager : MonoBehaviour
             }
         }
 
+        Dummy.transform.SetSiblingIndex(j);
+
+        // Position blocks right of the cursor
         for (int i = k; i < Blocks.Count; i++)
         {
-            if (Blocks[i] != draggedObject && !selectedBlocks.Contains(Blocks[i]))
+            if (!SelectedBlocks.Contains(Blocks[i]))
             {
+                /*
                 Blocks[i].transform.position = new Vector3(
-                    -390f + (j * 100f), 0f, 0f) + transform.position;
-                j++;
-            }
-        }
-        
-        // If user selected multiple blocks, also attach them to the mouse
-        j = 0;
-        foreach (GameObject g in selectedBlocks)
-        {
-            if (g != draggedObject)
-            {
-                g.transform.position = draggedObject.transform.position +
-                                       new Vector3(100f * j, 0f, 0f);
+                    INITIAL_OFFSET + (j * BLOCK_SPACING), 0f, 0f) + transform.position;
+                */
+                Blocks[i].transform.SetSiblingIndex(j);
                 j++;
             }
         }
@@ -177,12 +334,18 @@ public class ConfigurationBlockManager : MonoBehaviour
     public void OnEndDrag(GameObject draggedObject)
     {
         // Squish selected blocks to be next to each other
-        int j = 0;
-        foreach (GameObject g in selectedBlocks)
+        int j = 1;
+        foreach (GameObject g in Blocks)
         {
-            if (g != draggedObject)
+            if (g != draggedObject && SelectedBlocks.Contains(g))
             {
+                g.transform.position = draggedObject.transform.position +
+                                       new Vector3(j, 0f, 0f);
+                j++;
             }
+
+            // Reparent
+            g.transform.SetParent(Content.transform);
         }
 
         // Reorganize the blocks based on their x coordinate
@@ -213,10 +376,15 @@ public class ConfigurationBlockManager : MonoBehaviour
         for (int i = 0; i < Blocks.Count; i++)
         {
             Blocks[i].name = "Block " + i;
-            Blocks[i].GetComponent<BlockComponent>().BlockID = i;
-            Blocks[i].GetComponentInChildren<Text>().text = Blocks[i].name + "\n" + newList[i];
+            BlockComponent blckCmp = Blocks[i].GetComponent<BlockComponent>();
+            blckCmp.BlockID = i;
+            blckCmp.Block.GetComponentInChildren<Text>().text = Blocks[i].name + "\n" + newList[i];
+
+            Blocks[i].transform.SetSiblingIndex(i);
+            /*
             Blocks[i].GetComponent<RectTransform>().position = new Vector3(
-                -390 + (100 * i), 0f, 0f) + GetComponent<RectTransform>().position;
+                INITIAL_OFFSET + (BLOCK_SPACING * i), 0f, 0f) + GetComponent<RectTransform>().position;
+            */
         }
 
         uiManager.Dirty = true;
@@ -229,11 +397,18 @@ public class ConfigurationBlockManager : MonoBehaviour
         GameObject g = Instantiate(BlockPrefab, Content.transform);
         g.name = "Block " + per_block_type.Count;
         
+        /*
         g.transform.position = new Vector3(
-            -390 + (per_block_type.Count * 100), 0f, 0f) + transform.position;
+            INITIAL_OFFSET + (per_block_type.Count * BLOCK_SPACING), 0f, 0f) + transform.position;
+        */
 
-        g.GetComponent<BlockComponent>().BlockController = this;
-        g.GetComponent<BlockComponent>().BlockID = per_block_type.Count;
+        g.transform.SetSiblingIndex(per_block_type.Count);
+
+        BlockComponent blckCmp = g.GetComponent<BlockComponent>();
+
+        blckCmp.BlockController = this;
+        blckCmp.BlockID = per_block_type.Count;
+        g.transform.SetAsLastSibling();
 
         // Note: We set block ID before adding another block to the dictionary because
         // block ID is zero based and the count will be 1 off after the GameObject
@@ -258,16 +433,20 @@ public class ConfigurationBlockManager : MonoBehaviour
             }
         }
 
-        g.GetComponentInChildren<Text>().text = g.name + "\n" + per_block_type[per_block_type.Count - 1];
+        blckCmp.Block.GetComponentInChildren<Text>().text = 
+            g.name + "\n" + per_block_type[per_block_type.Count - 1];
 
         uiManager.Dirty = true;
 
         // Add listener for onClick function
-        g.GetComponent<Button>().onClick.AddListener(
+        blckCmp.Block.GetComponent<Button>().onClick.AddListener(
             () => { uiManager.OnClickBlock(g); });
 
-        g.GetComponent<Button>().onClick.AddListener(
+        blckCmp.Block.GetComponent<Button>().onClick.AddListener(
                 () => { OnClickBlock(g); });
+
+        blckCmp.Notch.GetComponent<Button>().onClick.AddListener(
+            () => { OnNotchPress(blckCmp.Notch); });
 
         Blocks.Add(g);
 
@@ -312,8 +491,12 @@ public class ConfigurationBlockManager : MonoBehaviour
             Blocks[i].GetComponentInChildren<Text>().text =
                 Blocks[i].name + "\n" + Convert.ToString(per_block_type[i]);
 
+            /*
             Blocks[i].transform.position = new Vector3(
-                -390 + (i * 100), 0f, 0f) + transform.position;
+                INITIAL_OFFSET + (i * BLOCK_SPACING), 0f, 0f) + transform.position;
+            */
+
+            Blocks[i].transform.SetSiblingIndex(i);
 
             Blocks[i].GetComponent<BlockComponent>().BlockID = i;
         }
@@ -336,6 +519,90 @@ public class ConfigurationBlockManager : MonoBehaviour
         }
 
         uiManager.Dirty = true;
+    }
+
+    public void InsertInstructions()
+    {
+        if (SelectedNotches.Count > 0)
+        {
+            foreach (GameObject notch in SelectedNotches)
+            {
+                // Instantiate prefab that represents the block in the UI
+                List<object> per_block_type = expContainer.Data["per_block_type"] as List<object>;
+                GameObject g = Instantiate(BlockPrefab, Content.transform);
+                g.name = "Block " + per_block_type.Count;
+                /*
+                g.transform.position = new Vector3(
+                                           INITIAL_OFFSET + (per_block_type.Count * BLOCK_SPACING), 0f, 0f) +
+                                       transform.position;
+                */
+                BlockComponent blckCmp = g.GetComponent<BlockComponent>();
+
+                blckCmp.BlockController = this;
+
+                int insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID;
+                g.transform.SetSiblingIndex(insertIndex + 1);
+
+                // Note: We set block ID before adding another block to the dictionary because
+                // block ID is zero based and the count will be 1 off after the GameObject
+                // is set up.
+                foreach (KeyValuePair<string, object> kp in expContainer.Data)
+                {
+                    if (kp.Key.StartsWith("per_block"))
+                    {
+                        List<object> per_block_list = expContainer.Data[kp.Key] as List<object>;
+                        object o = expContainer.GetDefaultValue(kp.Key);
+
+                        // The default value of 
+                        if (o is IList && o.GetType().IsGenericType &&
+                            o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))
+                        {
+                            per_block_list.Insert(insertIndex, (o as List<object>)[0]);
+                        }
+                        else
+                        {
+                            per_block_list.Insert(insertIndex, o);
+                        }
+                    }
+                }
+
+                per_block_type[insertIndex] = "instruction";
+
+                uiManager.Dirty = true;
+
+                // Add listener for onClick function
+                blckCmp.Block.GetComponent<Button>().onClick.AddListener(
+                    () => { uiManager.OnClickBlock(g); });
+
+                blckCmp.Block.GetComponent<Button>().onClick.AddListener(
+                    () => { OnClickBlock(g); });
+
+                blckCmp.Notch.GetComponent<Button>().onClick.AddListener(
+                    () => { OnNotchPress(blckCmp.Notch); });
+
+                Blocks.Insert(insertIndex + 1, g);
+            }
+
+            ResetBlockText();
+        }
+        else
+        {
+            AddBlock();
+        }
+        ResetBlockText();
+    }
+
+    public void ResetBlockText()
+    {
+        List<object> per_block_type = uiManager.ExpContainer.Data["per_block_type"] as List<object>;
+
+        for (int i = 0; i < Blocks.Count; i++)
+        {
+            Blocks[i].name = "Block " + i;
+            Blocks[i].GetComponent<BlockComponent>().BlockID = i;
+            Blocks[i].GetComponent<BlockComponent>().Block.GetComponentInChildren<Text>().text =
+                Blocks[i].name + "\n" + per_block_type[i];
+        }
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ public class BlockPanel : MonoBehaviour
     public GameObject DropdownInputField;
     public GameObject BlockParameterValue;
     public GameObject UIManager;
+    public GameObject BlockInfoText;
 
     private int index = -1;
     private string selectedParameter;
@@ -31,11 +32,14 @@ public class BlockPanel : MonoBehaviour
     {
         this.index = index;
 
+        BlockInfoText.GetComponent<Text>().text = "Block Properties:\n\n";
+
         List<string> options = new List<string>();
         foreach (KeyValuePair<string, object> kp in uiManager.ExpContainer.Data)
         {
             if (kp.Key.StartsWith("per_block"))
             {
+                BlockInfoText.GetComponent<Text>().text += kp.Key + " : " + (kp.Value as List<object>)[index] + "\n";
                 options.Add(kp.Key);
             }
         }
@@ -99,7 +103,13 @@ public class BlockPanel : MonoBehaviour
         if (obj.GetType().IsInstanceOfType(uiManager.ExpContainer.GetDefaultValue(selectedParameter)))
         {
             BlockParameterValue.GetComponent<Text>().text = "Value: " + text;
-            ((List<object>)uiManager.ExpContainer.Data[selectedParameter])[index] = obj;
+
+            ConfigurationBlockManager blockManager = uiManager.BlockView.GetComponent<ConfigurationBlockManager>();
+            foreach (GameObject g in blockManager.SelectedBlocks)
+            {
+                ((List<object>)uiManager.ExpContainer.Data[selectedParameter])[g.GetComponent<BlockComponent>().BlockID] = obj;
+            }
+            UpdateBlockPropertyText();
             uiManager.Dirty = true;
         }
         else
@@ -117,11 +127,30 @@ public class BlockPanel : MonoBehaviour
         BlockParameterValue.GetComponent<Text>().text = "Value: " + 
             DropdownInputField.GetComponent<Dropdown>().options[option].text;
 
-        ((List<object>) uiManager.ExpContainer.Data[selectedParameter])[index] =
-            DropdownInputField.GetComponent<Dropdown>().options[option].text;
+        ConfigurationBlockManager blockManager = uiManager.BlockView.GetComponent<ConfigurationBlockManager>();
 
-        uiManager.BlockView.GetComponent<ConfigurationBlockManager>().UpdateBlockText();
+        foreach (GameObject g in blockManager.SelectedBlocks)
+        {
+            ((List<object>)uiManager.ExpContainer.Data[selectedParameter])[g.GetComponent<BlockComponent>().BlockID] =
+                DropdownInputField.GetComponent<Dropdown>().options[option].text;
+        }
+
+        uiManager.BlockView.GetComponent<ConfigurationBlockManager>().ResetBlockText();
+        UpdateBlockPropertyText();
 
         uiManager.Dirty = true;
+    }
+
+    private void UpdateBlockPropertyText()
+    {
+        BlockInfoText.GetComponent<Text>().text = "Block Properties:\n\n";
+
+        foreach (KeyValuePair<string, object> kp in uiManager.ExpContainer.Data)
+        {
+            if (kp.Key.StartsWith("per_block"))
+            {
+                BlockInfoText.GetComponent<Text>().text += kp.Key + " : " + (kp.Value as List<object>)[index] + "\n";
+            }
+        }
     }
 }

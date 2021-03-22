@@ -97,6 +97,7 @@ public class ConfigurationUIManager : MonoBehaviour
             fileOptions.Add(new Dropdown.OptionData(f.Name));
         }
 
+        FileDropdown.GetComponent<Dropdown>().ClearOptions();
         FileDropdown.GetComponent<Dropdown>().options.AddRange(fileOptions);
     }
 
@@ -154,11 +155,10 @@ public class ConfigurationUIManager : MonoBehaviour
             SaveFile(Application.dataPath + "/StreamingAssets/" + fileName);
             GetFiles();
 
+            Dirty = false;
             FileDropdown.GetComponent<Dropdown>().value = FileDropdown.GetComponent<Dropdown>().options.FindIndex(
                 o => o.text == fileName
             );
-
-            Dirty = false;
         }
     }
 
