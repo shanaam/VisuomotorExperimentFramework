@@ -36,6 +36,10 @@ public class PinballTask : BaseTask
     private const float TARGET_DISTANCE = 0.55f; // Target distance from home
 
     private static List<float> targetAngles = new List<float>();
+    private static List<float> cameraAngles = new List<float>();
+    private static List<float> tiltAngles = new List<float>();
+
+    private float cameraTilt, surfaceTilt;
 
     // True when the participant is holding the trigger down to aim the pinball
     private bool aiming;
@@ -66,14 +70,18 @@ public class PinballTask : BaseTask
     // Distance from pinball in meters the indicator will be shown
     private float indicatorLength = 0.2f;
 
-    public void Init(Trial trial, List<float> angles)
+    public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
         maxSteps = 3;
         ctrler = ExperimentController.Instance();
 
-        //what is this for?
         if (trial.numberInBlock == 1)
+        {
             targetAngles = angles;
+            PinballTask.cameraAngles = cameraAngles;
+            PinballTask.tiltAngles = tiltAngles;
+        }
+            
 
         Setup();
     }
@@ -323,10 +331,14 @@ public class PinballTask : BaseTask
         // Face firing direction and set velocity
         pinball.transform.LookAt(pinball.transform.position - direction.normalized);
 
+        /*
         if (ctrler.Session.CurrentBlock.settings.GetInt("per_block_visual_tilt") != VISUAL_TILT_VISIBLE)
         {
             SetTilt();
         }
+        */
+        if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+            SetTilt();
 
         // Perturbation
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
@@ -392,6 +404,18 @@ public class PinballTask : BaseTask
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
 
+        if (cameraAngles.Count > 0)
+        {
+            cameraTilt = cameraAngles[0];
+            cameraAngles.RemoveAt(0);
+        }
+
+        if (tiltAngles.Count > 0)
+        {
+            surfaceTilt = tiltAngles[0];
+            tiltAngles.RemoveAt(0);
+        }
+
         Target.transform.position = new Vector3(0f, 0.065f, 0f);
         Target.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
@@ -428,14 +452,13 @@ public class PinballTask : BaseTask
             pinballSpace.GetComponent<LineRenderer>().endWidth = 0.015f;
 
         // Should the tilt be shown to the participant before they release the pinball?
-        if (ctrler.Session.CurrentBlock.settings.GetInt("per_block_visual_tilt") == VISUAL_TILT_VISIBLE)
-        {
+        if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
             SetTilt();
-        }
     }
 
     private void SetTilt()
     {
+        /*
         // Should the participant be able to see the tilt relative to the environment?
         if (ctrler.Session.CurrentBlock.settings.GetInt("per_block_visual_tilt") == VISUAL_TILT_NOT_VISIBLE)
         {
@@ -449,15 +472,26 @@ public class PinballTask : BaseTask
         else
         {
             // The participant will be allowed to see the tilt relative to the environment
-
             // Unparent wall and camera so plane moves independently
             pinballWall.transform.SetParent(null);
             pinballCam.transform.SetParent(null);
+
         }
+        */
+
+        // Unparent wall and camera so plane moves independently
+        pinballWall.transform.SetParent(null);
+        pinballCam.transform.SetParent(null);
+
+
+        // Set the tilt of the camera
+        pinballCam.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            cameraTilt);
 
         // Set the tilt of the table
         pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
+            surfaceTilt);
+
 
         // Reparent wall and camera
         pinballWall.transform.SetParent(pinballSpace.transform);
