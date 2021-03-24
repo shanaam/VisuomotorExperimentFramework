@@ -488,6 +488,9 @@ public class PinballTask : BaseTask
         pinballCam.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             cameraTilt);
 
+        pinballWall.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            cameraTilt);
+
         // Set the tilt of the table
         pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             surfaceTilt);
