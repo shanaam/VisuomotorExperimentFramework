@@ -19,6 +19,7 @@ public class PinballTask : BaseTask
     private GameObject XRRig;
     private GameObject pinballPlane;
     private GameObject pinballWall;
+    private GameObject pinballTimerIndicator;
 
     private ExperimentController ctrler;
 
@@ -355,6 +356,8 @@ public class PinballTask : BaseTask
 
         directionIndicator.GetComponent<AudioSource>().Play();
 
+        pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Cancel();
+
         IncrementStep();
     }
 
@@ -380,7 +383,7 @@ public class PinballTask : BaseTask
         ctrler.Session.CurrentTrial.result["target_z"] = Target.transform.position.z;
 
         ctrler.Session.CurrentTrial.result["error_size"] =
-            (Target.transform.position - lastLocalPositionInTarget).magnitude;
+            (Target.transform.position - lastPositionInTarget).magnitude;
 
         Debug.Log("Distance to target: " + distanceToTarget);
 
@@ -400,6 +403,7 @@ public class PinballTask : BaseTask
         directionIndicator.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
+        pinballTimerIndicator = GameObject.Find("PinballTimerIndicator");
 
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
