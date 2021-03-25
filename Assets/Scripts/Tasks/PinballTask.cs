@@ -455,6 +455,9 @@ public class PinballTask : BaseTask
         pinballSpace.GetComponent<LineRenderer>().startWidth =
             pinballSpace.GetComponent<LineRenderer>().endWidth = 0.015f;
 
+        pinballTimerIndicator.transform.rotation = Quaternion.LookRotation(
+            pinballTimerIndicator.transform.position - pinballCam.transform.position);
+
         // Should the tilt be shown to the participant before they release the pinball?
         if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
             SetTilt();
