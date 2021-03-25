@@ -352,7 +352,7 @@ public class PinballTask : BaseTask
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
         pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward *
-                                                     5f * (direction.magnitude / 0.2f);
+                                                     2.5f * (direction.magnitude / 0.2f);
 
         directionIndicator.GetComponent<AudioSource>().Play();
 
