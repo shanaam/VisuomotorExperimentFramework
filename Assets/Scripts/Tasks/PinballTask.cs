@@ -1,16 +1,9 @@
 using System.Collections.Generic;
-using System.Windows.Forms;
 using UnityEngine;
-using UnityEngine.SpatialTracking;
 using UXF;
 
 public class PinballTask : BaseTask
 {
-    // Tilt options
-    private const int VISUAL_TILT_NOT_VISIBLE = 0;          // Rotates the entire experiment space
-    private const int VISUAL_TILT_VISIBLE = 1;              // Plane is tilted, but background is not
-    private const int VISUAL_TILT_VISIBLE_RELEASE = 2;      // Same as VISUAL_TILT_VISIBLE, but only after they release the pinball
-
     // Task gameobjects
     private GameObject pinballSpace;
     private GameObject pinballCam;
@@ -24,7 +17,6 @@ public class PinballTask : BaseTask
     private ExperimentController ctrler;
 
     // Used for pinball aiming
-    private float force;
     private Vector3 direction;
 
     private float timer;
@@ -61,10 +53,10 @@ public class PinballTask : BaseTask
     Vector3 pinballCamOffset = new Vector3(0f, 0.725f, -0.535f);
     private float pinballAngle = 35f;
 
-    private Vector3 lastPositionInTarget, lastLocalPositionInTarget;
+    private Vector3 lastPositionInTarget;
 
     // True when the pinball enters the target circle for the first time
-    private bool enteredTarget = false;
+    private bool enteredTarget;
 
     // When true, the indicator will be placed in front of the pinball
     private bool indicatorPosition = true;
@@ -72,7 +64,7 @@ public class PinballTask : BaseTask
     // Distance from pinball in meters the indicator will be shown
     private float indicatorLength = 0.2f;
 
-    private bool missed = false;
+    private bool missed;
 
     public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
@@ -382,10 +374,7 @@ public class PinballTask : BaseTask
 
     private void LogParameters()
     {
-        ExperimentController ctrler = ExperimentController.Instance();
-
         // Note: ALL vectors are in world space
-
         ctrler.Session.CurrentTrial.result["cursor_x"] = directionIndicator.transform.position.x;
         ctrler.Session.CurrentTrial.result["cursor_y"] = directionIndicator.transform.position.y;
         ctrler.Session.CurrentTrial.result["cursor_z"] = directionIndicator.transform.position.z;
@@ -500,43 +489,21 @@ public class PinballTask : BaseTask
 
     private void SetTilt()
     {
-        /*
-        // Should the participant be able to see the tilt relative to the environment?
-        if (ctrler.Session.CurrentBlock.settings.GetInt("per_block_visual_tilt") == VISUAL_TILT_NOT_VISIBLE)
-        {
-            // Tilt VR space too
-            if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
-            {
-                XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-                    ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"));
-            }
-        }
-        else
-        {
-            // The participant will be allowed to see the tilt relative to the environment
-            // Unparent wall and camera so plane moves independently
-            pinballWall.transform.SetParent(null);
-            pinballCam.transform.SetParent(null);
-
-        }
-        */
-
         // Unparent wall and camera so plane moves independently
         pinballWall.transform.SetParent(null);
         pinballCam.transform.SetParent(null);
-
 
         // Set the tilt of the camera
         pinballCam.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             cameraTilt);
 
+        // Rotate the wall
         pinballWall.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             cameraTilt);
 
         // Set the tilt of the table
         pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
             surfaceTilt);
-
 
         // Reparent wall and camera
         pinballWall.transform.SetParent(pinballSpace.transform);
@@ -616,6 +583,5 @@ public class PinballTask : BaseTask
 
         Gizmos.color = Color.blue;
         Gizmos.DrawSphere(directionIndicator.transform.position - ctrler.transform.position, 0.02f);
-        
     }
 }
