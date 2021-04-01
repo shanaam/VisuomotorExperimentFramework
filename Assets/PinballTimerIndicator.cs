@@ -25,6 +25,11 @@ public class PinballTimerIndicator : MonoBehaviour
             Timer -= Time.deltaTime;
             GetComponent<Slider>().value = Timer;
         }
+        else if (Timer <= 0.0f && (int)Timer != -1)
+        {
+            
+            Timer = -1;
+        }
     }
 
     public void Cancel()

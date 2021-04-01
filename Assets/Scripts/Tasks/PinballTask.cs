@@ -50,11 +50,12 @@ public class PinballTask : BaseTask
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();
 
-    // When the pinball is within a
     private float missTimer;
     private Vector3 previousPosition;
 
     private float distanceToTarget;
+
+    private Vector3 pinballStartPosition;
 
     // Pinball Camera Offset
     Vector3 pinballCamOffset = new Vector3(0f, 0.725f, -0.535f);
@@ -70,6 +71,8 @@ public class PinballTask : BaseTask
 
     // Distance from pinball in meters the indicator will be shown
     private float indicatorLength = 0.2f;
+
+    private bool missed = false;
 
     public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
@@ -233,6 +236,14 @@ public class PinballTask : BaseTask
                     }
                 }
 
+                // If the user runs out of time to fire the pinball, play audio cue
+                if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer <= 0.0f)
+                {
+                    missed = true;
+                    pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+                    pinballSpace.GetComponent<AudioSource>().Play();
+                }
+
                 break;
             case 1:
                 // Track a point every 25 milliseconds
@@ -266,17 +277,22 @@ public class PinballTask : BaseTask
                         pinball.GetComponent<Rigidbody>().isKinematic = true;
                     }
 
-                    // Scoring
-                    if (Target.GetComponent<BaseTarget>().Collided)
+                    // If the participant fired the pinball within the allowed time
+                    if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer >= 0.0f)
                     {
-                        ctrler.Score += 2;
-                    }
-                    else if (distanceToTarget < 0.05f)
-                    {
-                        ctrler.Score += 1;
+                        pinballSpace.GetComponent<AudioSource>().Play();
+
+                        // Scoring. Note that running out of time yields no points
+                        if (Target.GetComponent<BaseTarget>().Collided)
+                        {
+                            ctrler.Score += 2;
+                        }
+                        else if (distanceToTarget < 0.05f)
+                        {
+                            ctrler.Score += 1;
+                        }
                     }
 
-                    pinballSpace.GetComponent<AudioSource>().Play();
                     timer += Time.deltaTime;
                 }
 
@@ -318,6 +334,9 @@ public class PinballTask : BaseTask
 
                 break;
         }
+
+        float opposite = directionIndicator.transform.position.z;
+        float adjacent = directionIndicator.transform.position.x;
 
         if (Finished)
         {
@@ -384,6 +403,20 @@ public class PinballTask : BaseTask
 
         ctrler.Session.CurrentTrial.result["error_size"] =
             (Target.transform.position - lastPositionInTarget).magnitude;
+
+        // Converts indicator angle such that 0 degrees represents the right side of the pinball
+        float angle = 270.0f - directionIndicator.transform.localRotation.eulerAngles.y;
+
+        // Accounts for angles in the bottom right quadrant (270-360 degrees)
+        if (angle < 0.0f)
+        {
+            angle += 360.0f;
+        }
+
+        ctrler.Session.CurrentTrial.result["angle"] = angle;
+
+        ctrler.Session.CurrentTrial.result["magnitude"] = 
+            (directionIndicator.transform.position - pinballStartPosition).magnitude;
 
         Debug.Log("Distance to target: " + distanceToTarget);
 
@@ -461,6 +494,8 @@ public class PinballTask : BaseTask
         // Should the tilt be shown to the participant before they release the pinball?
         if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
             SetTilt();
+
+        pinballStartPosition = pinball.transform.position;
     }
 
     private void SetTilt()
