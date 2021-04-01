@@ -12,10 +12,10 @@ public class PinballTimerIndicator : MonoBehaviour
 
     void Start()
     {
-        LeanTween.alpha(Fill.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(1.5f);
-        LeanTween.alpha(Background.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(1.5f);
+        LeanTween.alpha(Fill.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(Timer + 0.5f);
+        LeanTween.alpha(Background.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(Timer + 0.5f);
         LeanTween.scale(GetComponent<RectTransform>(), Vector3.zero, 1.0f)
-            .setEaseInElastic().setDelay(1.0f);
+            .setEaseInElastic().setDelay(Timer);
     }
 
     void Update()
