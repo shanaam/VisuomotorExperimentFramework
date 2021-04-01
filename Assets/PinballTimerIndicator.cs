@@ -32,7 +32,7 @@ public class PinballTimerIndicator : MonoBehaviour
         // Transition out text
         LeanTween.scale(Text.GetComponent<RectTransform>(),
             Text.GetComponent<RectTransform>().localScale * 1.4f, 0.5f
-        ).setEaseOutElastic().setDelay(Timer);
+        ).setEaseOutCubic().setDelay(Timer);
         LeanTween.alphaText(Text.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(Timer + 0.5f);
 
     }
