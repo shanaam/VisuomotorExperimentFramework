@@ -66,6 +66,9 @@ public class PinballTask : BaseTask
 
     private bool missed;
 
+    private float trialTimer;
+    private const float MAX_TRIAL_TIME = 2.0f;
+
     public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
         maxSteps = 3;
@@ -103,8 +106,21 @@ public class PinballTask : BaseTask
                 }
                 else
                 {
+                    Debug.Log("Trial Ended: Ball traveled away from target for too long");
                     IncrementStep();
+                    return;
                 }
+            }
+
+            if (trialTimer <= MAX_TRIAL_TIME)
+            {
+                trialTimer += Time.fixedDeltaTime;
+            }
+            else
+            {
+                Debug.Log("Trial Ended: Max trial time exceeded");
+                IncrementStep();
+                return;
             }
 
             if (enteredTarget)
@@ -115,6 +131,7 @@ public class PinballTask : BaseTask
                 // We are now going away from the target, end trial immediately
                 if (distanceToTarget > previousDistanceToTarget)
                 {
+                    Debug.Log("Trial Ended: Ball is exiting the target radius");
                     lastPositionInTarget = previousPosition;
                     IncrementStep();
                     return;
@@ -127,8 +144,10 @@ public class PinballTask : BaseTask
             if (pinball.GetComponent<Rigidbody>().velocity.magnitude <= 0.0001f ||
                 Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
             {
+                Debug.Log("Trial Ended: Ball has stopped moving or ball has exceeded the cutoff distance");
                 lastPositionInTarget = pinball.transform.position;
                 IncrementStep();
+                return;
             }
 
             if (distanceToTarget < 0.05f)
@@ -406,8 +425,6 @@ public class PinballTask : BaseTask
 
         ctrler.Session.CurrentTrial.result["magnitude"] = 
             (directionIndicator.transform.position - pinballStartPosition).magnitude;
-
-        Debug.Log("Distance to target: " + distanceToTarget);
 
         IncrementStep();
     }
