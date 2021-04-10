@@ -409,8 +409,20 @@ public class PinballTask : BaseTask
         ctrler.Session.CurrentTrial.result["target_y"] = Target.transform.position.y;
         ctrler.Session.CurrentTrial.result["target_z"] = Target.transform.position.z;
 
-        ctrler.Session.CurrentTrial.result["error_size"] =
-            (Target.transform.position - lastPositionInTarget).magnitude;
+        // Creates a plane parallel to the main surface
+        Plane p = new Plane(pinballPlane.transform.up, pinballPlane.transform.position);
+
+        // Gets the point along the surface of the plane by adding the thickness of the plane
+        Vector3 targetLocation = p.ClosestPointOnPlane(Target.transform.position) +
+                                 (pinballPlane.transform.localScale.y / 2f) * p.normal;
+        
+        // Adds the radius of the pinball such that the resulting point above the target is
+        // parallel to the pinball
+        Vector3 endPoint = targetLocation + (pinball.transform.localScale.x / 2f) * p.normal;
+        Vector3 dist = lastPositionInTarget - endPoint;
+
+        // Error is the distance between the pinball and the target (meters)
+        ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
 
         // Converts indicator angle such that 0 degrees represents the right side of the pinball
         float angle = 270.0f - directionIndicator.transform.localRotation.eulerAngles.y;
@@ -423,6 +435,7 @@ public class PinballTask : BaseTask
 
         ctrler.Session.CurrentTrial.result["angle"] = angle;
 
+        // Magnitude is the distance (meters) on how much the participant pulled the spring back
         ctrler.Session.CurrentTrial.result["magnitude"] = 
             (directionIndicator.transform.position - pinballStartPosition).magnitude;
 
