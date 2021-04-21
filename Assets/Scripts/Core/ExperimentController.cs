@@ -190,11 +190,8 @@ public class ExperimentController : MonoBehaviour
         switch (Session.settings.GetString("experiment_mode"))
         {
             case "target":
-
                 switch (per_block_type)
                 {
-                    
-               
                     case "aligned":
                     case "rotated":
                     case "clamped":
