@@ -69,6 +69,8 @@ public class PinballTask : BaseTask
     private float trialTimer;
     private const float MAX_TRIAL_TIME = 2.0f;
 
+    private const float PINBALL_FIRE_FORCE = 12.5f;
+
     public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
         maxSteps = 3;
@@ -381,8 +383,12 @@ public class PinballTask : BaseTask
         }
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
+        /*
         pinball.GetComponent<Rigidbody>().velocity = pinball.transform.forward *
-                                                     2.5f * (direction.magnitude / 0.2f);
+                                                     2.5f * (direction.magnitude / 0.2f);*/
+
+        pinball.GetComponent<Rigidbody>().velocity =
+            pinball.transform.forward * direction.magnitude * PINBALL_FIRE_FORCE;
 
         directionIndicator.GetComponent<AudioSource>().Play();
 
