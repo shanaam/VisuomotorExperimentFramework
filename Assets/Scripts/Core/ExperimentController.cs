@@ -3,6 +3,7 @@ using UnityEngine;
 using UXF;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MovementType = CursorController.MovementType;
 
 /// <summary>
@@ -41,6 +42,8 @@ public class ExperimentController : MonoBehaviour
     public Session Session { get; private set; }
 
     private float currentTrialTime;
+
+    public int Score = 0;
 
     /// <summary>
     /// 
@@ -216,7 +219,48 @@ public class ExperimentController : MonoBehaviour
             case "pinball_vr":
             case "pinball":
                 CurrentTask = gameObject.AddComponent<PinballTask>();
-                ((PinballTask)CurrentTask).Init(trial, angles);
+
+                // Camera and Surface Tilt
+                List<float> cameraAngles = new List<float>();
+                List<float> tiltAngles = new List<float>();
+                if (trial.numberInBlock == 1)
+                {
+                    string camera_tilt_key = Session.CurrentBlock.settings.GetString("per_block_list_camera_tilt");
+                    string surface_tilt_key = Session.CurrentBlock.settings.GetString("per_block_list_surface_tilt");
+
+                    List<float> tempCameraAngles = null, tempTiltAngles = null;
+                    if (camera_tilt_key != string.Empty)
+                    {
+                        tempCameraAngles = Session.settings.GetFloatList(camera_tilt_key);
+                    }
+
+                    if (surface_tilt_key != string.Empty)
+                    {
+                        tempTiltAngles = Session.settings.GetFloatList(surface_tilt_key);
+                    }
+                    
+                    List<int> order = new List<int>();
+                    for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
+                    {
+                        order.Add(i);
+                    }
+                    order.Shuffle();
+
+                    foreach (int i in order)
+                    {
+                        if (tempCameraAngles != null)
+                        {
+                            cameraAngles.Add(tempCameraAngles[i % tempCameraAngles.Count]);
+                        }
+
+                        if (tempTiltAngles != null)
+                        {
+                            tiltAngles.Add(tempTiltAngles[i % tempTiltAngles.Count]);
+                        }
+                    }
+                }
+
+                ((PinballTask)CurrentTask).Init(trial, angles, cameraAngles, tiltAngles);
 
                 break;
             case "tool":
@@ -285,6 +329,13 @@ public class ExperimentController : MonoBehaviour
             Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
             Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
             Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
+        }
+        
+        // Track score if score tracking is enabled in the JSON
+        // Defaults to disabled if property does not exist in JSON
+        if (Session.settings.GetBool("track_score", false))
+        {
+            Session.CurrentTrial.result["score"] = Score;
         }
 
         EndTimer();
