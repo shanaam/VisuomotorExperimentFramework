@@ -71,6 +71,13 @@ public class PinballTask : BaseTask
 
     private const float PINBALL_FIRE_FORCE = 12.5f;
 
+    // Plane that is parallel to the environment plane
+    private Plane pPlane;
+
+    // A position above the visual target that is aligned with the height of the pinball regardless
+    // of plane tilt
+    private Vector3 pinballAlignedTargetPosition;
+
     public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
         maxSteps = 3;
@@ -93,12 +100,18 @@ public class PinballTask : BaseTask
         if (currentStep == 1)
         {
             // Current distance from pinball to the target
-            distanceToTarget = Vector3.Distance(pinball.transform.position, Target.transform.position);
+            distanceToTarget = Vector3.Distance(pinball.transform.position, pinballAlignedTargetPosition);
+            
+            // Every frame, we track the closest position the pinball has ever been to the target
+            if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
+            {
+                lastPositionInTarget = pinball.transform.position;
+            }
 
             // Only check when the distance from pinball to target is less than half of the distance
             // between the target and home position and if the pinball is NOT approaching the target
             if (distanceToTarget <= TARGET_DISTANCE / 2f &&
-                distanceToTarget > Vector3.Distance(previousPosition, Target.transform.position))
+                distanceToTarget > Vector3.Distance(previousPosition, pinballAlignedTargetPosition))
             {
                 // The pinball only has 500ms of total time to move away from the target
                 // After 500ms, the trial ends
@@ -128,7 +141,7 @@ public class PinballTask : BaseTask
             if (enteredTarget)
             {
                 // if distance increases from the previous frame, end trial immediately
-                float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+                float previousDistanceToTarget = Vector3.Distance(previousPosition, pinballAlignedTargetPosition);
 
                 // We are now going away from the target, end trial immediately
                 if (distanceToTarget > previousDistanceToTarget)
@@ -272,7 +285,7 @@ public class PinballTask : BaseTask
                     pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
 
                     // If the pinball is inside the diameter of the target
-                    distanceToTarget = Vector3.Distance(lastPositionInTarget, Target.transform.position);
+                    distanceToTarget = Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition);
                     if (distanceToTarget < 0.05f)
                     {
                         if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
@@ -394,6 +407,17 @@ public class PinballTask : BaseTask
 
         pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Cancel();
 
+        // Creates a plane parallel to the main surface
+        pPlane = new Plane(pinballPlane.transform.up, pinballPlane.transform.position);
+
+        // Gets the point along the surface of the plane by adding the thickness of the plane
+        Vector3 targetLocation = pPlane.ClosestPointOnPlane(Target.transform.position) +
+                                 (pinballPlane.transform.localScale.y / 2f) * pPlane.normal;
+
+        // Adds the radius of the pinball such that the resulting point above the target is
+        // parallel to the pinball
+        pinballAlignedTargetPosition = targetLocation + (pinball.transform.localScale.x / 2f) * pPlane.normal;
+
         IncrementStep();
     }
 
@@ -411,21 +435,11 @@ public class PinballTask : BaseTask
         ctrler.Session.CurrentTrial.result["pinball_y"] = lastPositionInTarget.y;
         ctrler.Session.CurrentTrial.result["pinball_z"] = lastPositionInTarget.z;
 
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.position.x;
-        ctrler.Session.CurrentTrial.result["target_y"] = Target.transform.position.y;
-        ctrler.Session.CurrentTrial.result["target_z"] = Target.transform.position.z;
+        ctrler.Session.CurrentTrial.result["target_x"] = pinballAlignedTargetPosition.x;
+        ctrler.Session.CurrentTrial.result["target_y"] = pinballAlignedTargetPosition.y;
+        ctrler.Session.CurrentTrial.result["target_z"] = pinballAlignedTargetPosition.z;
 
-        // Creates a plane parallel to the main surface
-        Plane p = new Plane(pinballPlane.transform.up, pinballPlane.transform.position);
-
-        // Gets the point along the surface of the plane by adding the thickness of the plane
-        Vector3 targetLocation = p.ClosestPointOnPlane(Target.transform.position) +
-                                 (pinballPlane.transform.localScale.y / 2f) * p.normal;
-        
-        // Adds the radius of the pinball such that the resulting point above the target is
-        // parallel to the pinball
-        Vector3 endPoint = targetLocation + (pinball.transform.localScale.x / 2f) * p.normal;
-        Vector3 dist = lastPositionInTarget - endPoint;
+        Vector3 dist = lastPositionInTarget - pinballAlignedTargetPosition;
 
         // Error is the distance between the pinball and the target (meters)
         ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
