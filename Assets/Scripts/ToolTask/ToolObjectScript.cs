@@ -8,7 +8,7 @@ public class ToolObjectScript : MonoBehaviour
     void OnTriggerEnter(Collider col)
     {
 
-        if (col.gameObject.name == "Tool" &&
+        if ( (col.gameObject.name == "ToolBox" || col.gameObject.name == "ToolSphere") &&
             ExperimentController.Instance().CurrentTask.GetCurrentStep == 1)
         {
             ExperimentController.Instance().CurrentTask.IncrementStep();

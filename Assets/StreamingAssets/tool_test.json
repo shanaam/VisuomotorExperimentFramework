@@ -11,6 +11,7 @@
     "per_block_visual_feedback": [true,true,true],
     "per_block_surface_materials": ["fabric","ice","fabric"],
     "per_block_puck_type": ["puck","ball","puck"],
+    "per_block_tool_type": ["Quad","Sphere","Quad"],
     "per_block_surface_dynamic_friction": [0.1, 0.1, 0.1],
     "per_block_surface_static_friction": [0.1, 0.1, 0.1],
     "per_block_tool_dynamic_friction": [0.3, 0.3, 0.3],

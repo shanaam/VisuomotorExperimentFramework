@@ -204,6 +204,10 @@ public class ToolTask : BaseTask
 
                         toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
 
+                        // set pinball trail
+                        toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
+                        toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
+
                         //Freeze puck
                         chosenObj.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
                         chosenObj.GetComponent<Rigidbody>().isKinematic = true;
@@ -280,13 +284,17 @@ public class ToolTask : BaseTask
 
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
 
-        tool = GameObject.Find("Tool");
+
         Puckobj = GameObject.Find("PuckObject");
         ballObject = GameObject.Find("BallObject");
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         toolSurface = GameObject.Find("ToolPlane");
         grid = GameObject.Find("Grid");
+
+        GameObject toolBox = GameObject.Find("ToolBox");
+        GameObject toolSphere = GameObject.Find("ToolSphere");
+
 
         // Height above the surface. Height is y position of plane
         // plus thickness of surface (0.05) plus the half the width of the tool (0.075)
@@ -315,10 +323,27 @@ public class ToolTask : BaseTask
         else toolCamera.SetActive(false);
 
 
+        //set up tool type
+
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_tool_type") == "Quad")
+        {
+            tool = toolBox;
+            tool.GetComponent<BoxCollider>().material.bounciness = 1f;
+            tool.GetComponent<BoxCollider>().enabled = false;
+            toolSphere.SetActive(false);
+        }
+        else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_tool_type") == "Sphere")
+        {
+            tool = toolSphere;
+            tool.GetComponent<SphereCollider>().material.bounciness = 1f;
+            tool.GetComponent<SphereCollider>().enabled = false;
+            toolBox.SetActive(false);
+        }
 
 
 
-        if(ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "puck")
+        // set up puck type 
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "puck")
         {
             ballObject.SetActive(false);
             chosenObj = Puckobj;
@@ -350,8 +375,7 @@ public class ToolTask : BaseTask
         }
 
         chosenObj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
-        tool.GetComponent<BoxCollider>().material.bounciness = 1f;
-        tool.GetComponent<BoxCollider>().enabled = false;
+
 
 
 
@@ -378,12 +402,11 @@ public class ToolTask : BaseTask
     {
 
         
-
         Vector3 dir = mousePoint - tool.transform.position;
         dir /= Time.fixedDeltaTime;
         tool.GetComponent<Rigidbody>().velocity = dir;
 
-        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
+        tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
             //+ ctrler.transform.position.z;
 
     }
