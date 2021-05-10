@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
+using UnityEngine.UI;
 
 public class PinballTask : BaseTask
 {
@@ -13,6 +14,7 @@ public class PinballTask : BaseTask
     private GameObject pinballPlane;
     private GameObject pinballWall;
     private GameObject pinballTimerIndicator;
+    private GameObject scoreboard;
 
     private ExperimentController ctrler;
 
@@ -78,6 +80,12 @@ public class PinballTask : BaseTask
     // of plane tilt
     private Vector3 pinballAlignedTargetPosition;
 
+    private float score, tempScore;
+    private const int MAX_POINTS = 100;
+
+    private GameObject bonusText;
+    private int bonusTextAnimID;
+
     public void Init(Trial trial, List<float> angles, List<float> cameraAngles, List<float> tiltAngles)
     {
         maxSteps = 3;
@@ -107,6 +115,19 @@ public class PinballTask : BaseTask
             {
                 lastPositionInTarget = pinball.transform.position;
             }
+
+            // Update score if pinball is within 20cm of the target
+            Debug.Log("Distance: " + distanceToTarget);
+            if (distanceToTarget < 0.20f)
+            {
+                tempScore = Mathf.Round(-5f * (distanceToTarget - 0.20f) * MAX_POINTS);
+                //Mathf.Floor(((0.20f - distanceToTarget) / 0.20f) * MAX_POINTS);
+            }
+            
+            if (!missed && tempScore > score) score = tempScore;
+            
+            Debug.Log(tempScore);
+            scoreboard.GetComponent<Scoreboard>().ManualScoreText = (ctrler.Score + score).ToString();
 
             // Only check when the distance from pinball to target is less than half of the distance
             // between the target and home position and if the pinball is NOT approaching the target
@@ -294,7 +315,10 @@ public class PinballTask : BaseTask
                                 pinballSpace.GetComponent<LineRenderer>().endColor =
                                     Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
 
-                            Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+                            if (!missed)
+                            {
+                                Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+                            }
                         }
 
                         pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
@@ -302,6 +326,9 @@ public class PinballTask : BaseTask
                         // Freeze pinball
                         pinball.GetComponent<Rigidbody>().isKinematic = true;
                     }
+
+                    bonusText.transform.position = pinball.transform.position + pinballCam.transform.up * 0.05f;
+                    LeanTween.move(bonusText, bonusText.transform.position + (pinballCam.transform.up * 0.05f), 1.5f);
 
                     // If the participant fired the pinball within the allowed time
                     if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer >= 0.0f)
@@ -311,15 +338,29 @@ public class PinballTask : BaseTask
                         // Scoring. Note that running out of time yields no points
                         if (Target.GetComponent<BaseTarget>().Collided)
                         {
-                            ctrler.Score += 2;
+                            ctrler.Score += 120;
+
+                            // Play bonus animation
+                            bonusText.GetComponentInChildren<Text>().text = "100pts + 20pts BONUS";
                         }
-                        else if (distanceToTarget < 0.05f)
+                        else
                         {
-                            ctrler.Score += 1;
+                            ctrler.Score += (int)score;
+                            bonusText.GetComponentInChildren<Text>().text = score + "pts";
+                            bonusText.GetComponentInChildren<Text>().color = score == 0 ? Color.red : Color.white;
                         }
                     }
+                    else
+                    {
+                        bonusText.GetComponentInChildren<Text>().text = "0pts";
+                        bonusText.GetComponentInChildren<Text>().color = Color.red;
+                    }
+
+                    scoreboard.GetComponent<Scoreboard>().ManualScoreText = ctrler.Score.ToString();
 
                     timer += Time.deltaTime;
+
+                    
                 }
 
                 if (timer < 1.5f)
@@ -476,6 +517,11 @@ public class PinballTask : BaseTask
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
         pinballTimerIndicator = GameObject.Find("PinballTimerIndicator");
+        scoreboard = GameObject.Find("Scoreboard");
+        bonusText = GameObject.Find("BonusText");
+
+        // Scoreboard is now updated by the pinball class
+        scoreboard.GetComponent<Scoreboard>().AllowManualSet = true;
 
         float targetAngle = targetAngles[0];
         targetAngles.RemoveAt(0);
@@ -512,10 +558,8 @@ public class PinballTask : BaseTask
             pinballCam.SetActive(false);
         }
 
-        cutoffDistance = Vector3.Distance(Target.transform.position, Home.transform.position);
-
         // Cutoff distance is 15cm more than the distance to the target
-        cutoffDistance += 0.15f;
+        cutoffDistance = 0.15f + TARGET_DISTANCE;
 
         currentHand = ExperimentController.Instance().CursorController.CurrentHand();
 
@@ -542,9 +586,15 @@ public class PinballTask : BaseTask
         // Unparent wall and camera so plane moves independently
         pinballWall.transform.SetParent(null);
         pinballCam.transform.SetParent(null);
+        bonusText.transform.parent.SetParent(null);
 
         // Set the tilt of the camera
         pinballCam.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            cameraTilt);
+
+        // Axis align the popup text for displaying points to the camera
+        bonusText.transform.parent.RotateAround(pinballSpace.transform.position, 
+            pinballSpace.transform.forward, 
             cameraTilt);
 
         // Rotate the wall
@@ -558,6 +608,7 @@ public class PinballTask : BaseTask
         // Reparent wall and camera
         pinballWall.transform.SetParent(pinballSpace.transform);
         pinballCam.transform.SetParent(pinballSpace.transform);
+        bonusText.transform.parent.SetParent(pinballSpace.transform);
     }
 
     protected override void OnDestroy()
@@ -573,7 +624,7 @@ public class PinballTask : BaseTask
 
         Destroy(pinballSpace);
 
-        ctrler.CursorController.SetVRCamera(true);
+        //ctrler.CursorController.SetVRCamera(true);
     }
 
     private Vector3 mousePoint;
