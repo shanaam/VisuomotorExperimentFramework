@@ -9,7 +9,10 @@ public class ToolTask : BaseTask
     //TODO: 
     /// <summary>
     /// 
-    /// 1_add material changing capabilities 
+    /// DIFFREENT TYPES OF RACKETS
+    /// 
+    /// PINBALL STYLE SHOOTING 
+    /// 
     /// 
     /// 
     /// 
@@ -17,7 +20,7 @@ public class ToolTask : BaseTask
 
     private MovementType[] reachType;
     private Trial trial;
-    private float height;
+
     // Allows a delay when the participant initially hits the object
     private float initialDelayTimer;
     private GameObject visualCube;
@@ -296,10 +299,6 @@ public class ToolTask : BaseTask
         GameObject toolSphere = GameObject.Find("ToolSphere");
 
 
-        // Height above the surface. Height is y position of plane
-        // plus thickness of surface (0.05) plus the half the width of the tool (0.075)
-        height = toolSurface.transform.position.y + 0.08f;
-
         // Set up home position
         Home = GameObject.Find("HomePosition");
 
@@ -405,6 +404,9 @@ public class ToolTask : BaseTask
         Vector3 dir = mousePoint - tool.transform.position;
         dir /= Time.fixedDeltaTime;
         tool.GetComponent<Rigidbody>().velocity = dir;
+
+        tool.transform.LookAt(chosenObj.transform);
+
 
         tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
             //+ ctrler.transform.position.z;
