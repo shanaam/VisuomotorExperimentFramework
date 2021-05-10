@@ -81,7 +81,8 @@ public class PinballTask : BaseTask
     private Vector3 pinballAlignedTargetPosition;
 
     private float score, tempScore;
-    private const int MAX_POINTS = 100;
+    private const int MAX_POINTS = 10; // Maximum points the participant can earn
+    private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
 
     private GameObject bonusText;
     private int bonusTextAnimID;
@@ -338,10 +339,11 @@ public class PinballTask : BaseTask
                         // Scoring. Note that running out of time yields no points
                         if (Target.GetComponent<BaseTarget>().Collided)
                         {
-                            ctrler.Score += 120;
+                            ctrler.Score += MAX_POINTS + BONUS_POINTS;
 
                             // Play bonus animation
-                            bonusText.GetComponentInChildren<Text>().text = "100pts + 20pts BONUS";
+                            bonusText.GetComponentInChildren<Text>().text = MAX_POINTS + " + " + 
+                                                                            BONUS_POINTS + "pts BONUS";
                         }
                         else
                         {
