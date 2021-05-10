@@ -32,6 +32,8 @@ public class ExperimentController : MonoBehaviour
 
     public AudioClip[] SoundEffects;
 
+    public Material[] SurfaceMaterials;
+
     public Dictionary<String, GameObject> Prefabs = new Dictionary<string, GameObject>();
     public Dictionary<String, AudioClip> AudioClips = new Dictionary<string, AudioClip>();
     
@@ -44,9 +46,6 @@ public class ExperimentController : MonoBehaviour
     public int Score = 0;
 
     /// <summary>
-    /// 
-    /// 
-    /// 
     /// 
     /// 
     /// Gets the singleton instance of our experiment controller. Use it for
@@ -261,10 +260,17 @@ public class ExperimentController : MonoBehaviour
                 ((PinballTask)CurrentTask).Init(trial, angles, cameraAngles, tiltAngles);
 
                 break;
+            
             case "tool":
                 CurrentTask = gameObject.AddComponent<ToolTask>();
                 ((ToolTask)CurrentTask).Init(trial, angles);
                 break;
+            
+            case "curling":
+                CurrentTask = gameObject.AddComponent<CurlingTask>();
+                ((CurlingTask)CurrentTask).Init(trial, angles);
+                break;
+
             default:
                 Debug.LogWarning("Experiment Type not implemented: " +
                                     Session.settings.GetString("experiment_mode"));
