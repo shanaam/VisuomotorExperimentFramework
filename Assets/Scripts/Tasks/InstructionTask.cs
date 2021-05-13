@@ -22,16 +22,11 @@ public class InstructionTask : BaseTask
 
     private Camera tempMainCamera;
 
-    public void Init(Trial trial, string instruction)
+    public override void Setup()
     {
         ctrler = ExperimentController.Instance();
-        ins = instruction;
 
-        Setup();
-    }
-
-    protected override void Setup()
-    {
+        ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
         // Temporarily disable VR Camera
         // TODO: This needs to be changed when we implement instruction task for VR
         ctrler.CursorController.SetVRCamera(false);

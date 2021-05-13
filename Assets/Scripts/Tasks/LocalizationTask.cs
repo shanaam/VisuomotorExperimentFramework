@@ -9,25 +9,13 @@ public class LocalizationTask : BaseTask
 
     private Trial trial;
 
-    private static List<float> targetAngles = new List<float>();
-
-    public void Init(Trial trial, List<float> angles)
-    {
-        maxSteps = 4;
-        this.trial = trial;
-
-        if (trial.numberInBlock == 1)
-            targetAngles = angles;
-
-        Setup();
-    }
-
     public void LateUpdate()
     {
         switch (currentStep)
         {
             // When the user holds their hand and they are outside the home, begin the next phase of localization
-            case 2 when ExperimentController.Instance().CursorController.PauseTime > 0.5f && ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f:
+            case 2 when ExperimentController.Instance().CursorController.PauseTime > 0.5f && 
+                        ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f:
                 IncrementStep();
                 break;
             case 3: // User uses their head to localize their hand
@@ -77,15 +65,7 @@ public class LocalizationTask : BaseTask
             case 3: // Select the spot they think their real hand is
                 Target.SetActive(false);
 
-                // Store where they think their hand is
-                ExperimentController.Instance().Session.CurrentTrial.result["loc_x"] =
-                    localizer.transform.localPosition.x;
-
-                ExperimentController.Instance().Session.CurrentTrial.result["loc_y"] =
-                    localizer.transform.localPosition.y;
-
-                ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
-                    localizer.transform.localPosition.z;
+                LogParameters();
 
                 // We use the target variable to store the cursor position
                 Target.transform.position =
@@ -98,9 +78,26 @@ public class LocalizationTask : BaseTask
         return finished;
     }
 
-    protected override void Setup()
+    public override void LogParameters()
+    {
+        // Store where they think their hand is
+        ExperimentController.Instance().Session.CurrentTrial.result["loc_x"] =
+            localizer.transform.localPosition.x;
+
+        ExperimentController.Instance().Session.CurrentTrial.result["loc_y"] =
+            localizer.transform.localPosition.y;
+
+        ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
+            localizer.transform.localPosition.z;
+
+        base.LogParameters();
+    }
+
+    public override void Setup()
     {
         ExperimentController ctrler = ExperimentController.Instance();
+
+        maxSteps = 4;
 
         ctrler.CursorController.SetHandVisibility(false);
         ctrler.CursorController.SetCursorVisibility(true);
@@ -118,8 +115,7 @@ public class LocalizationTask : BaseTask
         Home = targets[1];
 
         // Grab an angle from the list and then remove it
-        float targetAngle = targetAngles[0];
-        targetAngles.RemoveAt(0);
+        float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
 
         // Set up the arc object
         targets[2] = Instantiate(ctrler.GetPrefab("ArcTarget"));

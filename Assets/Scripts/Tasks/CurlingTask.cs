@@ -34,7 +34,7 @@ public class CurlingTask : BaseTask
         Setup();
     }
 
-    protected override void Setup()
+    public override void Setup()
     {
         // throw new System.NotImplementedException();
 
