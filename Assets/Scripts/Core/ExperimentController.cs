@@ -200,9 +200,6 @@ public class ExperimentController : MonoBehaviour
             case "tool":
                 CurrentTask = gameObject.AddComponent<ToolTask>();
                 break;
-            case "curling":
-                CurrentTask = gameObject.AddComponent<CurlingTask>();
-                break;
             default:
                 Debug.LogWarning("Experiment Type not implemented: " +
                                     Session.settings.GetString("experiment_mode"));

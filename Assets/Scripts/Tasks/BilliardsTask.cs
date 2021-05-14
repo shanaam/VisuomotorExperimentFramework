@@ -29,11 +29,11 @@ public abstract class BilliardsTask : BaseTask
         obj.transform.SetParent(parent);
     }
 
-    protected virtual void SetSurfaceMaterial(string name, GameObject surface, Material material)
+    protected virtual void SetSurfaceMaterial(Material material)
     {
         if (Surface == null)
         {
-            Debug.LogWarning("Surface was not found in the prefab. Please make sure it is added.");
+            Debug.LogError("Surface was not found in the prefab. Please make sure it is added.");
         }
 
         Surface.GetComponent<MeshRenderer>().material = material;
