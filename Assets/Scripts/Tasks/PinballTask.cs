@@ -274,6 +274,7 @@ public class PinballTask : BilliardsTask
                 if (timer == 0f)
                 {
                     pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+                    bonusText.GetComponentInChildren<Text>().color = Color.white;
 
                     // If the pinball is inside the diameter of the target
                     distanceToTarget = Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition);
@@ -309,6 +310,7 @@ public class PinballTask : BilliardsTask
                         if (Target.GetComponent<BaseTarget>().Collided)
                         {
                             ctrler.Score += MAX_POINTS + BONUS_POINTS;
+                            bonusText.GetComponentInChildren<Text>().color = Color.green;
 
                             // Play bonus animation
                             bonusText.GetComponentInChildren<Text>().text = MAX_POINTS + " + " +
@@ -316,7 +318,7 @@ public class PinballTask : BilliardsTask
                         }
                         else
                         {
-                            ctrler.Score += (int) score;
+                            ctrler.Score += score;
                             bonusText.GetComponentInChildren<Text>().text = score + "pts";
                             bonusText.GetComponentInChildren<Text>().color = score == 0 ? Color.red : Color.white;
                         }
