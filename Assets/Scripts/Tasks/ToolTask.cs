@@ -24,8 +24,8 @@ public class ToolTask : BilliardsTask
 
     private GameObject toolSpace;
     private GameObject tool;
-    private GameObject puckobj;
-    private GameObject ballObject;
+    //private GameObject puckobj;
+    //private GameObject ballObject;
     private GameObject toolCamera;
     private GameObject toolSurface;
     private GameObject grid;
@@ -43,7 +43,7 @@ public class ToolTask : BilliardsTask
     private float timer;
     private float delayTimer;
     private bool enteredTarget;
-
+    //private bool 
 
     private triggerType _triggerType;
 
@@ -55,45 +55,97 @@ public class ToolTask : BilliardsTask
     }
 
 
-    private void FixedUpdate()
+    private void Update()
     {
         Debug.Log("current step :" + currentStep);
 
         Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up,
             new Vector3(0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
-        tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        //tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-        if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f && currentStep == 0) return;
+        if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f 
+            && currentStep == 0 
+            && _triggerType == triggerType.Impact) return;
 
 
-        if (_triggerType == triggerType.Impact) { 
             switch (currentStep)
             {
                 // Return to home position phase
                 case 0:
 
                     tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
+
                     if (Vector3.Distance(mousePoint, tool.transform.position) <= 0.05f)
                     {
                         IncrementStep();
                     }
                     break;
                 case 1:
-                    RacketMouseMovement(mousePoint);
+                    //RacketMouseMovement(mousePoint);
+
+
+                    if(_triggerType == triggerType.Impact)
+                    {
+                        Vector3 dir = mousePoint - tool.transform.position;
+                        dir /= Time.fixedDeltaTime;
+                        tool.GetComponent<Rigidbody>().velocity = dir;
+
+                        if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
+                        {
+                            tool.transform.LookAt(puck.transform);
+                        }
+  
+                    else{
+                            tool.transform.rotation = Quaternion.identity;
+                        }
+
+                        tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
+                    }
+
+
+                    if(_triggerType == triggerType.Curling)
+                    {
+                        Vector3 startPos = new Vector3();
+                        Vector3 shotDir = new Vector3();
+
+                        if (Input.GetMouseButtonDown(0))
+                        {
+                            startPos = mousePoint;
+                        }
+
+                        if (Input.GetMouseButtonUp(0))
+                        {
+                            shotDir = startPos - mousePoint;
+
+                            Debug.Log("ShotDir " + shotDir);
+
+                            tool.GetComponent<Rigidbody>().velocity = -shotDir;
+                      
+                            //tool.transform.forward * shotDir.magnitude * 10f ;
+                            //.AddForce(shotDir, ForceMode.Force);
+                            //.velocity = tool.transform.forward * shotDir.magnitude;
+                        }
+                    }
+
+
 
                     // Track a point every 25 milliseconds
                     if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                     {
-                        PuckPoints.Add(puck.transform.position);
+                        if(_triggerType == triggerType.Impact)
+                            PuckPoints.Add(puck.transform.position);
                     }
                     break;
                 // After the user hits the object
                 // Used to determine if the object hit by the tool is heading away from the target
                 // Current distance from pinball to the target`
                 case 2:
-                    RacketMouseMovement(mousePoint);
+                    //RacketMouseMovement(mousePoint);
+
                     float currentDistance = Vector3.Distance(puck.transform.position, Target.transform.position);
+
+
                     //Debug.Log("this is distance of puck from Target: " + currentDistance);
 
                     // Only check when the distance from pinball to target is less than half of the distance
@@ -227,41 +279,60 @@ public class ToolTask : BilliardsTask
                     }
                     break;
             }
-        }
-        else if(_triggerType == triggerType.Curling)
-        {
-
-            switch (currentStep)
-            {
-                // Return to home position phase
-                case 0:
-
-                    tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                    if (Vector3.Distance(mousePoint, tool.transform.position) <= 0.05f)
-                    {
-                        IncrementStep();
-                    }
-                    break;
-                case 1:
-                    RacketMouseMovement(mousePoint);
-                    break;
-            }
-        }
-
 
 
         if (Finished)
             ctrler.EndAndPrepare();
     }
 
+/*
+    private void Update()
+    {
+        switch (currentStep)
+        {
+            case 0:
+                break;
+            case 1:
+
+                Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up,
+                    new Vector3(0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+
+                Vector3 startPos = new Vector3();
+                Vector3 shotDir = new Vector3();
+
+                if (Input.GetMouseButtonDown(0))// && currentStep == 1)
+                {
+                    startPos = mousePoint;
+                    //IncrementStep();
+                    //Debug.Log("i shoot");
+                    //tool.GetComponent<Rigidbody>().AddForce(tool.transform.forward);
+                    //* dir.magnitude);
+                }
+
+                if (Input.GetMouseButtonUp(0))
+                {
+                    shotDir = startPos - mousePoint;
+
+
+                    Debug.Log("ShotDir " + shotDir);
+
+                    //tool.GetComponent<Rigidbody>().velocity = shotDir;
+                }
+                break;
+
+        }
+    }
+*/
     public override bool IncrementStep()
     {
         if (currentStep == 0)
         {   
             if(_triggerType == triggerType.Impact)
                 puck.SetActive(true);
-            //Home.GetComponent<BaseTarget>().enabled = false;
-            //Home.GetComponent<MeshRenderer>().enabled = false;
+
+            if (_triggerType == triggerType.Curling)
+                tool.SetActive(true);
         }
 
         return base.IncrementStep();
@@ -273,17 +344,15 @@ public class ToolTask : BilliardsTask
         ctrler = ExperimentController.Instance();
 
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
-
-        puckobj = GameObject.Find("PuckObject");
-        ballObject = GameObject.Find("BallObject");
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
-
         toolSurface = GameObject.Find("Surface");
         grid = GameObject.Find("Grid");
 
         GameObject impactBox = GameObject.Find("ToolBox");
         GameObject curlingStone = GameObject.Find("curlingStone");
+        GameObject puckobj = GameObject.Find("PuckObject");
+        GameObject ballObject = GameObject.Find("BallObject");
 
         // Set up home position
         Home = GameObject.Find("HomePosition");
@@ -320,23 +389,22 @@ public class ToolTask : BilliardsTask
             curlingStone.SetActive(false);
 
 
-            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, puck.transform.position);
-            InitialDistanceToTarget += 0.15f;
-
-
             // set up puck type 
             if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "puck")
             {
-                ballObject.SetActive(true);
+                ballObject.SetActive(false);
                 puck = puckobj;
             }
             else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "ball")
             {
-                puckobj.SetActive(true);
+                puckobj.SetActive(false);
                 puck = ballObject;
             }
 
             puck.GetComponent<SphereCollider>().material.bounciness = 0.8f;
+
+            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, puck.transform.position);
+            InitialDistanceToTarget += 0.15f;
 
             // Disable object for first step
             puck.SetActive(false);
@@ -350,8 +418,16 @@ public class ToolTask : BilliardsTask
             tool = curlingStone;
             tool.GetComponent<SphereCollider>().material.bounciness = 1f;
             tool.GetComponent<SphereCollider>().enabled = false;
-            impactBox.SetActive(false);
 
+            impactBox.SetActive(false);
+            puckobj.SetActive(false);
+            ballObject.SetActive(false);
+
+            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, tool.transform.position);
+            InitialDistanceToTarget += 0.15f;
+
+            // Disable object for first step
+            //tool.SetActive(false);
         }
         else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "slingShot")
         {
@@ -361,22 +437,17 @@ public class ToolTask : BilliardsTask
 
 
 
-
-        //Debug.Log("Surface found---->> " + toolSurface.name);
-
         // set up surface materials for the plane
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "fabric")
         {
             grid.SetActive(false);
             base.SetSurfaceMaterial( ctrler.Materials["Felt"]);
-            //toolSurface.GetComponent<MeshRenderer>().material = ctrler.SurfaceMaterials[0];
 
         }
         else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "ice")
         {
             grid.SetActive(false);
             base.SetSurfaceMaterial(ctrler.Materials["Ice"]);
-            //toolSurface.GetComponent<MeshRenderer>().material = ctrler.SurfaceMaterials[1];
 
         }
 
@@ -403,37 +474,35 @@ public class ToolTask : BilliardsTask
         Vector3 dir = mousePoint - tool.transform.position;
         dir /= Time.fixedDeltaTime;
 
-        //Debug.Log("Current block TriggerType: " + _triggerType.ToString());
-        //Debug.Log("distance of racket with ball: " + Vector3.Distance(tool.transform.position, chosenObj.transform.position));
+        tool.GetComponent<Rigidbody>().velocity = dir;
+        if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
+        {
+            tool.transform.LookAt(puck.transform);
+        }
+        else
+        {
+            tool.transform.rotation = Quaternion.identity;
+        }
+        tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
 
 
-        switch (_triggerType)
+/*        switch (_triggerType)
         {
             case triggerType.Impact:
 
-                tool.GetComponent<Rigidbody>().velocity = dir;
-                if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
-                {
-                    tool.transform.LookAt(puck.transform);
-                }
-                else
-                {
-                    tool.transform.rotation = Quaternion.identity;
-                }
-                tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
+
             
                 break;
+
             case triggerType.Curling:
 
-                if(currentStep == 1)
+
+
+                if (currentStep == 1)
                     tool.GetComponent<Rigidbody>().velocity = dir;
-
-                if (Input.GetMouseButtonDown(0))
-                    tool.GetComponent<Rigidbody>().velocity = tool.transform.forward * dir.magnitude;
-
                 break;
 
-        }
+        }*/
             
 
 

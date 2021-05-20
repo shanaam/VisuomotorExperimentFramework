@@ -13,7 +13,7 @@ public class InstructionTask : BaseTask
     private ExperimentController ctrler;
 
     private string ins;
-    private double timeRemaining = 10f;
+    private double timeRemaining = 3f;
 
     private GameObject instructionPanel;
     private GameObject instruction;
@@ -41,7 +41,7 @@ public class InstructionTask : BaseTask
         instruction.GetComponent<Text>().text = ins;
 
         //countdown Timer start
-        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
+        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();
 
         //add event listener to done button
         done.GetComponent<Button>().onClick.AddListener(()=>End() );
