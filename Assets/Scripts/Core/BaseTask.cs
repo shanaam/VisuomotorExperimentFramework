@@ -9,38 +9,6 @@ public abstract class BaseTask : MonoBehaviour
     protected bool finished;      // Are we out of steps
     protected int maxSteps;       // Number of steps this task has
 
-    // References to the home and target GameObjects
-    // Use the auto properties to set the value for this
-    private GameObject home, target;
-
-    private GameObject[] trackers;
-
-    // This task's "home" position
-    public virtual GameObject Home
-    {
-        get => home;
-        protected set => home = value;
-    }
-
-    // This task's "target" position
-    public virtual GameObject Target
-    {
-        get => target;
-        protected set => target = value;
-    }
-
-    protected virtual GameObject[] Trackers
-    {
-        get
-        {
-            if (trackers == null)
-                Debug.LogWarning("Trackers have not been initialized for this task.");
-
-            return trackers;
-        }
-        set => trackers = value;
-    }
-
     /// <summary>
     /// Increments the current step in this task
     /// </summary>
@@ -52,13 +20,37 @@ public abstract class BaseTask : MonoBehaviour
         return finished;
     }
 
-    public int GetCurrentStep => currentStep;
-    public bool Finished => finished;
+    // References to the home and target GameObjects
+    // Use the auto properties to set the value for this
+    private GameObject home, target;
 
-    /// <summary>
-    /// Logic for setting up a specific trial type
-    /// </summary>
-    protected abstract void Setup();
+    private GameObject[] trackers;
+
+    // This task's "home" position
+    public GameObject Home
+    {
+        get => home;
+        protected set => home = value;
+    }
+
+    // This task's "target" position
+    public GameObject Target
+    {
+        get => target;
+        protected set => target = value;
+    }
+
+    protected GameObject[] Trackers
+    {
+        get
+        {
+            if (trackers == null)
+                Debug.LogWarning("Trackers have not been initialized for this task.");
+
+            return trackers;
+        }
+        set => trackers = value;
+    }
 
     protected virtual void OnDestroy()
     {
@@ -67,6 +59,27 @@ public abstract class BaseTask : MonoBehaviour
         {
             ExperimentController.Instance().Session.trackedObjects.Remove(g.GetComponent<PositionRotationTracker>());
             Destroy(g);
+        }
+    }
+
+    public int GetCurrentStep => currentStep;
+    public bool Finished => finished;
+
+    /// <summary>
+    /// Logic for setting up a specific trial type
+    /// </summary>
+    public abstract void Setup();
+
+    public virtual void LogParameters()
+    {
+        ExperimentController ctrler = ExperimentController.Instance();
+        Session session = ctrler.Session;
+
+        // Track score if score tracking is enabled in the JSON
+        // Defaults to disabled if property does not exist in JSON
+        if (session.settings.GetBool("track_score", false))
+        {
+            session.CurrentTrial.result["score"] = ctrler.Score;
         }
     }
 }

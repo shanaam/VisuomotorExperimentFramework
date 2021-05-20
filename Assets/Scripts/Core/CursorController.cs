@@ -12,7 +12,7 @@ public class CursorController : MonoBehaviour
     // The visible representation of the cursor. A blue sphere
     public GameObject Model;
 
-    public bool triggerUp = false;
+    public bool triggerUp;
     // to check whether it's being pressed
     public bool IsPressed { get; private set; }
 
@@ -141,7 +141,7 @@ public class CursorController : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the gameobject that represents the hand involved in the current trial
+    /// Returns the GameObject that represents the hand involved in the current trial
     /// </summary>
     public GameObject CurrentHand()
     {
@@ -215,13 +215,12 @@ public class CursorController : MonoBehaviour
                 Debug.Log("Trig down now");
             }
         }
-        // check for button release
-        else if (IsPressed)
+        else if (IsPressed) // check for button release
         {
             IsPressed = false;
             triggerUp = true;
         }
-        // above code should work for ontriggerup (this means clean-up is required on current onTriggerUp method)
+        // Above code should work for OnTriggerUp (this means clean-up is required on current onTriggerUp method)
 
         if (ExperimentController.Instance().CurrentTask == null) return;
 
@@ -298,24 +297,22 @@ public class CursorController : MonoBehaviour
     /// </summary>
     public Vector3 MouseToPlanePoint(Vector3 planeNormal, Vector3 planePos, Camera camera)
     {
+        // If the camera is orthographic, it is a top down view and thus x and y are just screen coordinates
         if (camera.orthographic)
         {
-              
             Vector3 mouseCoords = camera.ScreenToWorldPoint(Input.mousePosition);
             return new Vector3(mouseCoords.x, planePos.y, mouseCoords.z);
         }
-        else
-        {
-            Vector3 pos = camera.ScreenToWorldPoint(new Vector3(
-                Input.mousePosition.x, Input.mousePosition.y, camera.nearClipPlane));
 
-            Vector3 direction = (pos - camera.transform.position).normalized;
+        Vector3 pos = camera.ScreenToWorldPoint(new Vector3(
+            Input.mousePosition.x, Input.mousePosition.y, camera.nearClipPlane));
 
-            Plane plane = new Plane(planeNormal.normalized, planePos);
-            Ray r = new Ray(camera.transform.position, direction);
+        Vector3 direction = (pos - camera.transform.position).normalized;
 
-            return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
-        }
+        Plane plane = new Plane(planeNormal.normalized, planePos);
+        Ray r = new Ray(camera.transform.position, direction);
+
+        return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
     }
 
     /// <summary>

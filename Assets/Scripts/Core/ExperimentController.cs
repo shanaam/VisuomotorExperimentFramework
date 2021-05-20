@@ -3,7 +3,7 @@ using UnityEngine;
 using UXF;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine.InputSystem;
 using MovementType = CursorController.MovementType;
 
 /// <summary>
@@ -34,9 +34,10 @@ public class ExperimentController : MonoBehaviour
 
     public Material[] SurfaceMaterials;
 
-    public Dictionary<String, GameObject> Prefabs = new Dictionary<string, GameObject>();
-    public Dictionary<String, AudioClip> AudioClips = new Dictionary<string, AudioClip>();
-    
+    public Dictionary<string, GameObject> Prefabs = new Dictionary<string, GameObject>();
+    public Dictionary<string, AudioClip> AudioClips = new Dictionary<string, AudioClip>();
+    public Dictionary<string, Material> Materials = new Dictionary<string, Material>();
+
     public CursorController CursorController { get; private set; }
 
     public Session Session { get; private set; }
@@ -45,9 +46,10 @@ public class ExperimentController : MonoBehaviour
 
     public int Score = 0;
 
+    // Pseudorandom Float List
+    private Dictionary<string, List<float>> pMap = new Dictionary<string, List<float>>();
+
     /// <summary>
-    /// 
-    /// 
     /// Gets the singleton instance of our experiment controller. Use it for
     /// Getting the state of the experiment (input, current trial, etc)
     /// </summary>
@@ -74,6 +76,9 @@ public class ExperimentController : MonoBehaviour
 
         foreach (AudioClip c in SoundEffects)
             AudioClips[c.name] = c;
+
+        foreach (Material m in SurfaceMaterials)
+            Materials[m.name] = m;
 
         BeginNextTrial();
     }
@@ -113,7 +118,7 @@ public class ExperimentController : MonoBehaviour
     /// We store a list of prefabs a task can spawn. This returns an associated
     /// prefab using the name as it's key
     /// </summary>
-    public GameObject GetPrefab(String key)
+    public GameObject GetPrefab(string key)
     {
         if (Prefabs[key] != null) return Prefabs[key];
 
@@ -149,38 +154,17 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
-
-        // If the current trial is the first one in the block, we need to generate a pseudo-random
-        // list of angles for the trial to pick from.
-        List<float> angles = new List<float>();
-        if (trial.numberInBlock == 1)
-        {
-            // Grab target list and shuffle
-            List<float> tempAngleList = Session.settings.GetFloatList(
-                Session.CurrentBlock.settings.GetString("per_block_targetListToUse"));
-
-            for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
-            {
-                angles.Add(tempAngleList[i % tempAngleList.Count]);
-            }
-
-            // Pseudo-random shuffle
-            angles.Shuffle();
-        }
-
-
-        String per_block_type = trial.settings.GetString("per_block_type");
+        InitializePseudorandomList(trial, "per_block_targetListToUse");
         
+        string per_block_type = trial.settings.GetString("per_block_type");
         if (per_block_type == "instruction")
         {
-            String per_block_instruction = trial.settings.GetString("per_block_instruction");
+            string per_block_instruction = trial.settings.GetString("per_block_instruction");
 
-            if(per_block_instruction != null)
+            if (per_block_instruction != null)
             {
-                string instruction = trial.settings.GetString(per_block_instruction);
-               
                 CurrentTask = gameObject.AddComponent<InstructionTask>();
-                ((InstructionTask)CurrentTask).Init(trial, instruction);
+                CurrentTask.Setup();
             }
 
             return;
@@ -195,90 +179,35 @@ public class ExperimentController : MonoBehaviour
                     case "rotated":
                     case "clamped":
                     case "nocursor":
-                        Enum.TryParse(per_block_type, out MovementType reachType);
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
-
-                        ((ReachToTargetTask)CurrentTask).Init(trial,
-                            per_block_type == "nocursor" ? MovementType.aligned : reachType,
-                            angles);
                         break;
                     case "localization":
                         CurrentTask = gameObject.AddComponent<LocalizationTask>();
-                        ((LocalizationTask)CurrentTask).Init(trial, angles);
                         break;
                     default:
                         Debug.LogWarning("Task not implemented: " + per_block_type);
                         trial.End();
                         break;
                 }
-
                 break;
             case "pinball_vr":
             case "pinball":
                 CurrentTask = gameObject.AddComponent<PinballTask>();
 
-                // Camera and Surface Tilt
-                List<float> cameraAngles = new List<float>();
-                List<float> tiltAngles = new List<float>();
-                if (trial.numberInBlock == 1)
-                {
-                    string camera_tilt_key = Session.CurrentBlock.settings.GetString("per_block_list_camera_tilt");
-                    string surface_tilt_key = Session.CurrentBlock.settings.GetString("per_block_list_surface_tilt");
-
-                    List<float> tempCameraAngles = null, tempTiltAngles = null;
-                    if (camera_tilt_key != string.Empty)
-                    {
-                        tempCameraAngles = Session.settings.GetFloatList(camera_tilt_key);
-                    }
-
-                    if (surface_tilt_key != string.Empty)
-                    {
-                        tempTiltAngles = Session.settings.GetFloatList(surface_tilt_key);
-                    }
-                    
-                    List<int> order = new List<int>();
-                    for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
-                    {
-                        order.Add(i);
-                    }
-                    order.Shuffle();
-
-                    foreach (int i in order)
-                    {
-                        if (tempCameraAngles != null)
-                        {
-                            cameraAngles.Add(tempCameraAngles[i % tempCameraAngles.Count]);
-                        }
-
-                        if (tempTiltAngles != null)
-                        {
-                            tiltAngles.Add(tempTiltAngles[i % tempTiltAngles.Count]);
-                        }
-                    }
-                }
-
-                ((PinballTask)CurrentTask).Init(trial, angles, cameraAngles, tiltAngles);
-
+                InitializePseudorandomList(trial, "per_block_list_camera_tilt");
+                InitializePseudorandomList(trial, "per_block_list_surface_tilt");
                 break;
-            
             case "tool":
                 CurrentTask = gameObject.AddComponent<ToolTask>();
-                ((ToolTask)CurrentTask).Init(trial, angles);
                 break;
-            
-            case "curling":
-                CurrentTask = gameObject.AddComponent<CurlingTask>();
-                ((CurlingTask)CurrentTask).Init(trial, angles);
-                break;
-
             default:
                 Debug.LogWarning("Experiment Type not implemented: " +
                                     Session.settings.GetString("experiment_mode"));
                 trial.End();
-                break;
+                return;
         }
 
-    
+        CurrentTask.Setup();
     }
 
     /// <summary>
@@ -304,7 +233,9 @@ public class ExperimentController : MonoBehaviour
 
     public void EndAndPrepare()
     {
-        LogParameters();
+        //LogParameters();
+        EndTimer();
+        CurrentTask.LogParameters();
 
         if (Session.CurrentTrial.number == Session.LastTrial.number)
             Session.End();
@@ -318,37 +249,9 @@ public class ExperimentController : MonoBehaviour
     }
 
     /// <summary>
-    /// Saves all of the data points for a particular trial
-    /// </summary>
-    private void LogParameters()
-    {
-        // Localization task uses Target as the cursor location
-        // For all other tasks, the Target is the actual target
-        if (!(CurrentTask is LocalizationTask) && !(CurrentTask is PinballTask) && !(CurrentTask is InstructionTask))
-        {
-            Session.CurrentTrial.result["home_x"] = CurrentTask.Home.transform.localPosition.x;
-            Session.CurrentTrial.result["home_y"] = CurrentTask.Home.transform.localPosition.y;
-            Session.CurrentTrial.result["home_z"] = CurrentTask.Home.transform.localPosition.z;
-
-            Session.CurrentTrial.result["target_x"] = CurrentTask.Target.transform.localPosition.x;
-            Session.CurrentTrial.result["target_y"] = CurrentTask.Target.transform.localPosition.y;
-            Session.CurrentTrial.result["target_z"] = CurrentTask.Target.transform.localPosition.z;
-        }
-        
-        // Track score if score tracking is enabled in the JSON
-        // Defaults to disabled if property does not exist in JSON
-        if (Session.settings.GetBool("track_score", false))
-        {
-            Session.CurrentTrial.result["score"] = Score;
-        }
-
-        EndTimer();
-    }
-
-    /// <summary>
     /// Instantiates and sets up a tracker with the specified name.
     /// </summary>
-    public GameObject GenerateTracker(String trackerName, Transform parent)
+    public GameObject GenerateTracker(string trackerName, Transform parent)
     {
         if (trackerName.Contains(" "))
             Debug.LogError("Tracker has a space in its name. Remove the spaces.");
@@ -358,5 +261,66 @@ public class ExperimentController : MonoBehaviour
         tracker.name = tracker.GetComponent<PositionRotationTracker>().objectName = trackerName;
 
         return tracker;
+    }
+
+    /// <summary>
+    /// If an experiment requires a pseudorandom list of floats this method will initialize a list
+    /// and save it using the key represented in the JSON. The method does not do anything if the function
+    /// is called in a trial that is not at the start at the block.
+    /// </summary>
+    /// <param name="trial"></param>
+    /// <param name="key">string used to access this list. Must be the same as the value in the JSON</param>
+    public void InitializePseudorandomList(Trial trial, string key)
+    {
+        if (trial.numberInBlock != 1) return;
+
+        key = Session.CurrentBlock.settings.GetString(key, "");
+        if (key == string.Empty) return;
+
+        if (!pMap.ContainsKey(key))
+        {
+            pMap[key] = new List<float>();
+        }
+        else
+        {
+            pMap[key].Clear();
+        }
+        
+        // Grab target list and shuffle
+        List<float> tempAngleList = Session.settings.GetFloatList(key);
+
+        for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
+        {
+            pMap[key].Add(tempAngleList[i % tempAngleList.Count]);
+        }
+
+        // Pseudo-random shuffle
+        pMap[key].Shuffle();
+    }
+
+    /// <summary>
+    /// Takes one float from the pseudorandom map while also removing it from its
+    /// associated list.
+    /// </summary>
+    /// <param name="key"></param>
+    public float PollPseudorandomList(string key)
+    {
+        key = Session.CurrentBlock.settings.GetString(key);
+
+        if (pMap.ContainsKey(key))
+        {
+            float val = pMap[key][0];
+            pMap[key].RemoveAt(0);
+
+            return val;
+        }
+
+        if (key != string.Empty)
+        {
+            Debug.LogError(key +
+                             " wasn't initialized yet. Check spelling or have you called InitializePseudorandomList yet?");
+        }
+
+        return 0.0f;
     }
 }

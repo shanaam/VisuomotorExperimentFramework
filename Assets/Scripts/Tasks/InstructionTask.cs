@@ -13,7 +13,7 @@ public class InstructionTask : BaseTask
     private ExperimentController ctrler;
 
     private string ins;
-    private double timeRemaining = 10f;
+    private double timeRemaining = 3f;
 
     private GameObject instructionPanel;
     private GameObject instruction;
@@ -22,16 +22,11 @@ public class InstructionTask : BaseTask
 
     private Camera tempMainCamera;
 
-    public void Init(Trial trial, string instruction)
+    public override void Setup()
     {
         ctrler = ExperimentController.Instance();
-        ins = instruction;
 
-        Setup();
-    }
-
-    protected override void Setup()
-    {
+        ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
         // Temporarily disable VR Camera
         // TODO: This needs to be changed when we implement instruction task for VR
         ctrler.CursorController.SetVRCamera(false);
@@ -46,7 +41,7 @@ public class InstructionTask : BaseTask
         instruction.GetComponent<Text>().text = ins;
 
         //countdown Timer start
-        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
+        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();
 
         //add event listener to done button
         done.GetComponent<Button>().onClick.AddListener(()=>End() );
