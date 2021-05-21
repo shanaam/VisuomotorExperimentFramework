@@ -26,7 +26,10 @@ public class InstructionTask : BaseTask
     {
         ctrler = ExperimentController.Instance();
 
-        ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
+
+        string per_block_ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
+        ins = ctrler.Session.CurrentTrial.settings.GetString(per_block_ins);
+
         // Temporarily disable VR Camera
         // TODO: This needs to be changed when we implement instruction task for VR
         ctrler.CursorController.SetVRCamera(false);
@@ -52,7 +55,7 @@ public class InstructionTask : BaseTask
         if(timeRemaining > 0)
         {
             timeRemaining = timeRemaining - Time.deltaTime;
-            timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
+            timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();
         }
         else
         {
