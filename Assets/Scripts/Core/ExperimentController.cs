@@ -154,7 +154,7 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
-        InitializePseudorandomList(trial, "per_block_targetListToUse");
+        InitializePseudorandomList(trial, "per_block_targetListToUse", true);
         
         string per_block_type = trial.settings.GetString("per_block_type");
         if (per_block_type == "instruction")
@@ -194,8 +194,8 @@ public class ExperimentController : MonoBehaviour
             case "pinball":
                 CurrentTask = gameObject.AddComponent<PinballTask>();
 
-                InitializePseudorandomList(trial, "per_block_list_camera_tilt");
-                InitializePseudorandomList(trial, "per_block_list_surface_tilt");
+                InitializePseudorandomList(trial, "per_block_list_camera_tilt", true);
+                InitializePseudorandomList(trial, "per_block_list_surface_tilt", false);
                 break;
             case "tool":
                 CurrentTask = gameObject.AddComponent<ToolTask>();
@@ -270,25 +270,33 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     /// <param name="trial"></param>
     /// <param name="key">string used to access this list. Must be the same as the value in the JSON</param>
-    public void InitializePseudorandomList(Trial trial, string key)
+    /// <param name="forceClear">When true, the function will remove all previous values associated with the key</param>
+    public void InitializePseudorandomList(Trial trial, string key, bool forceClear)
     {
         if (trial.numberInBlock != 1) return;
 
         key = Session.CurrentBlock.settings.GetString(key, "");
         if (key == string.Empty) return;
 
+        // Grab target list
+        List<float> tempAngleList = Session.settings.GetFloatList(key);
+
         if (!pMap.ContainsKey(key))
         {
             pMap[key] = new List<float>();
         }
-        else
+        else if (forceClear)
         {
+            if (pMap[key].Count == Session.CurrentBlock.trials.Count)
+            {
+                Debug.LogWarning(key + " already has the correct number of values. May already be initialized? " +
+                                 "Check your BeginTrialSteps() implementation.");
+            }
+
             pMap[key].Clear();
         }
-        
-        // Grab target list and shuffle
-        List<float> tempAngleList = Session.settings.GetFloatList(key);
 
+        // Add enough elements such that there is 1 per trial
         for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
         {
             pMap[key].Add(tempAngleList[i % tempAngleList.Count]);
@@ -319,6 +327,25 @@ public class ExperimentController : MonoBehaviour
         {
             Debug.LogError(key +
                              " wasn't initialized yet. Check spelling or have you called InitializePseudorandomList yet?");
+            throw new NullReferenceException();
+        }
+
+        return 0.0f;
+    }
+
+    public float PeekPseudorandomList(string key)
+    {
+        key = Session.CurrentBlock.settings.GetString(key);
+
+        if (pMap.ContainsKey(key))
+        {
+            return pMap[key][0];
+        }
+
+        if (key != string.Empty)
+        {
+            Debug.LogError(key + " wasn't initialized yet. Check spelling or have you called InitializePseudorandomList yet?");
+            throw new NullReferenceException();
         }
 
         return 0.0f;
