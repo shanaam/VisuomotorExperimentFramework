@@ -3,8 +3,10 @@ using UnityEngine;
 using UXF;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 using UnityEngine.InputSystem;
 using MovementType = CursorController.MovementType;
+using Random = System.Random;
 
 /// <summary>
 /// Overview of how the application works:
@@ -154,7 +156,7 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
-        InitializePseudorandomList(trial, "per_block_targetListToUse", true);
+        InitializePseudorandomList(trial, "per_block_targetListToUse");
         
         string per_block_type = trial.settings.GetString("per_block_type");
         if (per_block_type == "instruction")
@@ -194,8 +196,9 @@ public class ExperimentController : MonoBehaviour
             case "pinball":
                 CurrentTask = gameObject.AddComponent<PinballTask>();
 
-                InitializePseudorandomList(trial, "per_block_list_camera_tilt", true);
-                InitializePseudorandomList(trial, "per_block_list_surface_tilt", false);
+                List<int> indices = GenerateListOrder();
+                InitializePseudorandomList(trial, "per_block_list_camera_tilt", indices);
+                InitializePseudorandomList(trial, "per_block_list_surface_tilt", indices);
                 break;
             case "tool":
                 CurrentTask = gameObject.AddComponent<ToolTask>();
@@ -270,40 +273,47 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     /// <param name="trial"></param>
     /// <param name="key">string used to access this list. Must be the same as the value in the JSON</param>
-    /// <param name="forceClear">When true, the function will remove all previous values associated with the key</param>
-    public void InitializePseudorandomList(Trial trial, string key, bool forceClear)
+    /// <param name="indices">A list of integers that denote the order of which the list is initialized to</param>
+    public void InitializePseudorandomList(Trial trial, string key, List<int> indices = null)
     {
+        // Only execute if we are starting a new block
         if (trial.numberInBlock != 1) return;
 
-        key = Session.CurrentBlock.settings.GetString(key, "");
-        if (key == string.Empty) return;
+        // If experimenter supplied null in the JSON, return
+        string listKey = Session.CurrentBlock.settings.GetString(key, "");
+        if (listKey == string.Empty) return;
 
         // Grab target list
-        List<float> tempAngleList = Session.settings.GetFloatList(key);
+        List<float> tempAngleList = Session.settings.GetFloatList(listKey);
 
         if (!pMap.ContainsKey(key))
         {
+            // Initialize new list if its the first time using this key
             pMap[key] = new List<float>();
         }
-        else if (forceClear)
+        else
         {
+            // Since a list is polled (See PollPseudorandomList()), list keys
+            // can not be reused. Experimenter must use separate keys
             if (pMap[key].Count == Session.CurrentBlock.trials.Count)
             {
-                Debug.LogWarning(key + " already has the correct number of values. May already be initialized? " +
-                                 "Check your BeginTrialSteps() implementation.");
+                Debug.LogWarning(key + ": Keys can't be reused. Use a separate key for this list.");
             }
 
             pMap[key].Clear();
         }
 
-        // Add enough elements such that there is 1 per trial
-        for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
+        // If an index list wasn't specified, make one
+        if (indices == null)
         {
-            pMap[key].Add(tempAngleList[i % tempAngleList.Count]);
+            indices = GenerateListOrder();
         }
 
         // Pseudo-random shuffle
-        pMap[key].Shuffle();
+        foreach (int i in indices)
+        {
+            pMap[key].Add(tempAngleList[i % tempAngleList.Count]);
+        }
     }
 
     /// <summary>
@@ -313,7 +323,9 @@ public class ExperimentController : MonoBehaviour
     /// <param name="key"></param>
     public float PollPseudorandomList(string key)
     {
-        key = Session.CurrentBlock.settings.GetString(key);
+        // If the key is null in the JSON, skip
+        if (Session.CurrentBlock.settings.GetString(key, "") == string.Empty)
+            return 0.0f;
 
         if (pMap.ContainsKey(key))
         {
@@ -333,21 +345,21 @@ public class ExperimentController : MonoBehaviour
         return 0.0f;
     }
 
-    public float PeekPseudorandomList(string key)
+    /// <summary>
+    /// Generates a shuffled list of indices used to denote the order of a list used over a block.
+    /// The number of indices equals the total number of trials in the current block.
+    /// </summary>
+    /// <returns></returns>
+    private List<int> GenerateListOrder()
     {
-        key = Session.CurrentBlock.settings.GetString(key);
+        List<int> indices = new List<int>();
 
-        if (pMap.ContainsKey(key))
+        for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
         {
-            return pMap[key][0];
+            indices.Add(i);
         }
 
-        if (key != string.Empty)
-        {
-            Debug.LogError(key + " wasn't initialized yet. Check spelling or have you called InitializePseudorandomList yet?");
-            throw new NullReferenceException();
-        }
-
-        return 0.0f;
+        indices.Shuffle();
+        return indices;
     }
 }
