@@ -36,6 +36,11 @@ public abstract class BilliardsTask : BaseTask
             Debug.LogError("Surface was not found in the prefab. Please make sure it is added.");
         }
 
+        if (material == null)
+        {
+            Debug.LogError("Material was not found. Check spelling.");
+        }
+
         Surface.GetComponent<MeshRenderer>().material = material;
     }
 }

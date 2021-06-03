@@ -67,7 +67,7 @@ public class ToolTask : BilliardsTask
 
     private void Update()
     {
-        Debug.Log("current step :" + currentStep);
+        //Debug.Log("current step :" + currentStep);
 
 
         Vector3 mousePoint = new Vector3();
@@ -728,13 +728,13 @@ public class ToolTask : BilliardsTask
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "fabric")
         {
             grid.SetActive(false);
-            base.SetSurfaceMaterial( ctrler.Materials["Felt"]);
+            base.SetSurfaceMaterial( ctrler.Materials["GrassMaterial"]);
 
         }
         else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "ice")
         {
             grid.SetActive(false);
-            base.SetSurfaceMaterial(ctrler.Materials["Ice"]);
+            base.SetSurfaceMaterial(ctrler.Materials["IceMaterial"]);
 
         }
 
