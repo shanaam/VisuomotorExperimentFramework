@@ -42,6 +42,8 @@ public class ToolTask : BilliardsTask
     private GameObject curlingStone;
     private GameObject slingShotBall;
 
+
+
     private List<Vector3> PuckPoints = new List<Vector3>();
     private List<Vector3> CurlingStonePoints = new List<Vector3>();
     private GameObject oldMainCamera;
@@ -574,7 +576,7 @@ public class ToolTask : BilliardsTask
                     }
                     else
                     {
-                        //LogParameters();
+                        LogParameters();
                     }
 
 
@@ -741,11 +743,20 @@ public class ToolTask : BilliardsTask
 
     }
 
-    public override void LogParameters()
+    public override void LogParameters() 
     {
-        ctrler.Session.CurrentTrial.result["tool_x"] = puck.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["tool_y"] = puck.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["tool_z"] = puck.transform.localPosition.z;
+        GameObject other = new GameObject();
+
+        if (_triggerType == triggerType.Impact)
+            other = puck;
+        else if (_triggerType == triggerType.Curling)
+            other = curlingStone;
+        else if (_triggerType == triggerType.SlingShot)
+            other = slingShotBall;
+
+        ctrler.Session.CurrentTrial.result["tool_x"] = other.transform.localPosition.x;
+        ctrler.Session.CurrentTrial.result["tool_y"] = other.transform.localPosition.y;
+        ctrler.Session.CurrentTrial.result["tool_z"] = other.transform.localPosition.z;
 
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
