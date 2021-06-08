@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: 47b2461148dc2fc49826aad2af313449,
+  m_LightingDataAsset: {fileID: 112000000, guid: 5ec8b5eddd0f03c4e9f5e32b14633b88,
     type: 2}
   m_LightingSettings: {fileID: 1840584784}
 --- !u!196 &4
@@ -1102,7 +1102,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 323d999887e1e8e4c9164f54a7798f7c, type: 3}
   SurfaceMaterials:
   - {fileID: 2100000, guid: c8dc7d62f21ce7547bc2598e183ede72, type: 2}
-  - {fileID: 2100000, guid: 0c1a0b9acb480184fbe1df2bb7eed345, type: 2}
+  - {fileID: 2100000, guid: 5c62f3758691d4ba7ae9de514736c755, type: 2}
   Score: 0
 --- !u!114 &1000910855
 MonoBehaviour:

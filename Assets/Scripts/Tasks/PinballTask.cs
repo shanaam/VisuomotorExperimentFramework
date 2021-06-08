@@ -556,17 +556,20 @@ public class PinballTask : BilliardsTask
         bonusText.transform.parent.SetParent(pinballSpace.transform);
     }
 
-    protected override void OnDestroy()
+    public override void Disable()
     {
         // Realign XR Rig to non-tilted position
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
         {
-            XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward, 
+            XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
                 ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt") * -1);
         }
 
         pinballSpace.SetActive(false);
+    }
 
+    protected override void OnDestroy()
+    {
         Destroy(pinballSpace);
 
         //ctrler.CursorController.SetVRCamera(true);

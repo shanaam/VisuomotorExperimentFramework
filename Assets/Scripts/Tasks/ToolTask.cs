@@ -736,7 +736,7 @@ public class ToolTask : BilliardsTask
         else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "ice")
         {
             grid.SetActive(false);
-            base.SetSurfaceMaterial(ctrler.Materials["IceMaterial"]);
+            base.SetSurfaceMaterial(ctrler.Materials["Ice"]);
 
         }
 
@@ -783,6 +783,11 @@ public class ToolTask : BilliardsTask
         }
         tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
 
+    }
+
+    public override void Disable()
+    {
+        toolSpace.SetActive(false);
     }
 
     protected override void OnDestroy()

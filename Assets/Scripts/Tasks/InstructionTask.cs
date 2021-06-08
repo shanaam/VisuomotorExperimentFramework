@@ -69,13 +69,17 @@ public class InstructionTask : BaseTask
         ctrler.EndAndPrepare();
     }
 
-    protected override void OnDestroy()
+    public override void Disable()
     {
         instructionPanel.SetActive(false);
-        Destroy(instructionPanel);
 
         // Turn VR Camera back on
         // TODO: See Setup()
         ctrler.CursorController.SetVRCamera(true);
+    }
+
+    protected override void OnDestroy()
+    {
+        Destroy(instructionPanel);
     }
 }

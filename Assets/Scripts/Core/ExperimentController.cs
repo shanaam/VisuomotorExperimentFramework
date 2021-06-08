@@ -87,7 +87,12 @@ public class ExperimentController : MonoBehaviour
 
     public void BeginNextTrial()
     {
-        StartCoroutine(StartTrial());
+        if (Session.currentTrialNum == 0)
+            Session.FirstTrial.Begin();
+        else
+            Session.BeginNextTrialSafe();
+
+        //StartCoroutine(StartTrial());
     }
 
     /// <summary>
@@ -240,14 +245,15 @@ public class ExperimentController : MonoBehaviour
         EndTimer();
         CurrentTask.LogParameters();
 
+        // Cleanup the current task and destroy it
+        BaseTask task = GetComponent<BaseTask>();
+        task.Disable();
+
         if (Session.CurrentTrial.number == Session.LastTrial.number)
             Session.End();
         else
             Session.CurrentTrial.End();
 
-        // Cleanup the current task and destroy it
-        BaseTask task = GetComponent<BaseTask>();
-        task.enabled = false;
         Destroy(task);
     }
 

@@ -141,6 +141,12 @@ public class ReachToTargetTask : BaseTask
         base.LogParameters();
     }
 
+    public override void Disable()
+    {
+        foreach (GameObject g in targets)
+            g.SetActive(false);
+    }
+
     protected override void OnDestroy()
     {
         // When the trial ends, we need to delete all the objects this task spawned

@@ -158,6 +158,14 @@ public class LocalizationTask : BaseTask
             ctrler.Session.trackedObjects.Add(g.GetComponent<PositionRotationTracker>());
     }
 
+    public override void Disable()
+    {
+        foreach (GameObject g in targets)
+            g.SetActive(false);
+
+        localizer.SetActive(false);
+    }
+
     protected override void OnDestroy()
     {
         foreach (GameObject g in targets)
