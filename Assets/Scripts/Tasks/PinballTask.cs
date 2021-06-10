@@ -416,6 +416,9 @@ public class PinballTask : BilliardsTask
         // parallel to the pinball
         pinballAlignedTargetPosition = targetLocation + (pinball.transform.localScale.x / 2f) * pPlane.normal;
 
+        // Add Pinball to tracked objects
+        ctrler.AddTrackedObject("pinball_path", pinball);
+
         IncrementStep();
     }
 

@@ -3,7 +3,9 @@ using UnityEngine;
 using UXF;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.Remoting.Messaging;
+using System.Text;
 using UnityEngine.InputSystem;
 using MovementType = CursorController.MovementType;
 using Random = System.Random;
@@ -51,6 +53,9 @@ public class ExperimentController : MonoBehaviour
     // Pseudorandom Float List
     private Dictionary<string, List<float>> pMap = new Dictionary<string, List<float>>();
 
+    private Dictionary<string, GameObject> trackedObjects = new Dictionary<string, GameObject>();
+    private Dictionary<string, List<Vector3>> trackedObjectPath = new Dictionary<string, List<Vector3>>();
+
     /// <summary>
     /// Gets the singleton instance of our experiment controller. Use it for
     /// Getting the state of the experiment (input, current trial, etc)
@@ -91,21 +96,6 @@ public class ExperimentController : MonoBehaviour
             Session.FirstTrial.Begin();
         else
             Session.BeginNextTrialSafe();
-
-        //StartCoroutine(StartTrial());
-    }
-
-    /// <summary>
-    /// Waits one frame before triggering the next trial event
-    /// </summary>
-    private IEnumerator StartTrial()
-    {
-        yield return null;
-
-        if (Session.currentTrialNum == 0)
-            Session.FirstTrial.Begin();
-        else
-            Session.BeginNextTrial();
     }
 
     /// <summary>
@@ -137,6 +127,14 @@ public class ExperimentController : MonoBehaviour
     void Start()
     {
         instance = this;
+    }
+
+    void FixedUpdate()
+    {
+        foreach (string key in trackedObjectPath.Keys)
+        {
+            trackedObjectPath[key].Add(trackedObjects[key].transform.localPosition);
+        }
     }
 
     // Update is called once per frame
@@ -241,9 +239,47 @@ public class ExperimentController : MonoBehaviour
 
     public void EndAndPrepare()
     {
-        //LogParameters();
         EndTimer();
         CurrentTask.LogParameters();
+
+        // Tracked Object logging
+        StringBuilder sb_x = new StringBuilder();
+        StringBuilder sb_y = new StringBuilder();
+        StringBuilder sb_z = new StringBuilder();
+        foreach (string key in trackedObjects.Keys)
+        {
+            if (trackedObjectPath[key].Count == 0) continue;
+
+            sb_x.Clear();
+            sb_y.Clear();
+            sb_z.Clear();
+
+            // Add each vector and its components separated by commas
+            var list = trackedObjectPath[key];
+            int count = list.Count - 2;
+            for (int i = 0; i < count; i++)
+            {
+                sb_x.Append(list[i].x + ",");
+                sb_y.Append(list[i].y + ",");
+                sb_z.Append(list[i].z + ",");
+            }
+
+            // Add the last vector so there is no trailing comma
+            count++;
+            sb_x.Append(list[count].x);
+            sb_y.Append(list[count].y);
+            sb_z.Append(list[count].z);
+
+            sb_x.Clear();
+
+            sb_x.Append(1f + ",");
+
+            Session.CurrentTrial.result[key + "_x"] = sb_x.ToString();
+            Session.CurrentTrial.result[key + "_y"] = sb_y.ToString();
+            Session.CurrentTrial.result[key + "_z"] = sb_z.ToString();
+        }
+
+        ClearTrackedObjects();
 
         // Cleanup the current task and destroy it
         BaseTask task = GetComponent<BaseTask>();
@@ -367,5 +403,37 @@ public class ExperimentController : MonoBehaviour
 
         indices.Shuffle();
         return indices;
+    }
+
+    /// <summary>
+    /// Adds an object such that its local position is tracked every FixedUpdate
+    /// </summary>
+    /// <param name="key">The key representing the location the column in the CSV</param>
+    /// <param name="obj">The object to be tracked</param>
+    public void AddTrackedObject(string key, GameObject obj)
+    {
+        if (trackedObjects.ContainsKey(key))
+        {
+            Debug.LogWarning("You are trying to add a tracker that has already been added");
+        }
+        else
+        {
+            trackedObjects[key] = obj;
+            trackedObjectPath[key] = new List<Vector3>();
+        }
+    }
+
+    /// <summary>
+    /// Clears all of the tracked objects
+    /// </summary>
+    private void ClearTrackedObjects()
+    {
+        var keys = trackedObjects.Keys;
+
+        foreach (string key in keys)
+        {
+            trackedObjects.Remove(key);
+            trackedObjectPath.Remove(key);
+        }
     }
 }
