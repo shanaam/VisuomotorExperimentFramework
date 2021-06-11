@@ -259,20 +259,16 @@ public class ExperimentController : MonoBehaviour
             int count = list.Count - 2;
             for (int i = 0; i < count; i++)
             {
-                sb_x.Append(list[i].x + ",");
-                sb_y.Append(list[i].y + ",");
-                sb_z.Append(list[i].z + ",");
+                sb_x.Append(Math.Round(list[i].x, 6) + ",");
+                sb_y.Append(Math.Round(list[i].y, 6) + ",");
+                sb_z.Append(Math.Round(list[i].z, 6) + ",");
             }
 
             // Add the last vector so there is no trailing comma
             count++;
-            sb_x.Append(list[count].x);
-            sb_y.Append(list[count].y);
-            sb_z.Append(list[count].z);
-
-            sb_x.Clear();
-
-            sb_x.Append(1f + ",");
+            sb_x.Append(Math.Round(list[count].x, 6));
+            sb_y.Append(Math.Round(list[count].y, 6));
+            sb_z.Append(Math.Round(list[count].z, 6));
 
             Session.CurrentTrial.result[key + "_x"] = sb_x.ToString();
             Session.CurrentTrial.result[key + "_y"] = sb_y.ToString();
