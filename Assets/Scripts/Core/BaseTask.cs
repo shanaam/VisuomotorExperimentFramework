@@ -57,7 +57,8 @@ public abstract class BaseTask : MonoBehaviour
         // Delete trackers
         foreach (GameObject g in Trackers)
         {
-            ExperimentController.Instance().Session.trackedObjects.Remove(g.GetComponent<PositionRotationTracker>());
+            ExperimentController.Instance().Session.trackedObjects
+                .Remove(g.GetComponent<PositionRotationTracker>());
             Destroy(g);
         }
     }
@@ -70,6 +71,10 @@ public abstract class BaseTask : MonoBehaviour
     /// </summary>
     public abstract void Setup();
 
+    /// <summary>
+    /// This is called in ExperimentController when the trial ends. Do not call this method
+    /// anywhere else.
+    /// </summary>
     public virtual void LogParameters()
     {
         ExperimentController ctrler = ExperimentController.Instance();
@@ -82,4 +87,6 @@ public abstract class BaseTask : MonoBehaviour
             session.CurrentTrial.result["score"] = ctrler.Score;
         }
     }
+
+    public abstract void Disable();
 }
