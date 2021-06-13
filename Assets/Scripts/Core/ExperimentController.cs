@@ -4,6 +4,7 @@ using UXF;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using UnityEngine.InputSystem;
@@ -199,8 +200,7 @@ public class ExperimentController : MonoBehaviour
             case "pinball":
                 CurrentTask = gameObject.AddComponent<PinballTask>();
 
-                List<int> indices = GenerateListOrder();
-                InitializePseudorandomList(trial, "per_block_list_camera_tilt", indices);
+                List<int> indices = InitializePseudorandomList(trial, "per_block_list_camera_tilt");
                 InitializePseudorandomList(trial, "per_block_list_surface_tilt", indices);
                 break;
             case "tool":
@@ -311,15 +311,17 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     /// <param name="trial"></param>
     /// <param name="key">string used to access this list. Must be the same as the value in the JSON</param>
-    /// <param name="indices">A list of integers that denote the order of which the list is initialized to</param>
-    public void InitializePseudorandomList(Trial trial, string key, List<int> indices = null)
+    /// <param name="indices">A list of integers that denote the order of which the list is initialized to. If none is specified,
+    ///  one will be created in the method.</param>
+    /// <returns> The indices list. </returns>
+    public List<int> InitializePseudorandomList(Trial trial, string key, List<int> indices = null)
     {
         // Only execute if we are starting a new block
-        if (trial.numberInBlock != 1) return;
+        if (trial.numberInBlock != 1) return indices;
 
         // If experimenter supplied null in the JSON, return
         string listKey = Session.CurrentBlock.settings.GetString(key, "");
-        if (listKey == string.Empty) return;
+        if (listKey == string.Empty) return indices;
 
         // Grab target list
         List<float> tempAngleList = Session.settings.GetFloatList(listKey);
@@ -341,17 +343,41 @@ public class ExperimentController : MonoBehaviour
             pMap[key].Clear();
         }
 
+        if (trial.block.trials.Count < tempAngleList.Count)
+        {
+            Debug.LogWarning("Number of trials: " + trial.block.trials.Count + " is less than the list" +
+                             " of elements in the target list: " + tempAngleList.Count + ". Indices list will be " +
+                             "clamped to " + trial.block.trials.Count);
+
+            indices = GenerateListOrder(trial.block.trials.Count);
+        }
+        else if (trial.block.trials.Count % tempAngleList.Count != 0)
+        {
+            Debug.LogError("Trial count: " + trial.block.trials.Count + " is not divisible by the number of" +
+                           " elements in the list of floats: " + tempAngleList.Count);
+        }
+
         // If an index list wasn't specified, make one
         if (indices == null)
         {
-            indices = GenerateListOrder();
+            indices = GenerateListOrder(tempAngleList.Count);
         }
+
+        Debug.Log(indices);
 
         // Pseudo-random shuffle
         foreach (int i in indices)
         {
-            pMap[key].Add(tempAngleList[i % tempAngleList.Count]);
+            if (i >= tempAngleList.Count)
+            {
+                Debug.LogError("Index: " + i + " out of range for list containing " + tempAngleList.Count + " elements." +
+                               "Are you reusing the indices list for another list? Check if the list is the correct size.");
+            }
+
+            pMap[key].Add(tempAngleList[i]);
         }
+
+        return indices;
     }
 
     /// <summary>
@@ -384,20 +410,29 @@ public class ExperimentController : MonoBehaviour
     }
 
     /// <summary>
-    /// Generates a shuffled list of indices used to denote the order of a list used over a block.
-    /// The number of indices equals the total number of trials in the current block.
+    /// Using the number of floats specified, generates a temporary list from 0 .. numFloats.
+    /// This list is then shuffled and concatenated to a result list. This result list contains elements
+    /// equal to the number of trials in the current block. It is important the number of trials is divisible by the
+    /// number of floats specified. If it isn't, the problem can be fixed in the JSON.
     /// </summary>
-    /// <returns></returns>
-    private List<int> GenerateListOrder()
+    /// <returns> A list of integers where the values ranges from [0, numFloats) and the number of elements
+    /// equals the number of trials in the current block</returns>
+    /// <param name="numFloats"> The number of elements in the list. Must be a multiple of the number of trials.</param>
+    private List<int> GenerateListOrder(int numFloats)
     {
         List<int> indices = new List<int>();
 
-        for (int i = 0; i < Session.CurrentBlock.trials.Count; i++)
+        int count = Session.CurrentBlock.trials.Count / numFloats;
+        for (int i = 0; i < count; i++)
         {
-            indices.Add(i);
+            // Create a temporary list ranging from [0, numFloats) and shuffles it
+            List<int> temp = new List<int>(Enumerable.Range(0, numFloats));
+            temp.Shuffle();
+
+            // Concats the list to the result
+            indices.AddRange(temp);
         }
 
-        indices.Shuffle();
         return indices;
     }
 
@@ -424,7 +459,8 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     private void ClearTrackedObjects()
     {
-        var keys = trackedObjects.Keys;
+        string[] keys = new string[trackedObjects.Keys.Count];
+        trackedObjects.Keys.CopyTo(keys, 0);
 
         foreach (string key in keys)
         {
