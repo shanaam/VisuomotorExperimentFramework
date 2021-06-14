@@ -44,6 +44,9 @@ public class CursorController : MonoBehaviour
     // Bools for when the trigger is pressed
     private bool prevLeftTrigger, prevRightTrigger;
 
+    // Bool for whether or not to use VR controllers as input for the cursor position
+    public bool UseVR;
+
     public enum MovementType
     {
         aligned,
@@ -224,9 +227,7 @@ public class CursorController : MonoBehaviour
 
         if (ExperimentController.Instance().CurrentTask == null) return;
 
-        Vector3 realHandPosition = CurrentTaskHand == "l"
-            ? leftHandCollider.transform.position
-            : rightHandCollider.transform.position;
+        Vector3 realHandPosition = GetHandPosition(); 
 
         // Update the position of the cursor depending on which hand is involved
         transform.position = ConvertPosition(realHandPosition);
@@ -252,6 +253,23 @@ public class CursorController : MonoBehaviour
         prevRightTrigger = IsTriggerDown("r");
     }
 
+    //
+    private Vector3 GetHandPosition()
+    {
+        if (UseVR)
+        {
+            return CurrentTaskHand == "l"
+            ? leftHandCollider.transform.position
+            : rightHandCollider.transform.position;
+        }
+        else
+        {
+            Vector3 mousepos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            return new Vector3(mousepos.x, ExperimentController.Instance().transform.position.y, mousepos.z);
+        }
+
+    }
   
     /// <summary>
     /// Converts the user's hand location into the transformed cursor location

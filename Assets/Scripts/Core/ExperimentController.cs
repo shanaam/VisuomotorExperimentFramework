@@ -178,6 +178,7 @@ public class ExperimentController : MonoBehaviour
 
         switch (Session.settings.GetString("experiment_mode"))
         {
+            case "target2d":
             case "target":
                 switch (per_block_type)
                 {
@@ -241,6 +242,8 @@ public class ExperimentController : MonoBehaviour
     {
         EndTimer();
         CurrentTask.LogParameters();
+
+        CursorController.UseVR = false;
 
         // Tracked Object logging
         StringBuilder sb_x = new StringBuilder();
