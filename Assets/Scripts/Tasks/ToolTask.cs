@@ -9,7 +9,7 @@ public class ToolTask : BilliardsTask
     //TODO: 
     /// <summary>
     /// 
-    /// DIFFREENT TYPES OF RACKETS ( sphere is not gpood a better Racket)
+    /// DIFFREENT TYPES OF RACKETS ( sphere is not good a better Racket)
     /// 
     /// 3 types of shooting Styles:
     ///     Impact
@@ -79,6 +79,8 @@ public class ToolTask : BilliardsTask
     {
         Debug.Log("current step: " + currentStep);
 
+
+        Debug.Log("this is the sligshot Count "+ slingShotPoints.Count);
 
         Vector3 mousePoint = new Vector3();
 
@@ -561,8 +563,7 @@ public class ToolTask : BilliardsTask
                                     toolSpace.GetComponent<LineRenderer>().positionCount - 1);
                             }
                         }
-                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") &&
-                                 !enteredTarget)
+                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
                             // Add points to show feedback past the target only if they missed
                             // Points along the path are not added if they hit the target
@@ -638,8 +639,7 @@ public class ToolTask : BilliardsTask
                             }
 
                         }
-                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") &&
-                                   !enteredTarget)
+                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
                             // Add points to show feedback past the target only if they missed
                             // Points along the path are not added if they hit the target
@@ -717,8 +717,7 @@ public class ToolTask : BilliardsTask
                             }
 
                         }
-                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") &&
-                                   !enteredTarget)
+                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
                             // Add points to show feedback past the target only if they missed
                             // Points along the path are not added if they hit the target
@@ -788,12 +787,13 @@ public class ToolTask : BilliardsTask
         Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
 
         // Set up camera for non VR and VR modes
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+/*        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             oldMainCamera = GameObject.Find("Main Camera");
             oldMainCamera.SetActive(false);
         }
         else toolCamera.SetActive(false);
+*/
 
 
 
