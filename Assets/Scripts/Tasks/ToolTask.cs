@@ -728,7 +728,7 @@ public class ToolTask : BilliardsTask
                     }
                     else
                     {
-                        LogParameters();
+                        IncrementStep();
                     }
 
                 }
@@ -891,16 +891,25 @@ public class ToolTask : BilliardsTask
 
     }
 
-    public override void LogParameters() 
+    public override void LogParameters()
     {
-        GameObject other = new GameObject();
+        GameObject other = null;
 
-        if (_triggerType == triggerType.Impact)
-            other = puck;
-        else if (_triggerType == triggerType.Curling)
-            other = curlingStone;
-        else if (_triggerType == triggerType.SlingShot)
-            other = slingShotBall;
+        switch (_triggerType)
+        {
+            case triggerType.Impact:
+                other = puck;
+                break;
+            case triggerType.Curling:
+                other = curlingStone;
+                break;
+            case triggerType.SlingShot:
+                other = slingShotBall;
+                break;
+            default:
+                Debug.LogError("Trigger type not implemented. Tool object will be null");
+                break;
+        }
 
         ctrler.Session.CurrentTrial.result["tool_x"] = other.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["tool_y"] = other.transform.localPosition.y;
@@ -909,8 +918,6 @@ public class ToolTask : BilliardsTask
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
-
-        IncrementStep();
 
         base.LogParameters();
     }

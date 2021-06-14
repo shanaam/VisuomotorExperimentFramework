@@ -990,7 +990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c5ead821fcb27e44947bc95add789d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CollisionModeOnly: 0
+  CollisionModeOnly: 1
 --- !u!1 &7741819278052180462
 GameObject:
   m_ObjectHideFlags: 0
