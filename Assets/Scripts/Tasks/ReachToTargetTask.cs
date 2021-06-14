@@ -16,6 +16,10 @@ public class ReachToTargetTask : BaseTask
     private ExperimentController ctrler;
     private Trial trial;
 
+    private GameObject reachPrefab;
+    private GameObject reachCam;
+    private GameObject reachSurface;
+
     public void Update()
     {
         if (Input.GetKeyDown(KeyCode.N))
@@ -64,6 +68,13 @@ public class ReachToTargetTask : BaseTask
         ctrler = ExperimentController.Instance();
         trial = ctrler.Session.CurrentTrial;
 
+        reachPrefab = Instantiate(ctrler.GetPrefab("ReachPrefab"));
+        reachPrefab.transform.SetParent(ctrler.transform);
+        reachPrefab.transform.localPosition = Vector3.zero;
+
+        reachCam = GameObject.Find("ReachCamera");
+        reachSurface = GameObject.Find("Surface");
+
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
 
@@ -76,15 +87,14 @@ public class ReachToTargetTask : BaseTask
         ctrler.CursorController.SetCursorVisibility(true);
 
         // Set up the dock position
-        targets[0] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[0] = GameObject.Find("Dock");
         targets[0].transform.position = ctrler.TargetContainer.transform.position;
-        targets[0].name = "Dock";
 
         // Set up the home position
-        targets[1] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[1] = GameObject.Find("Home");
         targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
-        targets[1].name = "Home";
+
         Home = targets[1];
 
         // Set up the target
@@ -92,7 +102,7 @@ public class ReachToTargetTask : BaseTask
         // Takes a target angle from the list and removes it
         float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
         
-        targets[2] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[2] = GameObject.Find("Target");
         targets[2].transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
@@ -105,13 +115,22 @@ public class ReachToTargetTask : BaseTask
             targets[2].GetComponent<BaseTarget>().enabled = false;
 
         targets[2].SetActive(false);
-        targets[2].name = "Target";
         Target = targets[2];
 
-        // Parents everything to the target container
-        foreach (GameObject g in targets)
-            g.transform.SetParent(ctrler.TargetContainer.transform);
+        // Use static camera for non-vr version of pinball
+        if (ctrler.Session.settings.GetString("experiment_mode") == "target")
+        {
+            reachSurface.SetActive(false);
+            reachCam.SetActive(false);
+            ctrler.CursorController.UseVR = true;
+        }
+        else
+        {
+            ctrler.CursorController.SetVRCamera(false);
+        }
 
+
+        // TODO: Use new tracking system
         // Create tracker objects
         Trackers = new GameObject[2];
 
@@ -143,15 +162,15 @@ public class ReachToTargetTask : BaseTask
 
     public override void Disable()
     {
-        foreach (GameObject g in targets)
-            g.SetActive(false);
+        reachPrefab.SetActive(false);
+
+        ctrler.CursorController.SetVRCamera(true);
     }
 
     protected override void OnDestroy()
     {
         // When the trial ends, we need to delete all the objects this task spawned
-        foreach (GameObject g in targets)
-            Destroy(g);
+        Destroy(reachPrefab);
 
         base.OnDestroy();
     }
