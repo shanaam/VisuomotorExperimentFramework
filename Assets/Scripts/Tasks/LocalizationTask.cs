@@ -126,7 +126,7 @@ public class LocalizationTask : BaseTask
 
         targets[2].transform.position = targets[1].transform.position;
 
-        targets[2].GetComponent<ArcScript>().TargetDistance = trial.settings.GetFloat("per_block_distance") / 100f;
+        targets[2].GetComponent<ArcScript>().TargetDistance = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_distance") / 100f;
         targets[2].GetComponent<ArcScript>().Angle = targets[2].transform.rotation.eulerAngles.y;
         targets[2].name = "Arc";
         targets[2].transform.localScale = Vector3.one;

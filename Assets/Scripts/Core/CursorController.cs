@@ -277,20 +277,22 @@ public class CursorController : MonoBehaviour
     /// <returns></returns>
     private Vector3 ConvertPosition(Vector3 position)
     {
+        ExperimentController ctrlr = ExperimentController.Instance();
+        // Get home position
+        Vector3 home = ctrlr.CurrentTask.Home.transform.position;
+        
         switch (MoveType)
         {
             case MovementType.aligned:
                 return position;
             case MovementType.rotated:
-                float angle = ExperimentController.Instance().Session.CurrentTrial.settings
+                float angle = ctrlr.Session.CurrentTrial.settings
                     .GetFloat("per_block_rotation");
 
-                return Quaternion.Euler(0, -angle, 0) * position;
+                return Quaternion.Euler(0, -angle, 0) * (position - home) + home;
             case MovementType.clamped:
                 // Get vector between home position and target
-                Vector3 home = ExperimentController.Instance().CurrentTask.Home.transform.position;
-                Vector3 target = ExperimentController.Instance().CurrentTask.Target.transform.position;
-
+                Vector3 target = ctrlr.CurrentTask.Target.transform.position;
                 Vector3 normal = target - home;
 
                 // Rotate vector by 90 degrees to get plane parallel to the vector
@@ -349,5 +351,12 @@ public class CursorController : MonoBehaviour
             vrCamera.GetComponent<TrackedPoseDriver>().enabled = false;
             vrCamera.SetActive(false);
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Vector3 mousepos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        Gizmos.DrawSphere(new Vector3(mousepos.x, ExperimentController.Instance().transform.position.y, mousepos.z), .005f);
     }
 }

@@ -49,8 +49,13 @@ public class ReachToTargetTask : BaseTask
                 if (trial.settings.GetString("per_block_type") == "nocursor")
                     ExperimentController.Instance().CursorController.SetCursorVisibility(false);
 
-                foreach (GameObject g in Trackers)
-                    g.GetComponent<PositionRotationTracker>().StartRecording();
+                // Add trackers: current hand position, cursor position
+                ctrler.AddTrackedObject("hand_path",
+                    ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
+                        ? ctrler.CursorController.LeftHand
+                        : ctrler.CursorController.RightHand);
+
+                ctrler.AddTrackedObject("cursor_path", ctrler.CursorController.gameObject);
 
                 break;
         }
@@ -65,6 +70,8 @@ public class ReachToTargetTask : BaseTask
 
     public override void Setup()
     {
+        Cursor.visible = false;
+
         ctrler = ExperimentController.Instance();
         trial = ctrler.Session.CurrentTrial;
 
@@ -92,7 +99,7 @@ public class ReachToTargetTask : BaseTask
 
         // Set up the home position
         targets[1] = GameObject.Find("Home");
-        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
+        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.02f;
         targets[1].SetActive(false);
 
         Home = targets[1];
@@ -130,19 +137,6 @@ public class ReachToTargetTask : BaseTask
         }
 
 
-        // TODO: Use new tracking system
-        // Create tracker objects
-        Trackers = new GameObject[2];
-
-        Trackers[0] = ctrler.GenerateTracker("handtracker",
-            ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
-                ? ctrler.CursorController.LeftHand.transform
-                : ctrler.CursorController.RightHand.transform);
-
-        Trackers[1] = ctrler.GenerateTracker("cursortracker", ctrler.CursorController.transform);
-
-        foreach (GameObject g in Trackers)
-            ctrler.Session.trackedObjects.Add(g.GetComponent<PositionRotationTracker>());
     }
 
     public override void LogParameters()
@@ -162,6 +156,8 @@ public class ReachToTargetTask : BaseTask
 
     public override void Disable()
     {
+        Cursor.visible = true;
+
         reachPrefab.SetActive(false);
 
         ctrler.CursorController.SetVRCamera(true);
