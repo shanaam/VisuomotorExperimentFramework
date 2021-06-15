@@ -20,7 +20,7 @@
     
     "per_block_surface_materials": ["fabric","ice","fabric","ice","fabric"],
 
-    "per_block_triggerType":["slingshot","impact","curling","impact","curling"],
+    "per_block_triggerType":["curling","slingshot","impact","impact","curling"],
 
     "per_block_puck_type": ["puck","ball","puck","ball","puck"],
     

@@ -15,19 +15,12 @@ public class ToolTask : BilliardsTask
     ///     Impact
     ///     Curling --> track the points after the release point
     ///     
-    /// 
-    ///     
-    /// 
     ///     slingShot
     ///         rubber band should just one line fromt he center of the sling shot ball
     ///         make the slingshot ball same size and the impact ball
     ///         
     ///              
-    /// 
-    /// 
-    /// Tool sperates after shoot
-    /// 
-    /// 
+    ///
     /// 
     /// </summary>
 
@@ -41,15 +34,11 @@ public class ToolTask : BilliardsTask
 
     private const float TARGET_DISTANCE = 0.55f;
 
-
-
     private GameObject impactBox;
     private GameObject puck;
 
     private GameObject curlingStone;
     private GameObject slingShotBall;
-
-
 
     private List<Vector3> PuckPoints = new List<Vector3>();
     private List<Vector3> CurlingStonePoints = new List<Vector3>();
@@ -79,9 +68,6 @@ public class ToolTask : BilliardsTask
     {
         Debug.Log("current step: " + currentStep);
 
-
-        Debug.Log("this is the sligshot Count "+ slingShotPoints.Count);
-
         Vector3 mousePoint = new Vector3();
 
         if (_triggerType == triggerType.Impact)
@@ -99,7 +85,6 @@ public class ToolTask : BilliardsTask
            
             if (Vector3.Distance(mousePoint, curlingStone.transform.position) > 0.05f && currentStep == 0) return;
         }
-
 
         if(_triggerType == triggerType.SlingShot)
         {
@@ -146,10 +131,10 @@ public class ToolTask : BilliardsTask
                 }
                 
                 break;
-            
+
+            // the user triggers the opbject
             case 1:
                
-
                 if (_triggerType == triggerType.Impact)
                 {
                     Vector3 dir = mousePoint - impactBox.transform.position;
@@ -212,11 +197,10 @@ public class ToolTask : BilliardsTask
                     float time = 0f;
 
                     // Lien rendere representing the slingshot band is attached to home GameObject
-                    Home.GetComponent<LineRenderer>().positionCount = 3;
-                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position + (Vector3.left * 0.1f) );
+                    Home.GetComponent<LineRenderer>().positionCount = 2;
+                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
                     Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
-                    Home.GetComponent<LineRenderer>().SetPosition(2, Home.transform.position + (Vector3.right * 0.1f));
-
+                    
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
                     {
@@ -235,27 +219,29 @@ public class ToolTask : BilliardsTask
                     }
                 }
 
-                // Track a point every 25 milliseconds
+                // Track a points for feedback trail 
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
                     if (_triggerType == triggerType.Impact)
                         PuckPoints.Add(puck.transform.position);
+                }
+                
+                break;
 
+            // After the user hits the object
+            // Used to determine if the object hit by the object is heading away from the target
+            case 2:
 
+                // Track a points for feedback trail 
+                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                {
                     if (_triggerType == triggerType.Curling)
                         CurlingStonePoints.Add(curlingStone.transform.position);
 
 
                     if (_triggerType == triggerType.SlingShot)
-                        CurlingStonePoints.Add(slingShotBall.transform.position);
-
+                        slingShotPoints.Add(slingShotBall.transform.position);
                 }
-                
-                break;
-            // After the user hits the object
-            // Used to determine if the object hit by the tool is heading away from the target
-            // Current distance from pinball to the target`
-            case 2:
 
                 if (_triggerType == triggerType.Impact)
                 {
@@ -496,7 +482,7 @@ public class ToolTask : BilliardsTask
             // after we either hit the Target or passed by it
             case 3:
 
-                if (_triggerType == triggerType.Impact)
+                if(_triggerType == triggerType.Impact)
                 {
 
                     if (timer == 0)
@@ -519,7 +505,7 @@ public class ToolTask : BilliardsTask
 
                             toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
 
-                            // set pinball trail
+                            // set puck trail
                             toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
                             toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
 
@@ -541,7 +527,7 @@ public class ToolTask : BilliardsTask
 
                         if (timer > 0.08f)
                         {
-                            //freeze pinball in space
+                            //freeze puck in space
                             puck.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
                             puck.GetComponent<Rigidbody>().isKinematic = true;
 
@@ -549,7 +535,7 @@ public class ToolTask : BilliardsTask
                             impactBox.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
                             impactBox.GetComponent<Rigidbody>().isKinematic = true;
 
-                            // set pinball trail
+                            // set puck trail
                             toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
                             toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
 
@@ -565,16 +551,15 @@ public class ToolTask : BilliardsTask
                         }
                         else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
-                            // Add points to show feedback past the target only if they missed
-                            // Points along the path are not added if they hit the target
                             PuckPoints.Add(puck.transform.position);
                         }
                     }
                     else
                     {
                         LogParameters();
+                        IncrementStep();
                     }
-                    break;
+                    
 
                 }
 
@@ -620,11 +605,11 @@ public class ToolTask : BilliardsTask
 
                         if (timer > 0.08f)
                         {
-                            //freeze pinball in space
+                            //freeze curling stone in space
                             curlingStone.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
                             curlingStone.GetComponent<Rigidbody>().isKinematic = true;
 
-                            // set pinball trail
+                            // set curling stone trail
                             toolSpace.GetComponent<LineRenderer>().positionCount = CurlingStonePoints.Count;
                             toolSpace.GetComponent<LineRenderer>().SetPositions(CurlingStonePoints.ToArray());
 
@@ -641,8 +626,6 @@ public class ToolTask : BilliardsTask
                         }
                         else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
-                            // Add points to show feedback past the target only if they missed
-                            // Points along the path are not added if they hit the target
                             CurlingStonePoints.Add(curlingStone.transform.position);
                         }
 
@@ -651,6 +634,7 @@ public class ToolTask : BilliardsTask
                     else
                     {
                         LogParameters();
+                        IncrementStep();
                     }
 
 
@@ -679,7 +663,7 @@ public class ToolTask : BilliardsTask
 
                             toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
 
-                            //set trail
+                            //set slingshot trail
                             toolSpace.GetComponent<LineRenderer>().positionCount = slingShotPoints.Count;
                             toolSpace.GetComponent<LineRenderer>().SetPositions(slingShotPoints.ToArray());
 
@@ -719,8 +703,6 @@ public class ToolTask : BilliardsTask
                         }
                         else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
-                            // Add points to show feedback past the target only if they missed
-                            // Points along the path are not added if they hit the target
                             slingShotPoints.Add(slingShotBall.transform.position);
                         }
 
@@ -728,6 +710,7 @@ public class ToolTask : BilliardsTask
                     }
                     else
                     {
+                        LogParameters();
                         IncrementStep();
                     }
 
@@ -787,6 +770,7 @@ public class ToolTask : BilliardsTask
         Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
 
         // Set up camera for non VR and VR modes
+        // VR Mode needs to be added
 /*        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             oldMainCamera = GameObject.Find("Main Camera");
