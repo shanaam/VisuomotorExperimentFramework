@@ -65,6 +65,8 @@ public class ReachToTargetTask : BaseTask
 
     public override void Setup()
     {
+        Cursor.visible = false;
+
         ctrler = ExperimentController.Instance();
         trial = ctrler.Session.CurrentTrial;
 
@@ -92,7 +94,7 @@ public class ReachToTargetTask : BaseTask
 
         // Set up the home position
         targets[1] = GameObject.Find("Home");
-        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
+        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.02f;
         targets[1].SetActive(false);
 
         Home = targets[1];
@@ -162,6 +164,8 @@ public class ReachToTargetTask : BaseTask
 
     public override void Disable()
     {
+        Cursor.visible = true;
+
         reachPrefab.SetActive(false);
 
         ctrler.CursorController.SetVRCamera(true);

@@ -366,8 +366,6 @@ public class ExperimentController : MonoBehaviour
             indices = GenerateListOrder(tempAngleList.Count);
         }
 
-        Debug.Log(indices);
-
         // Pseudo-random shuffle
         foreach (int i in indices)
         {
