@@ -425,23 +425,18 @@ public class PinballTask : BilliardsTask
     public override void LogParameters()
     {
         // Note: ALL vectors are in world space
-        ctrler.Session.CurrentTrial.result["cursor_x"] = directionIndicator.transform.position.x;
-        ctrler.Session.CurrentTrial.result["cursor_y"] = directionIndicator.transform.position.y;
-        ctrler.Session.CurrentTrial.result["cursor_z"] = directionIndicator.transform.position.z;
+        ctrler.LogObjectPosition("cursor", directionIndicator.transform.position);
 
         // Note: Vector used is the last updated position of the pinball if it was within 5cm
         // of the target.
-        ctrler.Session.CurrentTrial.result["pinball_x"] = lastPositionInTarget.x;
-        ctrler.Session.CurrentTrial.result["pinball_y"] = lastPositionInTarget.y;
-        ctrler.Session.CurrentTrial.result["pinball_z"] = lastPositionInTarget.z;
+        ctrler.LogObjectPosition("pinball", lastPositionInTarget);
 
-        ctrler.Session.CurrentTrial.result["target_x"] = pinballAlignedTargetPosition.x;
-        ctrler.Session.CurrentTrial.result["target_y"] = pinballAlignedTargetPosition.y;
-        ctrler.Session.CurrentTrial.result["target_z"] = pinballAlignedTargetPosition.z;
-
-        Vector3 dist = lastPositionInTarget - pinballAlignedTargetPosition;
+        // Log home and target positions
+        ctrler.LogObjectPosition("home", pinballStartPosition);
+        ctrler.LogObjectPosition("target", pinballAlignedTargetPosition);
 
         // Error is the distance between the pinball and the target (meters)
+        Vector3 dist = lastPositionInTarget - pinballAlignedTargetPosition;
         ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
 
         // Converts indicator angle such that 0 degrees represents the right side of the pinball

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UXF;
 using System;
@@ -497,5 +497,16 @@ public class ExperimentController : MonoBehaviour
         }
 
         trackingTimestamps.Clear();
+    }
+
+    /// <summary>
+    /// Logs the position as 3 separate X,Y,Z values in the current trial.
+    /// </summary>
+    /// <param name="key">Prefix string that will show up in the CSV.</param>
+    public void LogObjectPosition(string key, Vector3 position)
+    {
+        Session.CurrentTrial.result[key + "_x"] = position.x;
+        Session.CurrentTrial.result[key + "_y"] = position.y;
+        Session.CurrentTrial.result[key + "_z"] = position.z;
     }
 }
