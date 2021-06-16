@@ -262,13 +262,9 @@ public class CursorController : MonoBehaviour
             ? leftHandCollider.transform.position
             : rightHandCollider.transform.position;
         }
-        else
-        {
-            Vector3 mousepos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-            return new Vector3(mousepos.x, ExperimentController.Instance().transform.position.y, mousepos.z);
-        }
-
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        return new Vector3(mousePos.x, ExperimentController.Instance().transform.position.y, mousePos.z);
     }
   
     /// <summary>
@@ -277,22 +273,24 @@ public class CursorController : MonoBehaviour
     /// <returns></returns>
     private Vector3 ConvertPosition(Vector3 position)
     {
-        ExperimentController ctrlr = ExperimentController.Instance();
-        // Get home position
-        Vector3 home = ctrlr.CurrentTask.Home.transform.position;
+        ExperimentController ctrler = ExperimentController.Instance();
+
+        // Get home position. Returns Vector3.zero when task doesn't use a home position
+        Vector3 home = ctrler.CurrentTask.Home != null ?
+            ctrler.CurrentTask.Home.transform.position : Vector3.zero;
         
         switch (MoveType)
         {
             case MovementType.aligned:
                 return position;
             case MovementType.rotated:
-                float angle = ctrlr.Session.CurrentTrial.settings
+                float angle = ctrler.Session.CurrentTrial.settings
                     .GetFloat("per_block_rotation");
 
                 return Quaternion.Euler(0, -angle, 0) * (position - home) + home;
             case MovementType.clamped:
                 // Get vector between home position and target
-                Vector3 target = ctrlr.CurrentTask.Target.transform.position;
+                Vector3 target = ctrler.CurrentTask.Target.transform.position;
                 Vector3 normal = target - home;
 
                 // Rotate vector by 90 degrees to get plane parallel to the vector
@@ -353,10 +351,14 @@ public class CursorController : MonoBehaviour
         }
     }
 
+    /*
     private void OnDrawGizmos()
     {
+        if (ExperimentController.Instance() == null) return;
+
         Vector3 mousepos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         Gizmos.DrawSphere(new Vector3(mousepos.x, ExperimentController.Instance().transform.position.y, mousepos.z), .005f);
     }
+    */
 }
