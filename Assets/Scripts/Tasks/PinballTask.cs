@@ -255,7 +255,7 @@ public class PinballTask : BilliardsTask
                 }
 
                 // If the user runs out of time to fire the pinball, play audio cue
-                if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer <= 0.0f)
+                if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer <= 0.0f)
                 {
                     missed = true;
                     pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
@@ -302,7 +302,7 @@ public class PinballTask : BilliardsTask
                     LeanTween.move(bonusText, bonusText.transform.position + (pinballCam.transform.up * 0.05f), 1.5f);
 
                     // If the participant fired the pinball within the allowed time
-                    if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer >= 0.0f)
+                    if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
                     {
                         pinballSpace.GetComponent<AudioSource>().Play();
 
@@ -403,7 +403,7 @@ public class PinballTask : BilliardsTask
 
         directionIndicator.GetComponent<AudioSource>().Play();
 
-        pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Cancel();
+        pinballTimerIndicator.GetComponent<TimerIndicator>().Cancel();
 
         // Creates a plane parallel to the main surface
         pPlane = new Plane(Surface.transform.up, Surface.transform.position);
@@ -469,7 +469,7 @@ public class PinballTask : BilliardsTask
         directionIndicator.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
-        pinballTimerIndicator = GameObject.Find("PinballTimerIndicator");
+        pinballTimerIndicator = GameObject.Find("TimerIndicator");
         scoreboard = GameObject.Find("Scoreboard");
         bonusText = GameObject.Find("BonusText");
 
@@ -520,6 +520,8 @@ public class PinballTask : BilliardsTask
             SetTilt();
 
         pinballStartPosition = pinball.transform.position;
+
+        pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
     }
 
     private void SetTilt()
