@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -16,29 +16,20 @@ public abstract class BaseTask : MonoBehaviour
     {
         currentStep++;
 
+        // Track the time when a step is incremented
+        ExperimentController.Instance().StepTimer.Add(ExperimentController.Instance().GetElapsedTime());
+
         finished = currentStep == maxSteps;
         return finished;
     }
 
-    // References to the home and target GameObjects
-    // Use the auto properties to set the value for this
-    private GameObject home, target;
-
     private GameObject[] trackers;
 
     // This task's "home" position
-    public GameObject Home
-    {
-        get => home;
-        protected set => home = value;
-    }
+    public GameObject Home { get; protected set; }
 
     // This task's "target" position
-    public GameObject Target
-    {
-        get => target;
-        protected set => target = value;
-    }
+    public GameObject Target { get; protected set; }
 
     protected GameObject[] Trackers
     {
