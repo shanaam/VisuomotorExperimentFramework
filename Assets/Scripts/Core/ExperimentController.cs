@@ -237,7 +237,7 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void StartTimer()
     {
-        trialStartTime = Time.fixedTime;
+        trialStartTime = Time.time;
     }
 
     /// <summary>
@@ -245,7 +245,7 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void EndTimer()
     {
-        trialEndTime = Time.fixedTime;
+        trialEndTime = Time.time;
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public float GetElapsedTime()
     {
-        return Time.fixedTime - trialStartTime;
+        return Time.time - trialStartTime;
     }
 
     /// <summary>
