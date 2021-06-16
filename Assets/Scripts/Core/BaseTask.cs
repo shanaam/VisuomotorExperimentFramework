@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -75,18 +75,7 @@ public abstract class BaseTask : MonoBehaviour
     /// This is called in ExperimentController when the trial ends. Do not call this method
     /// anywhere else.
     /// </summary>
-    public virtual void LogParameters()
-    {
-        ExperimentController ctrler = ExperimentController.Instance();
-        Session session = ctrler.Session;
-
-        // Track score if score tracking is enabled in the JSON
-        // Defaults to disabled if property does not exist in JSON
-        if (session.settings.GetBool("track_score", false))
-        {
-            session.CurrentTrial.result["score"] = ctrler.Score;
-        }
-    }
+    public abstract void LogParameters();
 
     public abstract void Disable();
 }

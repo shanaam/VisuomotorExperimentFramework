@@ -455,8 +455,6 @@ public class PinballTask : BilliardsTask
         // Magnitude is the distance (meters) on how much the participant pulled the spring back
         ctrler.Session.CurrentTrial.result["magnitude"] = 
             (directionIndicator.transform.position - pinballStartPosition).magnitude;
-
-        base.LogParameters();
     }
 
     public override void Setup()

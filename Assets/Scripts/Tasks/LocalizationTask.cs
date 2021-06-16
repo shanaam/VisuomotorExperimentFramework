@@ -65,8 +65,6 @@ public class LocalizationTask : BaseTask
             case 3: // Select the spot they think their real hand is
                 Target.SetActive(false);
 
-                LogParameters();
-
                 // We use the target variable to store the cursor position
                 Target.transform.position =
                     ExperimentController.Instance().CursorController.CurrentHand().transform.position;
@@ -89,8 +87,6 @@ public class LocalizationTask : BaseTask
 
         ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
             localizer.transform.localPosition.z;
-
-        base.LogParameters();
     }
 
     public override void Setup()

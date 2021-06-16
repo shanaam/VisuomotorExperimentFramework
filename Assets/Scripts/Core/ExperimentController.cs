@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UXF;
 using System;
@@ -242,6 +242,13 @@ public class ExperimentController : MonoBehaviour
     {
         EndTimer();
         CurrentTask.LogParameters();
+
+        // Track score if score tracking is enabled in the JSON
+        // Defaults to disabled if property does not exist in JSON
+        if (Session.settings.GetBool("track_score", false))
+        {
+            Session.CurrentTrial.result["score"] = Score;
+        }
 
         CursorController.UseVR = false;
 

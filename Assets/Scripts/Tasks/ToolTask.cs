@@ -902,8 +902,6 @@ public class ToolTask : BilliardsTask
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
-
-        base.LogParameters();
     }
 
     private void RacketMouseMovement(Vector3 mousePoint)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -150,8 +150,6 @@ public class ReachToTargetTask : BaseTask
         session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         session.CurrentTrial.result["target_y"] = Target.transform.localPosition.y;
         session.CurrentTrial.result["target_z"] = Target.transform.localPosition.z;
-
-        base.LogParameters();
     }
 
     public override void Disable()
