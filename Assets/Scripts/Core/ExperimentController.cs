@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UXF;
 using System;
@@ -276,56 +276,32 @@ public class ExperimentController : MonoBehaviour
         CursorController.UseVR = false;
 
         // Tracked Object logging
-        StringBuilder sb_x = new StringBuilder();
-        StringBuilder sb_y = new StringBuilder();
-        StringBuilder sb_z = new StringBuilder();
-        
-        // Number of decimal places to round to
-        int decimalPlaces = 6;
         foreach (string key in trackedObjects.Keys)
         {
             if (trackedObjectPath[key].Count == 0) continue;
 
-            sb_x.Clear();
-            sb_y.Clear();
-            sb_z.Clear();
-
             // Add each vector and its components separated by commas
             var list = trackedObjectPath[key];
-            int count = list.Count - 2;
-            for (int i = 0; i < count; i++)
-            {
-                sb_x.Append(Math.Round(list[i].x, decimalPlaces).ToString("F") + ",");
-                sb_y.Append(Math.Round(list[i].y, decimalPlaces).ToString("F") + ",");
-                sb_z.Append(Math.Round(list[i].z, decimalPlaces).ToString("F") + ",");
-            }
 
-            // Add the last vector so there is no trailing comma
-            count++;
-            sb_x.Append(Math.Round(list[count].x, decimalPlaces).ToString("F"));
-            sb_y.Append(Math.Round(list[count].y, decimalPlaces).ToString("F"));
-            sb_z.Append(Math.Round(list[count].z, decimalPlaces).ToString("F"));
-
-            Session.CurrentTrial.result[key + "_x"] = sb_x.ToString();
-            Session.CurrentTrial.result[key + "_y"] = sb_y.ToString();
-            Session.CurrentTrial.result[key + "_z"] = sb_z.ToString();
+            // For each element (Select), remove scientific notation and round to 6 decimal places.
+            // Then join all these numbers separated by a comma
+            Session.CurrentTrial.result[key + "_x"] =
+                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));            
+            
+            Session.CurrentTrial.result[key + "_y"] =
+                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));            
+            
+            Session.CurrentTrial.result[key + "_z"] =
+                string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
         }
 
         // Timestamps for tracked objects
-        StringBuilder sb_timestamps = new StringBuilder();
-        foreach (float t in trackingTimestamps)
-        {
-            sb_timestamps.Append(Math.Round(t, decimalPlaces).ToString("F") + ",");
-        }
-        Session.CurrentTrial.result["tracking_timestamp"] = sb_timestamps.ToString();
+        Session.CurrentTrial.result["tracking_timestamp"] =
+            string.Join(",", trackingTimestamps.Select(i => string.Format($"{i:F6}")));
 
         // Timestamps for when a step is incremented
-        StringBuilder sb_step = new StringBuilder();
-        foreach (float t in StepTimer)
-        {
-            sb_step.Append(t.ToString("F"));
-        }
-        Session.CurrentTrial.result["step_timestamp"] = sb_step.ToString();
+        Session.CurrentTrial.result["step_timestamp"] =
+            string.Join(",", StepTimer.Select(i => string.Format($"{i:F6}")));
         StepTimer.Clear();
 
         ClearTrackedObjects();
