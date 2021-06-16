@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -26,13 +26,13 @@ public class ReachToTargetTask : BaseTask
             IncrementStep();
 
         if (currentStep == 2 &&
-            ExperimentController.Instance().CursorController.PauseTime > 0.5f &&
-            ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f &&
+            ctrler.CursorController.PauseTime > 0.5f &&
+            ctrler.CursorController.DistanceFromHome > 0.05f &&
             trial.settings.GetString("per_block_type") == "nocursor")
             IncrementStep();
 
         if (Finished)
-            ExperimentController.Instance().EndAndPrepare();
+            ctrler.EndAndPrepare();
     }
 
     public override bool IncrementStep()
@@ -43,11 +43,11 @@ public class ReachToTargetTask : BaseTask
         {
             // If the user enters the home, start tracking time
             case 1:
-                ExperimentController.Instance().StartTimer();
-                ExperimentController.Instance().CursorController.SetMovementType(reachType[2]);
+                ctrler.StartTimer();
+                ctrler.CursorController.SetMovementType(reachType[2]);
 
                 if (trial.settings.GetString("per_block_type") == "nocursor")
-                    ExperimentController.Instance().CursorController.SetCursorVisibility(false);
+                    ctrler.CursorController.SetCursorVisibility(false);
 
                 // Add trackers: current hand position, cursor position
                 ctrler.AddTrackedObject("hand_path",
@@ -70,10 +70,11 @@ public class ReachToTargetTask : BaseTask
 
     public override void Setup()
     {
-        Cursor.visible = false;
-
         ctrler = ExperimentController.Instance();
+
         trial = ctrler.Session.CurrentTrial;
+
+        Cursor.visible = false;
 
         reachPrefab = Instantiate(ctrler.GetPrefab("ReachPrefab"));
         reachPrefab.transform.SetParent(ctrler.transform);
@@ -141,7 +142,7 @@ public class ReachToTargetTask : BaseTask
 
     public override void LogParameters()
     {
-        Session session = ExperimentController.Instance().Session;
+        Session session = ctrler.Session;
 
         session.CurrentTrial.result["home_x"] = Home.transform.localPosition.x;
         session.CurrentTrial.result["home_y"] = Home.transform.localPosition.y;
