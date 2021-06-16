@@ -16,29 +16,20 @@ public abstract class BaseTask : MonoBehaviour
     {
         currentStep++;
 
+        // Track the time when a step is incremented
+        ExperimentController.Instance().StepTimer.Add(Time.time);
+
         finished = currentStep == maxSteps;
         return finished;
     }
 
-    // References to the home and target GameObjects
-    // Use the auto properties to set the value for this
-    private GameObject home, target;
-
     private GameObject[] trackers;
 
     // This task's "home" position
-    public GameObject Home
-    {
-        get => home;
-        protected set => home = value;
-    }
+    public GameObject Home { get; protected set; }
 
     // This task's "target" position
-    public GameObject Target
-    {
-        get => target;
-        protected set => target = value;
-    }
+    public GameObject Target { get; protected set; }
 
     protected GameObject[] Trackers
     {
@@ -75,18 +66,7 @@ public abstract class BaseTask : MonoBehaviour
     /// This is called in ExperimentController when the trial ends. Do not call this method
     /// anywhere else.
     /// </summary>
-    public virtual void LogParameters()
-    {
-        ExperimentController ctrler = ExperimentController.Instance();
-        Session session = ctrler.Session;
-
-        // Track score if score tracking is enabled in the JSON
-        // Defaults to disabled if property does not exist in JSON
-        if (session.settings.GetBool("track_score", false))
-        {
-            session.CurrentTrial.result["score"] = ctrler.Score;
-        }
-    }
+    public abstract void LogParameters();
 
     public abstract void Disable();
 }

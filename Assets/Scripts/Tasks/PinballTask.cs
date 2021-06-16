@@ -255,7 +255,7 @@ public class PinballTask : BilliardsTask
                 }
 
                 // If the user runs out of time to fire the pinball, play audio cue
-                if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer <= 0.0f)
+                if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer <= 0.0f)
                 {
                     missed = true;
                     pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
@@ -265,7 +265,7 @@ public class PinballTask : BilliardsTask
                 break;
             case 1:
                 // Track a point every 25 milliseconds
-                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path"))
                     pinballPoints.Add(pinball.transform.position);
 
                 break;
@@ -280,7 +280,7 @@ public class PinballTask : BilliardsTask
                     distanceToTarget = Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition);
                     if (distanceToTarget < 0.05f)
                     {
-                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path"))
                         {
                             pinballSpace.GetComponent<LineRenderer>().startColor =
                                 pinballSpace.GetComponent<LineRenderer>().endColor =
@@ -302,7 +302,7 @@ public class PinballTask : BilliardsTask
                     LeanTween.move(bonusText, bonusText.transform.position + (pinballCam.transform.up * 0.05f), 1.5f);
 
                     // If the participant fired the pinball within the allowed time
-                    if (!missed && pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Timer >= 0.0f)
+                    if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
                     {
                         pinballSpace.GetComponent<AudioSource>().Play();
 
@@ -358,7 +358,7 @@ public class PinballTask : BilliardsTask
                                 pinballSpace.GetComponent<LineRenderer>().positionCount - 1);
                         }
                     }
-                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") &&
+                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path") &&
                              !enteredTarget)
                     {
                         // Add points to show feedback past the target only if they missed
@@ -403,7 +403,7 @@ public class PinballTask : BilliardsTask
 
         directionIndicator.GetComponent<AudioSource>().Play();
 
-        pinballTimerIndicator.GetComponent<PinballTimerIndicator>().Cancel();
+        pinballTimerIndicator.GetComponent<TimerIndicator>().Cancel();
 
         // Creates a plane parallel to the main surface
         pPlane = new Plane(Surface.transform.up, Surface.transform.position);
@@ -425,23 +425,18 @@ public class PinballTask : BilliardsTask
     public override void LogParameters()
     {
         // Note: ALL vectors are in world space
-        ctrler.Session.CurrentTrial.result["cursor_x"] = directionIndicator.transform.position.x;
-        ctrler.Session.CurrentTrial.result["cursor_y"] = directionIndicator.transform.position.y;
-        ctrler.Session.CurrentTrial.result["cursor_z"] = directionIndicator.transform.position.z;
+        ctrler.LogObjectPosition("cursor", directionIndicator.transform.position);
 
         // Note: Vector used is the last updated position of the pinball if it was within 5cm
         // of the target.
-        ctrler.Session.CurrentTrial.result["pinball_x"] = lastPositionInTarget.x;
-        ctrler.Session.CurrentTrial.result["pinball_y"] = lastPositionInTarget.y;
-        ctrler.Session.CurrentTrial.result["pinball_z"] = lastPositionInTarget.z;
+        ctrler.LogObjectPosition("pinball", lastPositionInTarget);
 
-        ctrler.Session.CurrentTrial.result["target_x"] = pinballAlignedTargetPosition.x;
-        ctrler.Session.CurrentTrial.result["target_y"] = pinballAlignedTargetPosition.y;
-        ctrler.Session.CurrentTrial.result["target_z"] = pinballAlignedTargetPosition.z;
-
-        Vector3 dist = lastPositionInTarget - pinballAlignedTargetPosition;
+        // Log home and target positions
+        ctrler.LogObjectPosition("home", pinballStartPosition);
+        ctrler.LogObjectPosition("target", pinballAlignedTargetPosition);
 
         // Error is the distance between the pinball and the target (meters)
+        Vector3 dist = lastPositionInTarget - pinballAlignedTargetPosition;
         ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
 
         // Converts indicator angle such that 0 degrees represents the right side of the pinball
@@ -450,13 +445,17 @@ public class PinballTask : BilliardsTask
         // Accounts for angles in the bottom right quadrant (270-360 degrees)
         if (angle < 0.0f) angle += 360.0f;
 
-        ctrler.Session.CurrentTrial.result["angle"] = angle;
+        ctrler.Session.CurrentTrial.result["indicator_angle"] = angle;
 
         // Magnitude is the distance (meters) on how much the participant pulled the spring back
         ctrler.Session.CurrentTrial.result["magnitude"] = 
             (directionIndicator.transform.position - pinballStartPosition).magnitude;
 
-        base.LogParameters();
+        ctrler.Session.CurrentTrial.result["show_path"] =
+            ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path");
+
+        ctrler.Session.CurrentTrial.result["tilt_after_fire"] =
+            ctrler.Session.CurrentTrial.settings.GetBool("per_block_tilt_after_fire");
     }
 
     public override void Setup()
@@ -476,7 +475,7 @@ public class PinballTask : BilliardsTask
         directionIndicator.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
-        pinballTimerIndicator = GameObject.Find("PinballTimerIndicator");
+        pinballTimerIndicator = GameObject.Find("TimerIndicator");
         scoreboard = GameObject.Find("Scoreboard");
         bonusText = GameObject.Find("BonusText");
 
@@ -527,10 +526,18 @@ public class PinballTask : BilliardsTask
             SetTilt();
 
         pinballStartPosition = pinball.transform.position;
+
+        pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
     }
 
     private void SetTilt()
     {
+        SetTilt(pinballCam, pinballSpace, cameraTilt);
+        SetTilt(bonusText.transform.parent.gameObject, pinballSpace, cameraTilt);
+        SetTilt(pinballWall, pinballSpace, cameraTilt);
+        SetTilt(pinballSpace, pinballSpace, surfaceTilt);
+
+        /*
         // Unparent wall and camera so plane moves independently
         pinballWall.transform.SetParent(null);
         pinballCam.transform.SetParent(null);
@@ -557,6 +564,7 @@ public class PinballTask : BilliardsTask
         pinballWall.transform.SetParent(pinballSpace.transform);
         pinballCam.transform.SetParent(pinballSpace.transform);
         bonusText.transform.parent.SetParent(pinballSpace.transform);
+        */
     }
 
     public override void Disable()
@@ -569,13 +577,14 @@ public class PinballTask : BilliardsTask
         }
 
         pinballSpace.SetActive(false);
+
+        // Enabling this will cause screen flicker. Only use if task involves both Non-VR and VR in the same experiment
+        //ctrler.CursorController.SetVRCamera(true);
     }
 
     protected override void OnDestroy()
     {
         Destroy(pinballSpace);
-
-        //ctrler.CursorController.SetVRCamera(true);
     }
 
     private Vector3 mousePoint;

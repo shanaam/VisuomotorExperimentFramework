@@ -424,6 +424,7 @@ MonoBehaviour:
   triggerUp: 0
   LeftHand: {fileID: 734581677}
   RightHand: {fileID: 1116743203}
+  UseVR: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1105,6 +1106,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: c8dc7d62f21ce7547bc2598e183ede72, type: 2}
   - {fileID: 2100000, guid: 5c62f3758691d4ba7ae9de514736c755, type: 2}
   Score: 0
+  StepTimer: []
 --- !u!114 &1000910855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1540,7 +1542,7 @@ PrefabInstance:
     - target: {fileID: 114916036141644208, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}
       propertyPath: customHeaders.Array.size
-      value: 7
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114916036141644208, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}

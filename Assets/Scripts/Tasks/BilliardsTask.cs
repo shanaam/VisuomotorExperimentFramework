@@ -33,7 +33,8 @@ public abstract class BilliardsTask : BaseTask
     {
         if (Surface == null)
         {
-            Debug.LogError("Surface was not found in the prefab. Please make sure it is added.");
+            Debug.LogError("Surface was not found in the prefab. Please make sure it is added." +
+                           " If Surface exists in the prefab, check if you ran base.Setup()");
         }
 
         if (material == null)

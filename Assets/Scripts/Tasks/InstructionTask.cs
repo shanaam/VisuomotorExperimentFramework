@@ -78,6 +78,9 @@ public class InstructionTask : BaseTask
         ctrler.CursorController.SetVRCamera(true);
     }
 
+    // No implementation. Overriden only because LogParameters is abstract
+    public override void LogParameters() { }
+
     protected override void OnDestroy()
     {
         Destroy(instructionPanel);

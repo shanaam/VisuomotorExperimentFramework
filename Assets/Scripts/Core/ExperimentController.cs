@@ -3,13 +3,8 @@ using UnityEngine;
 using UXF;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
-using UnityEngine.InputSystem;
-using MovementType = CursorController.MovementType;
-using Random = System.Random;
 
 /// <summary>
 /// Overview of how the application works:
@@ -24,7 +19,6 @@ using Random = System.Random;
 /// - ExperimentController will contain any variables required by the TASKs
 /// such as input, session variables, etc
 /// </summary>
-
 public class ExperimentController : MonoBehaviour
 {
     private static ExperimentController instance;
@@ -45,17 +39,25 @@ public class ExperimentController : MonoBehaviour
 
     public CursorController CursorController { get; private set; }
 
+    // Reference to the UXF Session object
     public Session Session { get; private set; }
 
-    private float currentTrialTime;
+    // Stores the trial's start and end times
+    private float trialStartTime, trialEndTime;
 
+    // Global score variable
     public int Score = 0;
 
     // Pseudorandom Float List
     private Dictionary<string, List<float>> pMap = new Dictionary<string, List<float>>();
 
+    // Used for object tracking
     private Dictionary<string, GameObject> trackedObjects = new Dictionary<string, GameObject>();
     private Dictionary<string, List<Vector3>> trackedObjectPath = new Dictionary<string, List<Vector3>>();
+    private List<float> trackingTimestamps = new List<float>();
+
+    // Used to track when a step has been incremented
+    public List<float> StepTimer = new List<float>();
 
     /// <summary>
     /// Gets the singleton instance of our experiment controller. Use it for
@@ -135,6 +137,11 @@ public class ExperimentController : MonoBehaviour
         foreach (string key in trackedObjectPath.Keys)
         {
             trackedObjectPath[key].Add(trackedObjects[key].transform.localPosition);
+        }
+
+        if (trackedObjectPath.Count > 0)
+        {
+            trackingTimestamps.Add(Time.time);
         }
     }
 
@@ -226,57 +233,76 @@ public class ExperimentController : MonoBehaviour
     }
 
     /// <summary>
-    /// Starts time tracking. Called in the task class
+    /// Grabs the current application time, storing it as a starting point
     /// </summary>
     public void StartTimer()
     {
-        currentTrialTime = Time.fixedTime;
+        trialStartTime = Time.time;
     }
 
+    /// <summary>
+    /// Grabs the current application time, storing it as an endpoint
+    /// </summary>
     public void EndTimer()
     {
-        Session.CurrentTrial.result["step_time"] = Time.fixedTime - currentTrialTime;
+        trialEndTime = Time.time;
     }
 
+    /// <summary>
+    /// Returns the time elapsed in the current trial
+    /// </summary>
+    public float GetElapsedTime()
+    {
+        return Time.time - trialStartTime;
+    }
+
+    /// <summary>
+    /// Performs all data collection, cleanup, and calls event to start next trial
+    /// </summary>
     public void EndAndPrepare()
     {
-        EndTimer();
         CurrentTask.LogParameters();
+
+        Session.CurrentTrial.result["type"] = Session.CurrentTrial.settings.GetString("per_block_type");
+        Session.CurrentTrial.result["hand"] = Session.CurrentTrial.settings.GetString("per_block_hand");
+
+        // Track score if score tracking is enabled in the JSON
+        // Defaults to disabled if property does not exist in JSON
+        if (Session.settings.GetBool("track_score", false))
+        {
+            Session.CurrentTrial.result["score"] = Score;
+        }
 
         CursorController.UseVR = false;
 
         // Tracked Object logging
-        StringBuilder sb_x = new StringBuilder();
-        StringBuilder sb_y = new StringBuilder();
-        StringBuilder sb_z = new StringBuilder();
         foreach (string key in trackedObjects.Keys)
         {
             if (trackedObjectPath[key].Count == 0) continue;
 
-            sb_x.Clear();
-            sb_y.Clear();
-            sb_z.Clear();
-
             // Add each vector and its components separated by commas
             var list = trackedObjectPath[key];
-            int count = list.Count - 2;
-            for (int i = 0; i < count; i++)
-            {
-                sb_x.Append(Math.Round(list[i].x, 6) + ",");
-                sb_y.Append(Math.Round(list[i].y, 6) + ",");
-                sb_z.Append(Math.Round(list[i].z, 6) + ",");
-            }
 
-            // Add the last vector so there is no trailing comma
-            count++;
-            sb_x.Append(Math.Round(list[count].x, 6));
-            sb_y.Append(Math.Round(list[count].y, 6));
-            sb_z.Append(Math.Round(list[count].z, 6));
-
-            Session.CurrentTrial.result[key + "_x"] = sb_x.ToString();
-            Session.CurrentTrial.result[key + "_y"] = sb_y.ToString();
-            Session.CurrentTrial.result[key + "_z"] = sb_z.ToString();
+            // For each element (Select), remove scientific notation and round to 6 decimal places.
+            // Then join all these numbers separated by a comma
+            Session.CurrentTrial.result[key + "_x"] =
+                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));            
+            
+            Session.CurrentTrial.result[key + "_y"] =
+                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));            
+            
+            Session.CurrentTrial.result[key + "_z"] =
+                string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
         }
+
+        // Timestamps for tracked objects
+        Session.CurrentTrial.result["tracking_timestamp"] =
+            string.Join(",", trackingTimestamps.Select(i => string.Format($"{i:F6}")));
+
+        // Timestamps for when a step is incremented
+        Session.CurrentTrial.result["step_timestamp"] =
+            string.Join(",", StepTimer.Select(i => string.Format($"{i:F6}")));
+        StepTimer.Clear();
 
         ClearTrackedObjects();
 
@@ -295,6 +321,7 @@ public class ExperimentController : MonoBehaviour
     /// <summary>
     /// Instantiates and sets up a tracker with the specified name.
     /// </summary>
+    [Obsolete("Use AddTrackedObject Instead.")]
     public GameObject GenerateTracker(string trackerName, Transform parent)
     {
         if (trackerName.Contains(" "))
@@ -394,8 +421,12 @@ public class ExperimentController : MonoBehaviour
 
         if (pMap.ContainsKey(key))
         {
+            // Pop value from list
             float val = pMap[key][0];
             pMap[key].RemoveAt(0);
+
+            // Log value that was polled
+            Session.CurrentTrial.result[key] = val;
 
             return val;
         }
@@ -468,5 +499,18 @@ public class ExperimentController : MonoBehaviour
             trackedObjects.Remove(key);
             trackedObjectPath.Remove(key);
         }
+
+        trackingTimestamps.Clear();
+    }
+
+    /// <summary>
+    /// Logs the position as 3 separate X,Y,Z values in the current trial.
+    /// </summary>
+    /// <param name="key">Prefix string that will show up in the CSV.</param>
+    public void LogObjectPosition(string key, Vector3 position)
+    {
+        Session.CurrentTrial.result[key + "_x"] = position.x;
+        Session.CurrentTrial.result[key + "_y"] = position.y;
+        Session.CurrentTrial.result[key + "_z"] = position.z;
     }
 }
