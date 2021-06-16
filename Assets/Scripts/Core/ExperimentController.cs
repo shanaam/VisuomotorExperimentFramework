@@ -315,7 +315,7 @@ public class ExperimentController : MonoBehaviour
         StringBuilder sb_timestamps = new StringBuilder();
         foreach (float t in trackingTimestamps)
         {
-            sb_timestamps.Append(Math.Round(t, decimalPlaces) + ",");
+            sb_timestamps.Append(Math.Round(t, decimalPlaces).ToString("F") + ",");
         }
         Session.CurrentTrial.result["tracking_timestamp"] = sb_timestamps.ToString();
 
