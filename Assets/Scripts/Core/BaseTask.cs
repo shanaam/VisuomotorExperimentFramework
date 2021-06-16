@@ -17,7 +17,7 @@ public abstract class BaseTask : MonoBehaviour
         currentStep++;
 
         // Track the time when a step is incremented
-        ExperimentController.Instance().StepTimer.Add(ExperimentController.Instance().GetElapsedTime());
+        ExperimentController.Instance().StepTimer.Add(Time.time);
 
         finished = currentStep == maxSteps;
         return finished;
