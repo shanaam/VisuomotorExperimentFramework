@@ -92,6 +92,9 @@ public class LocalizationTask : BaseTask
 
     public override void LogParameters()
     {
+
+
+
         // Store where they think their hand is
         ExperimentController.Instance().Session.CurrentTrial.result["loc_x"] =
             localizer.transform.localPosition.x;
