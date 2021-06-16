@@ -524,6 +524,12 @@ public class PinballTask : BilliardsTask
 
     private void SetTilt()
     {
+        SetTilt(pinballCam, pinballSpace, cameraTilt);
+        SetTilt(bonusText.transform.parent.gameObject, pinballSpace, cameraTilt);
+        SetTilt(pinballWall, pinballSpace, cameraTilt);
+        SetTilt(pinballSpace, pinballSpace, surfaceTilt);
+
+        /*
         // Unparent wall and camera so plane moves independently
         pinballWall.transform.SetParent(null);
         pinballCam.transform.SetParent(null);
@@ -550,6 +556,7 @@ public class PinballTask : BilliardsTask
         pinballWall.transform.SetParent(pinballSpace.transform);
         pinballCam.transform.SetParent(pinballSpace.transform);
         bonusText.transform.parent.SetParent(pinballSpace.transform);
+        */
     }
 
     public override void Disable()
@@ -562,13 +569,14 @@ public class PinballTask : BilliardsTask
         }
 
         pinballSpace.SetActive(false);
+
+        // Enabling this will cause screen flicker. Only use if task involves both Non-VR and VR in the same experiment
+        //ctrler.CursorController.SetVRCamera(true);
     }
 
     protected override void OnDestroy()
     {
         Destroy(pinballSpace);
-
-        //ctrler.CursorController.SetVRCamera(true);
     }
 
     private Vector3 mousePoint;
