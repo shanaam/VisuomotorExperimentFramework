@@ -155,8 +155,6 @@ public class ReachToTargetTask : BaseTask
 
     public override void Disable()
     {
-        Cursor.visible = true;
-
         reachPrefab.SetActive(false);
 
         ctrler.CursorController.SetVRCamera(true);
