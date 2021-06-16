@@ -141,7 +141,7 @@ public class ExperimentController : MonoBehaviour
 
         if (trackedObjectPath.Count > 0)
         {
-            trackingTimestamps.Add(GetElapsedTime());
+            trackingTimestamps.Add(Time.time);
         }
     }
 
@@ -261,10 +261,10 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void EndAndPrepare()
     {
-        // Track time elapsed for the trial
-        Session.CurrentTrial.result["elapsed_time"] = trialEndTime - trialStartTime;
-
         CurrentTask.LogParameters();
+
+        Session.CurrentTrial.result["type"] = Session.CurrentTrial.settings.GetString("per_block_type");
+        Session.CurrentTrial.result["hand"] = Session.CurrentTrial.settings.GetString("per_block_hand");
 
         // Track score if score tracking is enabled in the JSON
         // Defaults to disabled if property does not exist in JSON
@@ -421,8 +421,12 @@ public class ExperimentController : MonoBehaviour
 
         if (pMap.ContainsKey(key))
         {
+            // Pop value from list
             float val = pMap[key][0];
             pMap[key].RemoveAt(0);
+
+            // Log value that was polled
+            Session.CurrentTrial.result[key] = val;
 
             return val;
         }

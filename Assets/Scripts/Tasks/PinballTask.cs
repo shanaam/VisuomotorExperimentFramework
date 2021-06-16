@@ -265,7 +265,7 @@ public class PinballTask : BilliardsTask
                 break;
             case 1:
                 // Track a point every 25 milliseconds
-                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path"))
                     pinballPoints.Add(pinball.transform.position);
 
                 break;
@@ -280,7 +280,7 @@ public class PinballTask : BilliardsTask
                     distanceToTarget = Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition);
                     if (distanceToTarget < 0.05f)
                     {
-                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path"))
                         {
                             pinballSpace.GetComponent<LineRenderer>().startColor =
                                 pinballSpace.GetComponent<LineRenderer>().endColor =
@@ -358,7 +358,7 @@ public class PinballTask : BilliardsTask
                                 pinballSpace.GetComponent<LineRenderer>().positionCount - 1);
                         }
                     }
-                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") &&
+                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path") &&
                              !enteredTarget)
                     {
                         // Add points to show feedback past the target only if they missed
@@ -445,11 +445,17 @@ public class PinballTask : BilliardsTask
         // Accounts for angles in the bottom right quadrant (270-360 degrees)
         if (angle < 0.0f) angle += 360.0f;
 
-        ctrler.Session.CurrentTrial.result["angle"] = angle;
+        ctrler.Session.CurrentTrial.result["indicator_angle"] = angle;
 
         // Magnitude is the distance (meters) on how much the participant pulled the spring back
         ctrler.Session.CurrentTrial.result["magnitude"] = 
             (directionIndicator.transform.position - pinballStartPosition).magnitude;
+
+        ctrler.Session.CurrentTrial.result["show_path"] =
+            ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path");
+
+        ctrler.Session.CurrentTrial.result["tilt_after_fire"] =
+            ctrler.Session.CurrentTrial.settings.GetBool("per_block_tilt_after_fire");
     }
 
     public override void Setup()
