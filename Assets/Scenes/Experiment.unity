@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: 47b2461148dc2fc49826aad2af313449,
+  m_LightingDataAsset: {fileID: 112000000, guid: 5ec8b5eddd0f03c4e9f5e32b14633b88,
     type: 2}
   m_LightingSettings: {fileID: 1840584784}
 --- !u!196 &4
@@ -424,6 +424,7 @@ MonoBehaviour:
   triggerUp: 0
   LeftHand: {fileID: 734581677}
   RightHand: {fileID: 1116743203}
+  UseVR: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -964,7 +965,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1097,10 +1098,15 @@ MonoBehaviour:
   - {fileID: 3485569088281754252, guid: 040ae3255abf100409ca7d2928cd7efb, type: 3}
   - {fileID: 3880917273283088885, guid: cd2eb155d55367b4b8cfcc7b93167b0a, type: 3}
   - {fileID: 7753726368987689519, guid: c2d149f569c6a9e4cb664434526a88f1, type: 3}
+  - {fileID: 7948841833493384112, guid: 694206321901eca4eaba9466f60b2b2f, type: 3}
   SoundEffects:
   - {fileID: 8300000, guid: cb132b47806af9d489d50855b0abf4d7, type: 3}
   - {fileID: 8300000, guid: 323d999887e1e8e4c9164f54a7798f7c, type: 3}
+  SurfaceMaterials:
+  - {fileID: 2100000, guid: c8dc7d62f21ce7547bc2598e183ede72, type: 2}
+  - {fileID: 2100000, guid: 5c62f3758691d4ba7ae9de514736c755, type: 2}
   Score: 0
+  StepTimer: []
 --- !u!114 &1000910855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1536,7 +1542,7 @@ PrefabInstance:
     - target: {fileID: 114916036141644208, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}
       propertyPath: customHeaders.Array.size
-      value: 7
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114916036141644208, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}
@@ -2416,7 +2422,7 @@ PrefabInstance:
     - target: {fileID: 7839017981507438752, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}
       propertyPath: m_Text
-      value: 
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7877310278013525260, guid: 0a3b6392f04558844bd340e68ced1ff9,
         type: 3}

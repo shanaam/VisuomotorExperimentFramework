@@ -9,27 +9,29 @@ public abstract class BaseTask : MonoBehaviour
     protected bool finished;      // Are we out of steps
     protected int maxSteps;       // Number of steps this task has
 
-    // References to the home and target GameObjects
-    // Use the auto properties to set the value for this
-    private GameObject home, target;
+    /// <summary>
+    /// Increments the current step in this task
+    /// </summary>
+    public virtual bool IncrementStep()
+    {
+        currentStep++;
+
+        // Track the time when a step is incremented
+        ExperimentController.Instance().StepTimer.Add(Time.time);
+
+        finished = currentStep == maxSteps;
+        return finished;
+    }
 
     private GameObject[] trackers;
 
     // This task's "home" position
-    public virtual GameObject Home
-    {
-        get => home;
-        protected set => home = value;
-    }
+    public GameObject Home { get; protected set; }
 
     // This task's "target" position
-    public virtual GameObject Target
-    {
-        get => target;
-        protected set => target = value;
-    }
+    public GameObject Target { get; protected set; }
 
-    protected virtual GameObject[] Trackers
+    protected GameObject[] Trackers
     {
         get
         {
@@ -41,15 +43,15 @@ public abstract class BaseTask : MonoBehaviour
         set => trackers = value;
     }
 
-    /// <summary>
-    /// Increments the current step in this task
-    /// </summary>
-    public virtual bool IncrementStep()
+    protected virtual void OnDestroy()
     {
-        currentStep++;
-
-        finished = currentStep == maxSteps;
-        return finished;
+        // Delete trackers
+        foreach (GameObject g in Trackers)
+        {
+            ExperimentController.Instance().Session.trackedObjects
+                .Remove(g.GetComponent<PositionRotationTracker>());
+            Destroy(g);
+        }
     }
 
     public int GetCurrentStep => currentStep;
@@ -58,15 +60,13 @@ public abstract class BaseTask : MonoBehaviour
     /// <summary>
     /// Logic for setting up a specific trial type
     /// </summary>
-    protected abstract void Setup();
+    public abstract void Setup();
 
-    protected virtual void OnDestroy()
-    {
-        // Delete trackers
-        foreach (GameObject g in Trackers)
-        {
-            ExperimentController.Instance().Session.trackedObjects.Remove(g.GetComponent<PositionRotationTracker>());
-            Destroy(g);
-        }
-    }
+    /// <summary>
+    /// This is called in ExperimentController when the trial ends. Do not call this method
+    /// anywhere else.
+    /// </summary>
+    public abstract void LogParameters();
+
+    public abstract void Disable();
 }

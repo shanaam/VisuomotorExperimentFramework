@@ -1,0 +1,21 @@
+{
+    "experiment_mode" : "tool",
+    "per_block_type" : ["aligned", "aligned", "rotated"],
+    "per_block_rotation" : [0, 0, 30],
+    "per_block_tilt" : [0, 15, 0],
+    "per_block_n" :  [5, 5, 5],
+    "per_block_hand" : ["r", "r", "r"],
+    "per_block_targetListToUse": ["tl2", "tl2", "tl1"],
+    "tl2": [60, 80, 100, 120],
+    "tl1": [30, 45, 60, 75, 90],
+    "per_block_visual_feedback": [true,true,true],
+    "per_block_surface_materials": ["fabric","ice","fabric"],
+    "per_block_triggerType":["impact","impact","impact"],
+    "per_block_puck_type": ["puck","ball","puck"],
+    "per_block_tool_type": ["Quad","Sphere","Quad"],
+    "per_block_surface_dynamic_friction": [0.1, 0.1, 0.1],
+    "per_block_surface_static_friction": [0.1, 0.1, 0.1],
+    "per_block_tool_dynamic_friction": [0.3, 0.3, 0.3],
+    "per_block_tool_static_friction": [0.3, 0.3, 0.3],
+    "per_block_object_type": ["sphere", "cube", "sphere"]
+}

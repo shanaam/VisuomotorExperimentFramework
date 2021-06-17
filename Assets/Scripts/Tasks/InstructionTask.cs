@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UXF;
 
@@ -15,7 +13,7 @@ public class InstructionTask : BaseTask
     private ExperimentController ctrler;
 
     private string ins;
-    private double timeRemaining = 10f;
+    private double timeRemaining = 3f;
 
     private GameObject instructionPanel;
     private GameObject instruction;
@@ -24,16 +22,14 @@ public class InstructionTask : BaseTask
 
     private Camera tempMainCamera;
 
-    public void Init(Trial trial, string instruction)
+    public override void Setup()
     {
         ctrler = ExperimentController.Instance();
-        ins = instruction;
 
-        Setup();
-    }
 
-    protected override void Setup()
-    {
+        string per_block_ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
+        ins = ctrler.Session.CurrentTrial.settings.GetString(per_block_ins);
+
         // Temporarily disable VR Camera
         // TODO: This needs to be changed when we implement instruction task for VR
         ctrler.CursorController.SetVRCamera(false);
@@ -48,7 +44,7 @@ public class InstructionTask : BaseTask
         instruction.GetComponent<Text>().text = ins;
 
         //countdown Timer start
-        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
+        timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();
 
         //add event listener to done button
         done.GetComponent<Button>().onClick.AddListener(()=>End() );
@@ -59,7 +55,7 @@ public class InstructionTask : BaseTask
         if(timeRemaining > 0)
         {
             timeRemaining = timeRemaining - Time.deltaTime;
-            timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 2).ToString();
+            timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();
         }
         else
         {
@@ -73,13 +69,20 @@ public class InstructionTask : BaseTask
         ctrler.EndAndPrepare();
     }
 
-    protected override void OnDestroy()
+    public override void Disable()
     {
         instructionPanel.SetActive(false);
-        Destroy(instructionPanel);
 
         // Turn VR Camera back on
         // TODO: See Setup()
         ctrler.CursorController.SetVRCamera(true);
+    }
+
+    // No implementation. Overriden only because LogParameters is abstract
+    public override void LogParameters() { }
+
+    protected override void OnDestroy()
+    {
+        Destroy(instructionPanel);
     }
 }

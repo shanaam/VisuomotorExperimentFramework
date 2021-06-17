@@ -4,12 +4,24 @@ using UnityEngine;
 
 public class ToolObjectScript : MonoBehaviour
 {
-    void OnCollisionEnter(Collision col)
+
+    void FixedUpdate()
     {
-        if (col.gameObject.name == "Tool" && ExperimentController.Instance().CurrentTask.GetCurrentStep == 1)
+        if (ExperimentController.Instance().CurrentTask.GetCurrentStep == 1 &&
+            GetComponent<Rigidbody>().velocity.sqrMagnitude > 0.0f)
         {
             ExperimentController.Instance().CurrentTask.IncrementStep();
-            //Debug.Log(" you hit me");
+        }
+    }
+
+    void OnTriggerEnter(Collider col)
+    {
+
+        if ( (col.gameObject.name == "ToolBox" || col.gameObject.name == "ToolSphere") &&
+            ExperimentController.Instance().CurrentTask.GetCurrentStep == 1)
+        {
+            //ExperimentController.Instance().CurrentTask.IncrementStep();
+            Debug.Log(" you hit me");
         }
     }
 }

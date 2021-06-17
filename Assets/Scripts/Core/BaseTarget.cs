@@ -5,7 +5,8 @@ using UnityEngine;
 // A general target that could be expanded into other uses
 public class BaseTarget : MonoBehaviour
 {
-    ExperimentController ctrler;
+    protected ExperimentController ctrler;
+
     public bool Collided { get; private set; }
     public Collider CollidedWith { get; private set; }
 

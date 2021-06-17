@@ -1,374 +1,930 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UXF;
 using MovementType = CursorController.MovementType;
 
-public class ToolTask : BaseTask
+public class ToolTask : BilliardsTask
 {
 
     //TODO: 
     /// <summary>
     /// 
-    /// 1_add material changing capabilities 
+    /// DIFFREENT TYPES OF RACKETS ( sphere is not good a better Racket)
     /// 
-    /// 
+    /// 3 types of shooting Styles:
+    ///     Impact
+    ///     Curling --> track the points after the release point
+    ///     
+    ///     slingShot
+    ///         rubber band should just one line fromt he center of the sling shot ball
+    ///         make the slingshot ball same size and the impact ball
+    ///         
+    ///              
+    ///
     /// 
     /// </summary>
 
-    private MovementType[] reachType;
-    private Trial trial;
+    private float InitialDistanceToTarget;
+    private ExperimentController ctrler;
 
     private GameObject toolSpace;
     private GameObject tool;
-    private GameObject Puckobj; 
     private GameObject toolCamera;
-    private GameObject toolSurface;
+    private GameObject grid;
 
-    private static List<float> targetAngles = new List<float>();
+    private const float TARGET_DISTANCE = 0.55f;
 
-    private ExperimentController ctrler;
-    private float  distanceToTarget;
+    private GameObject impactBox;
+    private GameObject puck;
+
+    private GameObject curlingStone;
+    private GameObject slingShotBall;
+
     private List<Vector3> PuckPoints = new List<Vector3>();
+    private List<Vector3> CurlingStonePoints = new List<Vector3>();
+    private List<Vector3> slingShotPoints = new List<Vector3>();
+
     private GameObject oldMainCamera;
 
-    private float height;
-
-    // Allows a delay when the participant initially hits the object
-    private float initialDelayTimer;
-
-    private GameObject visualCube;
-    private Quaternion cubeRot;
     private Vector3 previousPosition;
-    private float Timer;
-    private bool enterdTarget = false;
+    private float missTimer;
+    private float timer;
+    private float delayTimer;
+    private bool enteredTarget;
 
 
-    public void Init(Trial trial, List<float> angles)
+
+    private triggerType _triggerType;
+
+    private enum triggerType
     {
-        this.trial = trial;
-        maxSteps = 4;
-
-        ctrler = ExperimentController.Instance();
-
-        if (trial.numberInBlock == 1)
-            targetAngles = angles;
-
-        Setup();
+        Impact,
+        SlingShot,
+        Curling
     }
 
-    private void FixedUpdate()
+
+    private void Update()
     {
+        Debug.Log("current step: " + currentStep);
 
-        Debug.Log("current step :" + currentStep);
-        
-        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, 
-            new Vector3(0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+        Vector3 mousePoint = new Vector3();
 
-        tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        if (_triggerType == triggerType.Impact)
+        {
+            mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up,
+                new Vector3(0f, impactBox.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+            
+            if (Vector3.Distance(mousePoint, impactBox.transform.position) > 0.05f && currentStep == 0) return;
+        }
 
-        if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f && currentStep == 0) return;
+        if (_triggerType == triggerType.Curling)
+        {
+            mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, 
+                new Vector3(0f, curlingStone.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+           
+            if (Vector3.Distance(mousePoint, curlingStone.transform.position) > 0.05f && currentStep == 0) return;
+        }
 
-        
+        if(_triggerType == triggerType.SlingShot)
+        {
+            mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, 
+                new Vector3(0f, slingShotBall.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+            if (Vector3.Distance(mousePoint, slingShotBall.transform.position) > 0.05f && currentStep == 0) return;
+        }
 
         switch (currentStep)
         {
             // Return to home position phase
             case 0:
 
-                tool.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                if (Vector3.Distance(mousePoint, tool.transform.position) > 0.05f && currentStep == 0)
-                {
-                    break;
-                }
-                else
-                {
-                    IncrementStep();
-                }
-
-                break;
-
-            case 1:
-
-                RacketMouseMovment(mousePoint);
-
-                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
-                {
-                    PuckPoints.Add(Puckobj.transform.position);
-                }
-                break;
-
-            // After the user hits the object
-            // Used to determine if the object hit by the tool is heading away from the target
-            // Current distance from pinball to the target`
-            case 2:
-                RacketMouseMovment(mousePoint);
-                float currentDistance = Vector3.Distance(Puckobj.transform.position, Target.transform.position);
-                //Debug.Log("this is distance of ball from object: " + currentDistance);
-
-
-                // Only check when the distance from pinball to target is less than half of the distance
-                // between the target and home position and if the pinball is NOT approaching the target
-                if (currentDistance <= distanceToTarget / 2f && 
-                    currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                if (_triggerType == triggerType.Impact)
                 {
 
-                    // The object only has 500ms of total time to move away from the target
-                    // After 500ms, the trial ends
-                    if (Timer < 0.5f)
+                    impactBox.GetComponent<Rigidbody>().velocity = Vector3.zero;
+
+                    if (Vector3.Distance(mousePoint, impactBox.transform.position) <= 0.05f)
                     {
-                        Timer += Time.fixedDeltaTime;
+                        IncrementStep();
+                    }
+                }
+
+                if(_triggerType == triggerType.Curling)
+                {
+                    curlingStone.GetComponent<Rigidbody>().velocity = Vector3.zero;
+
+                    if(Vector3.Distance(mousePoint, curlingStone.transform.position) <= 0.05f)
+                    {
+                        IncrementStep();
+                    }
+                }
+
+                if(_triggerType == triggerType.SlingShot)
+                {
+                    slingShotBall.GetComponent<Rigidbody>().velocity = Vector3.zero;
+
+                    if (Vector3.Distance(mousePoint, slingShotBall.transform.position) <= 0.05f)
+                    {
+                        IncrementStep();
+                    }
+                }
+                
+                break;
+
+            // the user triggers the opbject
+            case 1:
+               
+                if (_triggerType == triggerType.Impact)
+                {
+                    Vector3 dir = mousePoint - impactBox.transform.position;
+                    dir /= Time.fixedDeltaTime;
+                    impactBox.GetComponent<Rigidbody>().velocity = dir;
+
+
+                    // Rotate the impact: always looking at the puck when close enough 
+                    if (Vector3.Distance(impactBox.transform.position, puck.transform.position) < 0.2f)
+                    {
+                        impactBox.transform.LookAt(puck.transform);
                     }
                     else
                     {
-                        IncrementStep();
+                        impactBox.transform.rotation = Quaternion.identity;
                     }
+
+                    impactBox.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
                 }
 
-                if (enterdTarget)
+                if (_triggerType == triggerType.Curling)
                 {
-                    // if distance increases from the previous frame, end trial immediately
-                    float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+                    Vector3 dir = mousePoint - curlingStone.transform.position;
+                    dir /= Time.fixedDeltaTime;
+                    curlingStone.GetComponent<Rigidbody>().velocity = dir;
 
-                    // We are now going away from the target, end trial immediately
-                    if (distanceToTarget > previousDistanceToTarget)
+                    Vector3 startPos = new Vector3();
+                    Vector3 shotDir = new Vector3();
+
+                    float time = 0f;
+
+
+
+                    if(Vector3.Distance(curlingStone.transform.position , Home.transform.position) > 0.12f)
                     {
-                        //lastPositionInTarget = previousPosition;
+
+
+                        time += Time.fixedDeltaTime;
+                        startPos = mousePoint;
+
+                    }
+
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.2f)
+                    {
+                        shotDir = startPos - mousePoint;
+                        shotDir /= time;
+                        curlingStone.GetComponent<Rigidbody>().AddForce(-shotDir);
+
                         IncrementStep();
-                        return;
+
+                    }
+                }
+                
+                if (_triggerType == triggerType.SlingShot)
+                {
+                    Vector3 dir = mousePoint - slingShotBall.transform.position;
+                    dir /= Time.fixedDeltaTime;
+                    slingShotBall.GetComponent<Rigidbody>().velocity = dir;
+
+                    float time = 0f;
+
+                    // Lien rendere representing the slingshot band is attached to home GameObject
+                    Home.GetComponent<LineRenderer>().positionCount = 2;
+                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
+                    Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
+                    
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
+                    {
+                        time += Time.fixedDeltaTime;
+                    }
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.25f)
+                    {
+                        Vector3 shotDir = Home.transform.position - mousePoint;
+                        shotDir /= time;
+
+                        slingShotBall.GetComponent<Rigidbody>().velocity = shotDir * 0.1f;
+                        Home.GetComponent<LineRenderer>().positionCount = 0;
+
+                        IncrementStep();
                     }
                 }
 
-                if (distanceToTarget < 0.05f)
+                // Track a points for feedback trail 
+                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
-                    enterdTarget = true;
+                    if (_triggerType == triggerType.Impact)
+                        PuckPoints.Add(puck.transform.position);
                 }
-
-              
-                previousPosition = Puckobj.transform.position;
                 
                 break;
-            
 
-            // after the either hit the Target or passed by it
-            case 3:
+            // After the user hits the object
+            // Used to determine if the object hit by the object is heading away from the target
+            case 2:
 
-                if(Timer == 0)
+                // Track a points for feedback trail 
+                if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
-                    //get Audio Component
-                    toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
-
-                    distanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
-                    
-                    if(distanceToTarget < 0.05f)
-                    {
-                        if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
-                        {
-                            toolSpace.GetComponent<LineRenderer>().startColor =
-                                toolSpace.GetComponent<LineRenderer>().endColor =
-                                    Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
-                            Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
-
-                        }
-
-                        toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
-
-                        //Freeze puck
-                        Puckobj.GetComponent<Rigidbody>().isKinematic = true;
-
-                    }
+                    if (_triggerType == triggerType.Curling)
+                        CurlingStonePoints.Add(curlingStone.transform.position);
 
 
+                    if (_triggerType == triggerType.SlingShot)
+                        slingShotPoints.Add(slingShotBall.transform.position);
                 }
 
-                if(Timer < 1.5f)
+                if (_triggerType == triggerType.Impact)
                 {
-                    Timer += Time.deltaTime;
 
-                    if(Timer > 0.08f)
-                    {   
-                        //freeze pinball in space
-                        Puckobj.GetComponent<Rigidbody>().isKinematic = true;
+                    //RacketMouseMovement(mousePoint);
+                    Vector3 dir = mousePoint - impactBox.transform.position;
+                    dir /= Time.fixedDeltaTime;
+                    impactBox.GetComponent<Rigidbody>().velocity = dir;
+
+                    // Rotate the impact: always looking at the puck when close enough 
+                    if (Vector3.Distance(impactBox.transform.position, puck.transform.position) < 0.2f)
+                    {
+                        impactBox.transform.LookAt(puck.transform);
+                    }
+                    else
+                    {
+                        impactBox.transform.rotation = Quaternion.identity;
+                    }
+
+                    impactBox.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
 
 
-                        // set pinball trail
-                        toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
-                        toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
 
-                        if (enterdTarget)
+                    float currentDistance = Vector3.Distance(puck.transform.position, Target.transform.position);
+
+
+                    //Debug.Log("this is distance of puck from Target: " + currentDistance);
+
+                    // Only check when the distance from puck to target is less than half of the distance
+                    // between the target and home position and if the puck is NOT approaching the target
+                    if (currentDistance <= TARGET_DISTANCE / 2f &&
+                        currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                    {
+
+                        // The object only has 500ms of total time to move away from the target
+                        // After 500ms, the trial ends
+                        if (missTimer < 0.5f)
                         {
-                            Puckobj.transform.position = previousPosition;
+                            missTimer += Time.fixedDeltaTime;
                         }
                         else
                         {
-                            Puckobj.transform.position = toolSpace.GetComponent<LineRenderer>().GetPosition(
-                                toolSpace.GetComponent<LineRenderer>().positionCount - 1);
+                            IncrementStep();
+                        }
+                    }
+
+                    if (enteredTarget)
+                    {
+                        // if distance increases from the previous frame, end trial immediately
+                        float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+
+                        // We are now going away from the target, end trial immediately
+                        if (currentDistance > previousDistanceToTarget)
+                        {
+                            //lastPositionInTarget = previousPosition;
+                            IncrementStep();
+                            return;
+                        }
+                    }
+
+                    // Trial ends if the ball stops moving OR
+                    // The distance between the home position and the pinball exceeds the distance
+                    // between the pinball and the target
+
+                    if (delayTimer > 0.1f)
+                    {
+                        if (puck.GetComponent<Rigidbody>().velocity.magnitude < 0.0001f ||
+                            Vector3.Distance(puck.transform.position, Home.transform.position) >=
+                            InitialDistanceToTarget)
+                        {
+                            IncrementStep();
                         }
 
                     }
-                    else if(ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback") && !enterdTarget)
+                    else
+                    {
+                        delayTimer += Time.fixedDeltaTime;
+                    }
+
+                    // disbale tool object aft 50ms
+
+                    if (currentDistance < 0.05f)
+                    {
+                        enteredTarget = true;
+                    }
+
+                    previousPosition = puck.transform.position;
+                    break;
+                }
+
+                if (_triggerType == triggerType.Curling)
+                {
+
+                    // get the distance btween curling stone and Target
+                    float currentDistance = Vector3.Distance(curlingStone.transform.position, Target.transform.position);
+
+
+                    // Only check when the distance from curling stone to target is less than half of the distance
+                    // between the target and home position and if the curlingStone is NOT approaching the target
+                    if (currentDistance <= TARGET_DISTANCE / 2f &&
+                        currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
                     {
 
-                        // Add points to show feedback past the target only if they missed
-                        // Points along the path are not added if they hit the target
-                        PuckPoints.Add(Puckobj.transform.position);
+                        // The object only has 500ms of total time to move away from the target
+                        // After 500ms, the trial ends
+                        if (missTimer < 0.5f)
+                        {
+                            missTimer += Time.fixedDeltaTime;
+                        }
+                        else
+                        {
+                            IncrementStep();
+                        }
 
+                    }
+
+                    if (enteredTarget)
+                    {
+                        // if distance increases from the previous frame, end trial immediately
+                        float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+
+                        // We are now going away from the target, end trial immediately
+                        if (currentDistance > previousDistanceToTarget)
+                        {
+                            //lastPositionInTarget = previousPosition;
+                            IncrementStep();
+                            return;
+                        }
+                    }
+
+                    // Trial ends if the ball stops moving OR
+                    // The distance between the home position and the pinball exceeds the distance
+                    // between the pinball and the target
+
+                    if (delayTimer > 0.1f)
+                    {
+                        if (curlingStone.GetComponent<Rigidbody>().velocity.magnitude < 0.0001f ||
+                            Vector3.Distance(curlingStone.transform.position, Home.transform.position) >=
+                            InitialDistanceToTarget)
+                        {
+                            IncrementStep();
+                        }
+
+                    }
+                    else
+                    {
+                        delayTimer += Time.fixedDeltaTime;
+                    }
+
+                    // disbale tool object aft 50ms
+
+                    if (currentDistance < 0.05f)
+                    {
+                        enteredTarget = true;
+                    }
+                    previousPosition = curlingStone.transform.position;
+
+                    break;
+
+                }
+
+                if (_triggerType == triggerType.SlingShot)
+                {
+
+                    // get the distance btween slingShotBall stone and Target
+                    float currentDistance = Vector3.Distance(slingShotBall.transform.position, Target.transform.position);
+
+
+                    // Only check when the distance from curling stone to target is less than half of the distance
+                    // between the target and home position and if the curlingStone is NOT approaching the target
+                    if (currentDistance <= TARGET_DISTANCE / 2f &&
+                        currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                    {
+
+                        // The object only has 500ms of total time to move away from the target
+                        // After 500ms, the trial ends
+                        if (missTimer < 0.5f)
+                        {
+                            missTimer += Time.fixedDeltaTime;
+                        }
+                        else
+                        {
+                            IncrementStep();
+                        }
+
+                    }
+
+                    if (enteredTarget)
+                    {
+                        // if distance increases from the previous frame, end trial immediately
+                        float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+
+                        // We are now going away from the target, end trial immediately
+                        if (currentDistance > previousDistanceToTarget)
+                        {
+                            //lastPositionInTarget = previousPosition;
+                            IncrementStep();
+                            return;
+                        }
+                    }
+
+                    // Trial ends if the ball stops moving OR
+                    // The distance between the home position and the pinball exceeds the distance
+                    // between the pinball and the target
+
+                    if (delayTimer > 0.1f)
+                    {
+                        if (slingShotBall.GetComponent<Rigidbody>().velocity.magnitude < 0.0001f ||
+                            Vector3.Distance(slingShotBall.transform.position, Home.transform.position) >=
+                            InitialDistanceToTarget)
+                        {
+                            IncrementStep();
+                        }
+
+                    }
+                    else
+                    {
+                        delayTimer += Time.fixedDeltaTime;
+                    }
+
+                    // disbale tool object aft 50ms
+
+                    if (currentDistance < 0.05f)
+                    {
+                        enteredTarget = true;
+                    }
+
+
+                    previousPosition = slingShotBall.transform.position;
+
+                    break;
+
+
+                }
+
+                break;
+
+            // after we either hit the Target or passed by it
+            case 3:
+
+                if(_triggerType == triggerType.Impact)
+                {
+
+                    if (timer == 0)
+                    {
+                        //get Audio Component
+                        toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+
+                        float CurrentDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+
+                        if (CurrentDistanceToTarget < 0.05f)
+                        {
+                            if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                            {
+                                toolSpace.GetComponent<LineRenderer>().startColor =
+                                    toolSpace.GetComponent<LineRenderer>().endColor =
+                                        Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
+                                Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+
+                            }
+
+                            toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
+
+                            // set puck trail
+                            toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
+                            toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
+
+                            //Freeze puck
+                            puck.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            puck.GetComponent<Rigidbody>().isKinematic = true;
+
+                            //freeze impact box 
+                            impactBox.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            impactBox.GetComponent<Rigidbody>().isKinematic = true;
+
+
+                        }
+                    }
+
+                    if (timer < 1.5f)
+                    {
+                        timer += Time.deltaTime;
+
+                        if (timer > 0.08f)
+                        {
+                            //freeze puck in space
+                            puck.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            puck.GetComponent<Rigidbody>().isKinematic = true;
+
+                            //freeze impact box 
+                            impactBox.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            impactBox.GetComponent<Rigidbody>().isKinematic = true;
+
+                            // set puck trail
+                            toolSpace.GetComponent<LineRenderer>().positionCount = PuckPoints.Count;
+                            toolSpace.GetComponent<LineRenderer>().SetPositions(PuckPoints.ToArray());
+
+                            if (enteredTarget)
+                            {
+                                puck.transform.position = previousPosition;
+                            }
+                            else
+                            {
+                                puck.transform.position = toolSpace.GetComponent<LineRenderer>().GetPosition(
+                                    toolSpace.GetComponent<LineRenderer>().positionCount - 1);
+                            }
+                        }
+                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        {
+                            PuckPoints.Add(puck.transform.position);
+                        }
+                    }
+                    else
+                    {
+                        LogParameters();
+                        IncrementStep();
+                    }
+                    
+
+                }
+
+                if(_triggerType == triggerType.Curling)
+                {
+
+
+                    if (timer == 0)
+                    {
+
+                        //get Audio Component
+                        toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+
+                        float CurrentDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+                        if (CurrentDistanceToTarget < 0.05f)
+                        {
+                            if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                            {
+                                toolSpace.GetComponent<LineRenderer>().startColor =
+                                    toolSpace.GetComponent<LineRenderer>().endColor =
+                                        Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
+                                Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+
+                            }
+
+                            toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
+
+                            // set pinball trail
+                            toolSpace.GetComponent<LineRenderer>().positionCount = CurlingStonePoints.Count;
+                            toolSpace.GetComponent<LineRenderer>().SetPositions(CurlingStonePoints.ToArray());
+
+                            //Freeze puck
+                            curlingStone.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            curlingStone.GetComponent<Rigidbody>().isKinematic = true;
+
+                        }
+
+                    }
+
+                    if (timer < 1.5f)
+                    {
+                        timer += Time.deltaTime;
+
+                        if (timer > 0.08f)
+                        {
+                            //freeze curling stone in space
+                            curlingStone.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            curlingStone.GetComponent<Rigidbody>().isKinematic = true;
+
+                            // set curling stone trail
+                            toolSpace.GetComponent<LineRenderer>().positionCount = CurlingStonePoints.Count;
+                            toolSpace.GetComponent<LineRenderer>().SetPositions(CurlingStonePoints.ToArray());
+
+                            if (enteredTarget)
+                            {
+                                curlingStone.transform.position = previousPosition;
+                            }
+                            else
+                            {
+                                curlingStone.transform.position = toolSpace.GetComponent<LineRenderer>().GetPosition(
+                                    toolSpace.GetComponent<LineRenderer>().positionCount - 1);
+                            }
+
+                        }
+                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        {
+                            CurlingStonePoints.Add(curlingStone.transform.position);
+                        }
+
+
+                    }
+                    else
+                    {
+                        LogParameters();
+                        IncrementStep();
+                    }
+
+
+
+                }
+
+                if(_triggerType == triggerType.SlingShot)
+                {
+                    if (timer == 0)
+                    {
+
+                        //get Audio Component
+                        toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+
+                        float CurrentDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+                        if (CurrentDistanceToTarget < 0.05f)
+                        {
+                            if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                            {
+                                toolSpace.GetComponent<LineRenderer>().startColor =
+                                    toolSpace.GetComponent<LineRenderer>().endColor =
+                                        Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
+                                Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+
+                            }
+
+                            toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
+
+                            //set slingshot trail
+                            toolSpace.GetComponent<LineRenderer>().positionCount = slingShotPoints.Count;
+                            toolSpace.GetComponent<LineRenderer>().SetPositions(slingShotPoints.ToArray());
+
+                            //Freeze slingshot
+                            slingShotBall.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            slingShotBall.GetComponent<Rigidbody>().isKinematic = true;
+
+                        }
 
                     }
 
 
+                    if (timer < 1.5f)
+                    {
+                        timer += Time.deltaTime;
+
+                        if (timer > 0.08f)
+                        {
+                            //freeze slingShot in space
+                            slingShotBall.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                            slingShotBall.GetComponent<Rigidbody>().isKinematic = true;
+
+                            // set trail
+                            toolSpace.GetComponent<LineRenderer>().positionCount = slingShotPoints.Count;
+                            toolSpace.GetComponent<LineRenderer>().SetPositions(slingShotPoints.ToArray());
+
+                            if (enteredTarget)
+                            {
+                                slingShotBall.transform.position = previousPosition;
+                            }
+                            else
+                            {
+                                slingShotBall.transform.position = toolSpace.GetComponent<LineRenderer>().GetPosition(
+                                    toolSpace.GetComponent<LineRenderer>().positionCount - 1);
+                            }
+
+                        }
+                        else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
+                        {
+                            slingShotPoints.Add(slingShotBall.transform.position);
+                        }
+
+
+                    }
+                    else
+                    {
+                        LogParameters();
+                        IncrementStep();
+                    }
+
                 }
-                else
-                {
-                    LogParameters();
-                }
+
                 break;
-
-
-
-
-
-/*
-                // if the user hits the target show the results
-                // else give them another try
-                if (Target.GetComponent<BaseTarget>().Collided)//(Vector3.Distance(obj.transform.position, Target.transform.position) < 0.025f)
-                {
-
-                    Debug.Log("we hit the Target");
-                    LogParameters();
-                }
-                else
-                {
-                    Debug.Log("we DID NOT hit the Target");
-                }
-
-                break;
-*/
         }
 
-        if (Finished)
-           ctrler.EndAndPrepare();
 
+        if (Finished)
+            ctrler.EndAndPrepare();
     }
 
 
     public override bool IncrementStep()
     {
         if (currentStep == 0)
-        {
-            Puckobj.SetActive(true);
-            //Home.GetComponent<BaseTarget>().enabled = false;
-            //Home.GetComponent<MeshRenderer>().enabled = false;
+        {   
+            if(_triggerType == triggerType.Impact)
+                puck.SetActive(true);
+
+            if (_triggerType == triggerType.Curling)
+                curlingStone.SetActive(true);
         }
 
         return base.IncrementStep();
     }
 
-    protected override void Setup()
+    public override void Setup()
     {
-        ExperimentController ctrler = ExperimentController.Instance();
-
+        maxSteps = 4;
+        ctrler = ExperimentController.Instance();
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
-
-        tool = GameObject.Find("Tool");
-        Puckobj = GameObject.Find("PuckObject");
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
-        toolSurface = GameObject.Find("ToolPlane");
+        grid = GameObject.Find("Grid");
 
-        // Height above the surface. Height is y position of plane
-        // plus thickness of surface (0.05) plus the half the width of the tool (0.075)
-        height = toolSurface.transform.position.y + 0.08f;
+        impactBox = GameObject.Find("ToolBox");
+        curlingStone = GameObject.Find("curlingStone");
+        slingShotBall = GameObject.Find("slingShotBall");
+
+
+        GameObject puckobj = GameObject.Find("PuckObject");
+        GameObject ballObject = GameObject.Find("BallObject");
 
         // Set up home position
         Home = GameObject.Find("HomePosition");
-
+        base.Setup();
 
         // Set up target
-        float targetAngle = targetAngles[0];
-        targetAngles.RemoveAt(0);
+        float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
 
         Target.transform.position = new Vector3(0f, 0.08f, 0f);
         Target.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
-        Target.transform.position += Target.transform.forward.normalized * 0.55f;
+        Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
 
         // Set up camera for non VR and VR modes
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+        // VR Mode needs to be added
+/*        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             oldMainCamera = GameObject.Find("Main Camera");
             oldMainCamera.SetActive(false);
         }
         else toolCamera.SetActive(false);
-
-        distanceToTarget = Vector3.Distance(Target.transform.position, Puckobj.transform.position);
-        distanceToTarget += 0.15f;
+*/
 
 
-        /*
-        // Set up surface friction
-        toolSurface.GetComponent<BoxCollider>().material.dynamicFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_dynamic_friction");
 
-        toolSurface.GetComponent<BoxCollider>().material.staticFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_surface_static_friction");
+        // setup for each Trigger type
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "impact")
+        {
+            _triggerType = triggerType.Impact;
 
-        // Set up tool friction
+            //set up tool type
+            //tool = impactBox
+            impactBox.GetComponent<BoxCollider>().material.bounciness = 1f;
+            impactBox.GetComponent<BoxCollider>().enabled = false;
 
-        // Set up object
+            curlingStone.SetActive(false);
+            slingShotBall.SetActive(false);
+
+            // set up puck type 
+            if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "puck")
+            {
+                ballObject.SetActive(false);
+                puck = puckobj;
+            }
+            else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "ball")
+            {
+                puckobj.SetActive(false);
+                puck = ballObject;
+            }
+
+            puck.GetComponent<SphereCollider>().material.bounciness = 0.8f;
+
+            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, puck.transform.position);
+            InitialDistanceToTarget += 0.15f;
+
+            // Disable object for first step
+            puck.SetActive(false);
+
+        }
         
-        obj.GetComponent<SphereCollider>().material.dynamicFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
+        else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "curling")
+        {
+            _triggerType = triggerType.Curling;
 
-        obj.GetComponent<SphereCollider>().material.dynamicFriction =
-            ctrler.Session.CurrentTrial.settings.GetFloat("per_block_tool_dynamic_friction");
-        */
+            //set up tool type
+            //tool = curlingStone
+            curlingStone.GetComponent<SphereCollider>().material.bounciness = 1f;
+            curlingStone.GetComponent<SphereCollider>().enabled = false;
 
-        Puckobj.GetComponent<SphereCollider>().material.bounciness = 0.8f;
-        tool.GetComponent<BoxCollider>().material.bounciness = 1f;
-        tool.GetComponent<BoxCollider>().enabled = false;
-
-        //visualCube = GameObject.Find("ToolVisualCube");
-        //cubeRot = visualCube.transform.rotation;
-
-        /*        // Set up object type
-                if (ctrler.Session.CurrentTrial.settings.GetString("per_block_object_type") == "sphere")
-                    GameObject.Find("ToolVisualCube").SetActive(false);
-                else
-                    GameObject.Find("ToolVisualSphere").SetActive(false);*/
+            curlingStone.transform.position = Home.transform.position;
 
 
-        // Disable object for first step
-        Puckobj.SetActive(false);
+
+            impactBox.SetActive(false);
+            puckobj.SetActive(false);
+            ballObject.SetActive(false);
+            slingShotBall.SetActive(false);
+
+            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, curlingStone.transform.position);
+            InitialDistanceToTarget += 0.15f;
+        }
+        
+        else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "slingshot")
+        {
+            _triggerType = triggerType.SlingShot;
+
+
+
+            impactBox.SetActive(false);
+            puckobj.SetActive(false);
+            ballObject.SetActive(false);
+            curlingStone.SetActive(false);
+
+            slingShotBall.transform.position = Home.transform.position;
+
+            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, slingShotBall.transform.position);
+            InitialDistanceToTarget += 0.15f;
+
+
+        }
+
+
+        // set up surface materials for the plane
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "fabric")
+        {
+            grid.SetActive(false);
+            base.SetSurfaceMaterial( ctrler.Materials["GrassMaterial"]);
+
+        }
+        else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials") == "ice")
+        {
+            grid.SetActive(false);
+            base.SetSurfaceMaterial(ctrler.Materials["Ice"]);
+
+        }
+
+
     }
 
-    private void LogParameters()
+    public override void LogParameters()
     {
-        ExperimentController ctrler = ExperimentController.Instance();
+        GameObject other = null;
 
-        ctrler.Session.CurrentTrial.result["Puckobj"] = Puckobj.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["Puckobj"] = Puckobj.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["Puckobj"] = Puckobj.transform.localPosition.z;
+        switch (_triggerType)
+        {
+            case triggerType.Impact:
+                other = puck;
+                break;
+            case triggerType.Curling:
+                other = curlingStone;
+                break;
+            case triggerType.SlingShot:
+                other = slingShotBall;
+                break;
+            default:
+                Debug.LogError("Trigger type not implemented. Tool object will be null");
+                break;
+        }
+
+        ctrler.Session.CurrentTrial.result["tool_x"] = other.transform.localPosition.x;
+        ctrler.Session.CurrentTrial.result["tool_y"] = other.transform.localPosition.y;
+        ctrler.Session.CurrentTrial.result["tool_z"] = other.transform.localPosition.z;
 
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
         ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
-
-        IncrementStep();
     }
 
-
-    private void RacketMouseMovment(Vector3 mousePoint)
+    private void RacketMouseMovement(Vector3 mousePoint)
     {
-
-        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.5f;
         Vector3 dir = mousePoint - tool.transform.position;
         dir /= Time.fixedDeltaTime;
-        tool.GetComponent<Rigidbody>().velocity = dir;
-        tool.GetComponent<BoxCollider>().enabled = mousePoint.z <= 0.05f;
 
+        tool.GetComponent<Rigidbody>().velocity = dir;
+        if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
+        {
+            tool.transform.LookAt(puck.transform);
+        }
+        else
+        {
+            tool.transform.rotation = Quaternion.identity;
+        }
+        tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
+
+    }
+
+    public override void Disable()
+    {
+        toolSpace.SetActive(false);
     }
 
     protected override void OnDestroy()
@@ -378,13 +934,12 @@ public class ToolTask : BaseTask
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool" && oldMainCamera != null)
             oldMainCamera.SetActive(true);
     }
-
+/*
     void OnDrawGizmos()
     {
         Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
             0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
         Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
-
-    }
+    }*/
 }
