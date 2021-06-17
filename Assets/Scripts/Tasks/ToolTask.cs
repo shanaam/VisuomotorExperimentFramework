@@ -724,7 +724,6 @@ public class ToolTask : BilliardsTask
             ctrler.EndAndPrepare();
     }
 
-
     public override bool IncrementStep()
     {
         if (currentStep == 0)
@@ -889,19 +888,14 @@ public class ToolTask : BilliardsTask
                 break;
             case triggerType.SlingShot:
                 other = slingShotBall;
-                break;
+                break; 
             default:
                 Debug.LogError("Trigger type not implemented. Tool object will be null");
                 break;
         }
 
-        ctrler.Session.CurrentTrial.result["tool_x"] = other.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["tool_y"] = other.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["tool_z"] = other.transform.localPosition.z;
-
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.x;
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.y;
-        ctrler.Session.CurrentTrial.result["target_x"] = Target.transform.localPosition.z;
+        ctrler.LogObjectPosition("tool", other.transform.localPosition);
+        ctrler.LogObjectPosition("target", Target.transform.localPosition);
     }
 
     private void RacketMouseMovement(Vector3 mousePoint)
