@@ -157,6 +157,7 @@ namespace UXF.UI
         {
             if (session == null) session = GetComponentInParent<Session>();
             if (canvas == null) canvas = GetComponent<Canvas>();
+            if (popupController == null) popupController = GetComponentInChildren<PopupController>(true);
             // read word list
             if (uuidWordList) words = uuidWordList.text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             GenerateSidebar();
@@ -625,7 +626,16 @@ namespace UXF.UI
             www.timeout = 5;
             yield return www.SendWebRequest();
 
-            if (www.isNetworkError || www.isHttpError)
+            bool error;
+#if UNITY_2020_OR_NEWER
+            error = www.result != UnityWebRequest.Result.Success;
+#else
+#pragma warning disable
+            error = www.isHttpError || www.isNetworkError;
+#pragma warning restore
+#endif
+
+            if (error)
             {
                 Utilities.UXFDebugLogError(www.error);
                 yield break;
