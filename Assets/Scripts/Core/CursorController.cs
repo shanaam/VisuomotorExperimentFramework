@@ -253,7 +253,7 @@ public class CursorController : MonoBehaviour
         prevRightTrigger = IsTriggerDown("r");
     }
 
-    //
+    
     private Vector3 GetHandPosition()
     {
         if (UseVR)
@@ -261,6 +261,11 @@ public class CursorController : MonoBehaviour
             return CurrentTaskHand == "l"
             ? leftHandCollider.transform.position
             : rightHandCollider.transform.position;
+        }
+
+        if (Camera.main == null)
+        {
+            Debug.LogWarning("make sure your camera is tagged as the Main camera");
         }
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

@@ -49,7 +49,7 @@ public class ExperimentController : MonoBehaviour
     public int Score = 0;
 
     // Pseudorandom Float List
-    private Dictionary<string, List<float>> pMap = new Dictionary<string, List<float>>();
+    private Dictionary<string, List<object>> pMap = new Dictionary<string, List<object>>();
 
     // Used for object tracking
     private Dictionary<string, GameObject> trackedObjects = new Dictionary<string, GameObject>();
@@ -213,6 +213,16 @@ public class ExperimentController : MonoBehaviour
                 break;
             case "tool":
                 CurrentTask = gameObject.AddComponent<ToolTask>();
+
+                // Triger type option list shuffled
+                List<int> index = InitializePseudorandomList(trial, "per_block_list_triggerType");
+               
+                // puck type option list shuffled
+                InitializePseudorandomList(trial, "per_block_list_puck_type", index);
+
+                // tool type option list shuffled
+                InitializePseudorandomList(trial, "per_block_list_tool_type", index);
+
                 break;
             default:
                 Debug.LogWarning("Experiment Type not implemented: " +
@@ -354,12 +364,12 @@ public class ExperimentController : MonoBehaviour
         if (listKey == string.Empty) return indices;
 
         // Grab target list
-        List<float> tempAngleList = Session.settings.GetFloatList(listKey);
+        List<object> tempAngleList = Session.settings.GetObjectList(listKey);
 
         if (!pMap.ContainsKey(key))
         {
             // Initialize new list if its the first time using this key
-            pMap[key] = new List<float>();
+            pMap[key] = new List<object>();
         }
         else
         {
@@ -413,7 +423,7 @@ public class ExperimentController : MonoBehaviour
     /// associated list.
     /// </summary>
     /// <param name="key"></param>
-    public float PollPseudorandomList(string key)
+    public object PollPseudorandomList(string key)
     {
         // If the key is null in the JSON, skip
         if (Session.CurrentBlock.settings.GetString(key, "") == string.Empty)
@@ -422,7 +432,7 @@ public class ExperimentController : MonoBehaviour
         if (pMap.ContainsKey(key))
         {
             // Pop value from list
-            float val = pMap[key][0];
+            object val = pMap[key][0];
             pMap[key].RemoveAt(0);
 
             // Log value that was polled
@@ -438,8 +448,9 @@ public class ExperimentController : MonoBehaviour
             throw new NullReferenceException();
         }
 
-        return 0.0f;
+        return null;
     }
+
 
     /// <summary>
     /// Using the number of floats specified, generates a temporary list from 0 .. numFloats.
@@ -449,16 +460,16 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     /// <returns> A list of integers where the values ranges from [0, numFloats) and the number of elements
     /// equals the number of trials in the current block</returns>
-    /// <param name="numFloats"> The number of elements in the list. Must be a multiple of the number of trials.</param>
-    private List<int> GenerateListOrder(int numFloats)
+    /// <param name="numElements"> The number of elements in the list. Must be a multiple of the number of trials.</param>
+    private List<int> GenerateListOrder(int numElements)
     {
         List<int> indices = new List<int>();
 
-        int count = Session.CurrentBlock.trials.Count / numFloats;
+        int count = Session.CurrentBlock.trials.Count / numElements;
         for (int i = 0; i < count; i++)
         {
             // Create a temporary list ranging from [0, numFloats) and shuffles it
-            List<int> temp = new List<int>(Enumerable.Range(0, numFloats));
+            List<int> temp = new List<int>(Enumerable.Range(0, numElements));
             temp.Shuffle();
 
             // Concats the list to the result

@@ -111,7 +111,7 @@ public class LocalizationTask : BaseTask
         Home = targets[1];
 
         // Grab an angle from the list and then remove it
-        float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
+        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
 
         // Set up the arc object
         targets[2] = Instantiate(ctrler.GetPrefab("ArcTarget"));

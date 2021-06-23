@@ -20,11 +20,17 @@
     
     "per_block_surface_materials": ["fabric","ice","fabric","ice","fabric"],
 
-    "per_block_triggerType":["curling","slingshot","impact","impact","curling"],
+    "per_block_list_triggerType":["tt1","tt1","tt1","tt1","tt1"],
 
-    "per_block_puck_type": ["puck","ball","puck","ball","puck"],
-    
-    "per_block_tool_type": ["Quad","Sphere","Quad","Sphere","Quad"],
+    "tt1":["impact","slingshot","impact","impact","curling"],
+
+    "per_block_list_puck_type": ["pt1","pt1","pt1","pt1","pt1"],
+
+    "pt1": ["puck","ball","puck","ball","puck"],
+
+    "per_block_list_tool_type": ["tT","tT","tT","tT","tT"],
+
+    "tT":["quad","sphere","quad","sphere","quad"],
     
     "per_block_surface_dynamic_friction": [0.1, 0.1, 0.1, 0.1, 0.1],
 
