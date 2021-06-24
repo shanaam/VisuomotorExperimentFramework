@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -53,10 +54,9 @@ public class ToolTask : BilliardsTask
     private bool enteredTarget;
 
 
+    private TriggerType _triggerType;
 
-    private triggerType _triggerType;
-
-    private enum triggerType
+    private enum TriggerType
     {
         Impact,
         SlingShot,
@@ -70,7 +70,7 @@ public class ToolTask : BilliardsTask
 
         Vector3 mousePoint = new Vector3();
 
-        if (_triggerType == triggerType.Impact)
+        if (_triggerType == TriggerType.Impact)
         {
             mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up,
                 new Vector3(0f, impactBox.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
@@ -78,7 +78,7 @@ public class ToolTask : BilliardsTask
             if (Vector3.Distance(mousePoint, impactBox.transform.position) > 0.05f && currentStep == 0) return;
         }
 
-        if (_triggerType == triggerType.Curling)
+        if (_triggerType == TriggerType.Curling)
         {
             mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, 
                 new Vector3(0f, curlingStone.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
@@ -86,7 +86,7 @@ public class ToolTask : BilliardsTask
             if (Vector3.Distance(mousePoint, curlingStone.transform.position) > 0.05f && currentStep == 0) return;
         }
 
-        if(_triggerType == triggerType.SlingShot)
+        if(_triggerType == TriggerType.SlingShot)
         {
             mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, 
                 new Vector3(0f, slingShotBall.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
@@ -99,7 +99,7 @@ public class ToolTask : BilliardsTask
             // Return to home position phase
             case 0:
 
-                if (_triggerType == triggerType.Impact)
+                if (_triggerType == TriggerType.Impact)
                 {
 
                     impactBox.GetComponent<Rigidbody>().velocity = Vector3.zero;
@@ -110,7 +110,7 @@ public class ToolTask : BilliardsTask
                     }
                 }
 
-                if(_triggerType == triggerType.Curling)
+                if(_triggerType == TriggerType.Curling)
                 {
                     curlingStone.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
@@ -120,7 +120,7 @@ public class ToolTask : BilliardsTask
                     }
                 }
 
-                if(_triggerType == triggerType.SlingShot)
+                if(_triggerType == TriggerType.SlingShot)
                 {
                     slingShotBall.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
@@ -135,7 +135,7 @@ public class ToolTask : BilliardsTask
             // the user triggers the opbject
             case 1:
                
-                if (_triggerType == triggerType.Impact)
+                if (_triggerType == TriggerType.Impact)
                 {
                     Vector3 dir = mousePoint - impactBox.transform.position;
                     dir /= Time.fixedDeltaTime;
@@ -155,7 +155,7 @@ public class ToolTask : BilliardsTask
                     impactBox.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
                 }
 
-                if (_triggerType == triggerType.Curling)
+                if (_triggerType == TriggerType.Curling)
                 {
                     Vector3 dir = mousePoint - curlingStone.transform.position;
                     dir /= Time.fixedDeltaTime;
@@ -188,7 +188,7 @@ public class ToolTask : BilliardsTask
                     }
                 }
                 
-                if (_triggerType == triggerType.SlingShot)
+                if (_triggerType == TriggerType.SlingShot)
                 {
                     Vector3 dir = mousePoint - slingShotBall.transform.position;
                     dir /= Time.fixedDeltaTime;
@@ -222,7 +222,7 @@ public class ToolTask : BilliardsTask
                 // Track a points for feedback trail 
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
-                    if (_triggerType == triggerType.Impact)
+                    if (_triggerType == TriggerType.Impact)
                         PuckPoints.Add(puck.transform.position);
                 }
                 
@@ -235,15 +235,15 @@ public class ToolTask : BilliardsTask
                 // Track a points for feedback trail 
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
-                    if (_triggerType == triggerType.Curling)
+                    if (_triggerType == TriggerType.Curling)
                         CurlingStonePoints.Add(curlingStone.transform.position);
 
 
-                    if (_triggerType == triggerType.SlingShot)
+                    if (_triggerType == TriggerType.SlingShot)
                         slingShotPoints.Add(slingShotBall.transform.position);
                 }
 
-                if (_triggerType == triggerType.Impact)
+                if (_triggerType == TriggerType.Impact)
                 {
 
                     //RacketMouseMovement(mousePoint);
@@ -332,7 +332,7 @@ public class ToolTask : BilliardsTask
                     break;
                 }
 
-                if (_triggerType == triggerType.Curling)
+                if (_triggerType == TriggerType.Curling)
                 {
 
                     // get the distance btween curling stone and Target
@@ -403,7 +403,7 @@ public class ToolTask : BilliardsTask
 
                 }
 
-                if (_triggerType == triggerType.SlingShot)
+                if (_triggerType == TriggerType.SlingShot)
                 {
 
                     // get the distance btween slingShotBall stone and Target
@@ -482,7 +482,7 @@ public class ToolTask : BilliardsTask
             // after we either hit the Target or passed by it
             case 3:
 
-                if(_triggerType == triggerType.Impact)
+                if(_triggerType == TriggerType.Impact)
                 {
 
                     if (timer == 0)
@@ -563,7 +563,7 @@ public class ToolTask : BilliardsTask
 
                 }
 
-                if(_triggerType == triggerType.Curling)
+                if(_triggerType == TriggerType.Curling)
                 {
 
 
@@ -641,7 +641,7 @@ public class ToolTask : BilliardsTask
 
                 }
 
-                if(_triggerType == triggerType.SlingShot)
+                if(_triggerType == TriggerType.SlingShot)
                 {
                     if (timer == 0)
                     {
@@ -728,10 +728,10 @@ public class ToolTask : BilliardsTask
     {
         if (currentStep == 0)
         {   
-            if(_triggerType == triggerType.Impact)
+            if(_triggerType == TriggerType.Impact)
                 puck.SetActive(true);
 
-            if (_triggerType == triggerType.Curling)
+            if (_triggerType == TriggerType.Curling)
                 curlingStone.SetActive(true);
         }
 
@@ -746,7 +746,6 @@ public class ToolTask : BilliardsTask
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         grid = GameObject.Find("Grid");
-
         impactBox = GameObject.Find("ToolBox");
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");
@@ -760,7 +759,11 @@ public class ToolTask : BilliardsTask
         base.Setup();
 
         // Set up target
-        float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
+        float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
+        string puck_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_puck_type"));
+        string tool_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_tool_type"));
+
+        Debug.Log("puck Type" + puck_type);
 
         Target.transform.position = new Vector3(0f, 0.08f, 0f);
         Target.transform.rotation = Quaternion.Euler(
@@ -768,93 +771,99 @@ public class ToolTask : BilliardsTask
 
         Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
 
+
+        switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_list_triggerType"))) {
+
+            case "impact":
+                _triggerType = TriggerType.Impact;
+                break;
+            case "slingShot":
+                _triggerType = TriggerType.SlingShot;
+                break;
+            case "curling":
+                _triggerType = TriggerType.Curling;
+                break;
+        }
+
+
         // Set up camera for non VR and VR modes
         // VR Mode needs to be added
-/*        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
-            oldMainCamera = GameObject.Find("Main Camera");
-            oldMainCamera.SetActive(false);
+            ctrler.CursorController.SetVRCamera(false);
         }
         else toolCamera.SetActive(false);
-*/
 
 
-
-        // setup for each Trigger type
-        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "impact")
+        switch (_triggerType)
         {
-            _triggerType = triggerType.Impact;
+            case TriggerType.Impact:
+                //set up tool type
+                //tool = impactBox
+                impactBox.GetComponent<BoxCollider>().material.bounciness = 1f;
+                impactBox.GetComponent<BoxCollider>().enabled = false;
 
-            //set up tool type
-            //tool = impactBox
-            impactBox.GetComponent<BoxCollider>().material.bounciness = 1f;
-            impactBox.GetComponent<BoxCollider>().enabled = false;
+                curlingStone.SetActive(false);
+                slingShotBall.SetActive(false);
 
-            curlingStone.SetActive(false);
-            slingShotBall.SetActive(false);
+                // set up puck type 
+                if (puck_type == "puck")
+                {
+                    ballObject.SetActive(false);
+                    puck = puckobj;
+                }
+                else if (puck_type == "ball")
+                {
+                    puckobj.SetActive(false);
+                    puck = ballObject;
+                }
 
-            // set up puck type 
-            if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "puck")
-            {
-                ballObject.SetActive(false);
-                puck = puckobj;
-            }
-            else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_puck_type") == "ball")
-            {
+                puck.GetComponent<SphereCollider>().material.bounciness = 0.8f;
+
+                InitialDistanceToTarget = Vector3.Distance(Target.transform.position, puck.transform.position);
+                InitialDistanceToTarget += 0.15f;
+
+                // Disable object for first step
+                puck.SetActive(false);
+
+                break;
+
+            case TriggerType.Curling:
+                _triggerType = TriggerType.Curling;
+
+                curlingStone.GetComponent<SphereCollider>().material.bounciness = 1f;
+                curlingStone.GetComponent<SphereCollider>().enabled = false;
+
+                curlingStone.transform.position = Home.transform.position;
+
+                impactBox.SetActive(false);
                 puckobj.SetActive(false);
-                puck = ballObject;
-            }
+                ballObject.SetActive(false);
+                slingShotBall.SetActive(false);
 
-            puck.GetComponent<SphereCollider>().material.bounciness = 0.8f;
+                InitialDistanceToTarget = Vector3.Distance(Target.transform.position, curlingStone.transform.position);
+                InitialDistanceToTarget += 0.15f;
+                break;
 
-            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, puck.transform.position);
-            InitialDistanceToTarget += 0.15f;
+            case TriggerType.SlingShot:
+                _triggerType = TriggerType.SlingShot;
 
-            // Disable object for first step
-            puck.SetActive(false);
 
+
+                impactBox.SetActive(false);
+                puckobj.SetActive(false);
+                ballObject.SetActive(false);
+                curlingStone.SetActive(false);
+
+                slingShotBall.transform.position = Home.transform.position;
+
+                InitialDistanceToTarget = Vector3.Distance(Target.transform.position, slingShotBall.transform.position);
+                InitialDistanceToTarget += 0.15f;
+                break;
         }
+
         
-        else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "curling")
-        {
-            _triggerType = triggerType.Curling;
-
-            //set up tool type
-            //tool = curlingStone
-            curlingStone.GetComponent<SphereCollider>().material.bounciness = 1f;
-            curlingStone.GetComponent<SphereCollider>().enabled = false;
-
-            curlingStone.transform.position = Home.transform.position;
-
-
-
-            impactBox.SetActive(false);
-            puckobj.SetActive(false);
-            ballObject.SetActive(false);
-            slingShotBall.SetActive(false);
-
-            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, curlingStone.transform.position);
-            InitialDistanceToTarget += 0.15f;
-        }
-        
-        else if (ctrler.Session.CurrentBlock.settings.GetString("per_block_triggerType") == "slingshot")
-        {
-            _triggerType = triggerType.SlingShot;
-
-
-
-            impactBox.SetActive(false);
-            puckobj.SetActive(false);
-            ballObject.SetActive(false);
-            curlingStone.SetActive(false);
-
-            slingShotBall.transform.position = Home.transform.position;
-
-            InitialDistanceToTarget = Vector3.Distance(Target.transform.position, slingShotBall.transform.position);
-            InitialDistanceToTarget += 0.15f;
-
-
-        }
 
 
         // set up surface materials for the plane
@@ -880,13 +889,13 @@ public class ToolTask : BilliardsTask
 
         switch (_triggerType)
         {
-            case triggerType.Impact:
+            case TriggerType.Impact:
                 other = puck;
                 break;
-            case triggerType.Curling:
+            case TriggerType.Curling:
                 other = curlingStone;
                 break;
-            case triggerType.SlingShot:
+            case TriggerType.SlingShot:
                 other = slingShotBall;
                 break; 
             default:
@@ -919,6 +928,9 @@ public class ToolTask : BilliardsTask
     public override void Disable()
     {
         toolSpace.SetActive(false);
+
+        // Enabling this will cause screen flicker. Only use if task involves both Non-VR and VR in the same experiment
+        //ctrler.CursorController.SetVRCamera(true);
     }
 
     protected override void OnDestroy()

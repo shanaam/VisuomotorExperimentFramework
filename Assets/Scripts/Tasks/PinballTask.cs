@@ -13,6 +13,7 @@ public class PinballTask : BilliardsTask
     private GameObject pinballWall;
     private GameObject pinballTimerIndicator;
     private GameObject scoreboard;
+    private GameObject obstacle;
 
     private ExperimentController ctrler;
 
@@ -483,18 +484,37 @@ public class PinballTask : BilliardsTask
         pinballTimerIndicator = GameObject.Find("TimerIndicator");
         scoreboard = GameObject.Find("Scoreboard");
         bonusText = GameObject.Find("BonusText");
+        obstacle = GameObject.Find("Obstacle");
 
         // Scoreboard is now updated by the pinball class
         scoreboard.GetComponent<Scoreboard>().AllowManualSet = true;
 
-        float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
-        cameraTilt = ctrler.PollPseudorandomList("per_block_list_camera_tilt");
-        surfaceTilt = ctrler.PollPseudorandomList("per_block_list_surface_tilt");
+        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
+        cameraTilt = (float) ctrler.PollPseudorandomList("per_block_list_camera_tilt");
+        surfaceTilt = (float) ctrler.PollPseudorandomList("per_block_list_surface_tilt");
 
+        // initializes the position
         Target.transform.position = new Vector3(0f, 0.065f, 0f);
+        //rotates the object
         Target.transform.rotation = Quaternion.Euler(0f, -targetAngle + 90f, 0f);
-
+        //moves object forward towards the direction it is facing
         Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
+
+        // checks if the current trial uses the obstacle and activates it if it does
+        if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_obstacle"))
+        {       
+            obstacle.SetActive(true);
+            // initializes the position
+            obstacle.transform.position = new Vector3(0f, 0.065f, 0f);
+            //rotates the object
+            obstacle.transform.rotation = Quaternion.Euler(0f, -targetAngle + 90f, 0f);
+            //moves object forward towards the direction it is facing
+            obstacle.transform.position += Target.transform.forward.normalized * (TARGET_DISTANCE / 2);
+        }
+        else
+        {
+            obstacle.SetActive(false);
+        }
 
         // Use static camera for non-vr version of pinball
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")

@@ -263,6 +263,11 @@ public class CursorController : MonoBehaviour
             : rightHandCollider.transform.position;
         }
 
+        if (Camera.main == null)
+        {
+            Debug.LogWarning("make sure your camera is tagged as the Main camera");
+        }
+
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         return new Vector3(mousePos.x, ExperimentController.Instance().transform.position.y, mousePos.z);
     }
