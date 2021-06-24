@@ -167,6 +167,7 @@ public class PinballTask : BilliardsTask
                 enteredTarget = true;
             }
 
+
             previousPosition = pinball.transform.position;
         }
     }
@@ -337,6 +338,8 @@ public class PinballTask : BilliardsTask
 
                 if (timer < 1.5f)
                 {
+                    ctrler.IsTracking = false;
+
                     timer += Time.deltaTime;
 
                     if (timer > 0.08f)
@@ -398,6 +401,8 @@ public class PinballTask : BilliardsTask
         }
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
+
+        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 200;
 
         pinball.GetComponent<Rigidbody>().velocity =
             pinball.transform.forward * direction.magnitude * PINBALL_FIRE_FORCE;

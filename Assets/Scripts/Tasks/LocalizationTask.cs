@@ -9,24 +9,63 @@ public class LocalizationTask : BaseTask
 
     private Trial trial;
 
+    private GameObject localizationCam;
+    private GameObject localizationSurface;
+    private GameObject localizationPrefab;
+
+    // Angle of the localizer along the arc, in non-vr mode
+    public float LocalizerAngle2D = 0;
+    private float localizerSpeed2D = 0.25f;
+
     public void LateUpdate()
     {
+        ExperimentController ctrler = ExperimentController.Instance();
+
         switch (currentStep)
         {
             // When the user holds their hand and they are outside the home, begin the next phase of localization
-            case 2 when ExperimentController.Instance().CursorController.PauseTime > 0.5f && 
-                        ExperimentController.Instance().CursorController.DistanceFromHome > 0.05f:
+            case 2 when ctrler.CursorController.PauseTime > 0.5f && 
+                        ctrler.CursorController.DistanceFromHome > 0.05f:
                 IncrementStep();
                 break;
-            case 3: // User uses their head to localize their hand
-                Plane plane = new Plane(Vector3.down, ExperimentController.Instance().transform.position.y);
-                Ray r = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
-                
-                if (plane.Raycast(r, out float hit))
-                    localizer.transform.position = r.GetPoint(hit);
+            case 3: 
+                // VR: User uses their head to localize their hand
+                // Non-VR: User uses horizontal axis to localize their mouse
+
+                if (ctrler.Session.settings.GetString("experiment_mode") == "target") // if in vr
+                {
+                    // raycasts from camera to set localizer position
+                    Plane plane = new Plane(Vector3.down, ctrler.transform.position.y);
+                    Ray r = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+
+                    if (plane.Raycast(r, out float hit))
+                        localizer.transform.position = r.GetPoint(hit);
+                }
+                else
+                {
+                    // A/D keys, left/right arrow keys, or gamepad joystick as input
+                    LocalizerAngle2D += Input.GetAxisRaw("Horizontal") * localizerSpeed2D;
+                    LocalizerAngle2D = Mathf.Clamp(LocalizerAngle2D, -90f, 90f); 
+
+                    float angle = LocalizerAngle2D * Mathf.Deg2Rad;
+
+                    // centre == centre of Arc == centre of Home
+                    Vector3 centre = Target.transform.position;
+
+                    // copied from ArcTarget script
+                    float distance = Target.GetComponent<ArcScript>().TargetDistance + centre.z; 
+
+                    // find position along arc
+                    Vector3 newPos = new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * distance;
+                    newPos += centre;
+
+                    localizer.transform.position = newPos;
+                }
+
+                // switch from click to enter or something? issue with clicking to refocus window
 
                 // If the user presses the trigger associated with the hand, we end the trial
-                if (ExperimentController.Instance().CursorController.IsTriggerDown("r") || Input.GetKeyDown(KeyCode.N))
+                if (ctrler.CursorController.IsTriggerDown(ctrler.CursorController.CurrentTaskHand) || Input.GetKeyDown(KeyCode.N) || Input.GetMouseButtonDown(0))
                     IncrementStep();
 
                 break;
@@ -38,6 +77,8 @@ public class LocalizationTask : BaseTask
 
     public override bool IncrementStep()
     {
+        ExperimentController ctrler = ExperimentController.Instance();
+
         switch (currentStep)
         {
             case 0: // Enter dock
@@ -47,10 +88,15 @@ public class LocalizationTask : BaseTask
             case 1: // Enter home
                 Home.SetActive(false);
 
-                ExperimentController.Instance().StartTimer();
+                ctrler.StartTimer();
 
-                foreach (GameObject g in Trackers)
-                    g.GetComponent<PositionRotationTracker>().StartRecording();
+                // Create tracker objects
+                ctrler.AddTrackedObject("hand_path",
+                    ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
+                        ? ctrler.CursorController.LeftHand
+                        : ctrler.CursorController.RightHand);
+
+                ctrler.AddTrackedObject("cursor_path", ctrler.CursorController.gameObject);
 
                 Target.SetActive(true);
 
@@ -67,7 +113,7 @@ public class LocalizationTask : BaseTask
 
                 // We use the target variable to store the cursor position
                 Target.transform.position =
-                    ExperimentController.Instance().CursorController.CurrentHand().transform.position;
+                    ExperimentController.Instance().CursorController.GetHandPosition();
 
                 break;
         }
@@ -79,14 +125,7 @@ public class LocalizationTask : BaseTask
     public override void LogParameters()
     {
         // Store where they think their hand is
-        ExperimentController.Instance().Session.CurrentTrial.result["loc_x"] =
-            localizer.transform.localPosition.x;
-
-        ExperimentController.Instance().Session.CurrentTrial.result["loc_y"] =
-            localizer.transform.localPosition.y;
-
-        ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
-            localizer.transform.localPosition.z;
+        ExperimentController.Instance().LogObjectPosition("loc", localizer.transform.localPosition);
     }
 
     public override void Setup()
@@ -96,25 +135,31 @@ public class LocalizationTask : BaseTask
         maxSteps = 4;
 
         ctrler.CursorController.SetHandVisibility(false);
+        Cursor.visible = false;
         ctrler.CursorController.SetCursorVisibility(true);
 
+        localizationPrefab = Instantiate(ctrler.GetPrefab("LocalizationPrefab"));
+        localizationPrefab.transform.SetParent(ctrler.transform);
+        localizationPrefab.transform.localPosition = Vector3.zero;
+
+        localizationCam = GameObject.Find("LocalizationCamera");
+        localizationSurface = GameObject.Find("Surface");
+
         // Set up the dock position
-        targets[0] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[0] = GameObject.Find("Dock");
         targets[0].transform.position = ctrler.TargetContainer.transform.position;
-        targets[0].name = "Dock";
 
         // Set up the home position
-        targets[1] = Instantiate(ctrler.GetPrefab("Target"));
+        targets[1] = GameObject.Find("Home");
         targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
-        targets[1].name = "Home";
         Home = targets[1];
 
         // Grab an angle from the list and then remove it
         float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
 
         // Set up the arc object
-        targets[2] = Instantiate(ctrler.GetPrefab("ArcTarget"));
+        targets[2] = GameObject.Find("ArcTarget");
         targets[2].transform.rotation = Quaternion.Euler(
             0f,
             -targetAngle + 90f,
@@ -124,38 +169,38 @@ public class LocalizationTask : BaseTask
 
         targets[2].GetComponent<ArcScript>().TargetDistance = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_distance") / 100f;
         targets[2].GetComponent<ArcScript>().Angle = targets[2].transform.rotation.eulerAngles.y;
-        targets[2].name = "Arc";
         targets[2].transform.localScale = Vector3.one;
         Target = targets[2];
 
         // Set up the GameObject that tracks the user's gaze
-        localizer = Instantiate(ctrler.GetPrefab("Target"));
+        localizer = GameObject.Find("Localizer");
         localizer.GetComponent<SphereCollider>().enabled = false;
         localizer.GetComponent<BaseTarget>().enabled = false;
         localizer.SetActive(false);
 
-        Target.SetActive(false);
-
-        // Create tracker objects
-        foreach (GameObject g in targets)
-            g.transform.SetParent(ctrler.TargetContainer.transform);
-
         localizer.transform.SetParent(ctrler.TargetContainer.transform);
         localizer.name = "Localizer";
 
-        Trackers = new GameObject[1];
+        Target.SetActive(false);
 
-        Trackers[0] = ctrler.GenerateTracker("handtracker",
-            ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
-                ? ctrler.CursorController.LeftHand.transform
-                : ctrler.CursorController.RightHand.transform);
 
-        foreach (GameObject g in Trackers)
-            ctrler.Session.trackedObjects.Add(g.GetComponent<PositionRotationTracker>());
+        // Use static camera for non-vr version of pinball
+        if (ctrler.Session.settings.GetString("experiment_mode") == "target")
+        {
+            localizationSurface.SetActive(false);
+            localizationCam.SetActive(false);
+            ctrler.CursorController.UseVR = true;
+        }
+        else
+        {
+            ctrler.CursorController.SetVRCamera(false);
+        }
     }
 
     public override void Disable()
     {
+        // TODO: reenable camera for VR
+
         foreach (GameObject g in targets)
             g.SetActive(false);
 
