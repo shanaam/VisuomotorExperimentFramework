@@ -36,7 +36,5 @@
 
     "per_block_surface_static_friction": [0.1, 0.1, 0.1, 0.1, 0.1],
     "per_block_tool_dynamic_friction": [0.3, 0.3, 0.3, 0.3, 0.3],
-    "per_block_tool_static_friction": [0.3, 0.3, 0.3, 0.3, 0.3],
-    
-    "per_block_object_type": ["sphere", "cube", "sphere", "cube", "sphere"]
+    "per_block_tool_static_friction": [0.3, 0.3, 0.3, 0.3, 0.3]
 }

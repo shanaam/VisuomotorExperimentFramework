@@ -53,7 +53,6 @@ public class ToolTask : BilliardsTask
     private float delayTimer;
     private bool enteredTarget;
 
-    private string puck_type;
 
     private TriggerType _triggerType;
 
@@ -747,7 +746,6 @@ public class ToolTask : BilliardsTask
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         grid = GameObject.Find("Grid");
-
         impactBox = GameObject.Find("ToolBox");
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");
@@ -762,7 +760,17 @@ public class ToolTask : BilliardsTask
 
         // Set up target
         float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
-        puck_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_puck_type"));
+        string puck_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_puck_type"));
+        string tool_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_tool_type"));
+
+        Debug.Log("puck Type" + puck_type);
+
+        Target.transform.position = new Vector3(0f, 0.08f, 0f);
+        Target.transform.rotation = Quaternion.Euler(
+            0f, -targetAngle + 90f, 0f);
+
+        Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
+
 
         switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_list_triggerType"))) {
 
@@ -777,16 +785,6 @@ public class ToolTask : BilliardsTask
                 break;
         }
 
-       
-
-
-        Debug.Log("puck Type" + puck_type);
-
-        Target.transform.position = new Vector3(0f, 0.08f, 0f);
-        Target.transform.rotation = Quaternion.Euler(
-            0f, -targetAngle + 90f, 0f);
-
-        Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
 
         // Set up camera for non VR and VR modes
         // VR Mode needs to be added
@@ -834,12 +832,11 @@ public class ToolTask : BilliardsTask
             case TriggerType.Curling:
                 _triggerType = TriggerType.Curling;
 
-                //set up tool type
-                //tool = curlingStone
                 curlingStone.GetComponent<SphereCollider>().material.bounciness = 1f;
                 curlingStone.GetComponent<SphereCollider>().enabled = false;
 
                 curlingStone.transform.position = Home.transform.position;
+
                 impactBox.SetActive(false);
                 puckobj.SetActive(false);
                 ballObject.SetActive(false);
