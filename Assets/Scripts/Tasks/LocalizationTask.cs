@@ -13,6 +13,10 @@ public class LocalizationTask : BaseTask
     private GameObject localizationSurface;
     private GameObject localizationPrefab;
 
+    // Angle of the localizer along the arc, in non-vr mode
+    public float LocalizerAngle2D = 0;
+    private float localizerSpeed2D = 0.25f;
+
     public void LateUpdate()
     {
         ExperimentController ctrler = ExperimentController.Instance();
@@ -24,12 +28,41 @@ public class LocalizationTask : BaseTask
                         ctrler.CursorController.DistanceFromHome > 0.05f:
                 IncrementStep();
                 break;
-            case 3: // User uses their head to localize their hand
-                Plane plane = new Plane(Vector3.down, ctrler.transform.position.y);
-                Ray r = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
-                
-                if (plane.Raycast(r, out float hit))
-                    localizer.transform.position = r.GetPoint(hit);
+            case 3: 
+                // VR: User uses their head to localize their hand
+                // Non-VR: User uses horizontal axis to localize their mouse
+
+                if (ctrler.Session.settings.GetString("experiment_mode") == "target") // if in vr
+                {
+                    // raycasts from camera to set localizer position
+                    Plane plane = new Plane(Vector3.down, ctrler.transform.position.y);
+                    Ray r = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+
+                    if (plane.Raycast(r, out float hit))
+                        localizer.transform.position = r.GetPoint(hit);
+                }
+                else
+                {
+                    // A/D keys, left/right arrow keys, or gamepad joystick as input
+                    LocalizerAngle2D += Input.GetAxisRaw("Horizontal") * localizerSpeed2D;
+                    LocalizerAngle2D = Mathf.Clamp(LocalizerAngle2D, -90f, 90f); 
+
+                    float angle = LocalizerAngle2D * Mathf.Deg2Rad;
+
+                    // centre == centre of Arc == centre of Home
+                    Vector3 centre = Target.transform.position;
+
+                    // copied from ArcTarget script
+                    float distance = Target.GetComponent<ArcScript>().TargetDistance + centre.z; 
+
+                    // find position along arc
+                    Vector3 newPos = new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * distance;
+                    newPos += centre;
+
+                    localizer.transform.position = newPos;
+                }
+
+                // switch from click to enter or something? issue with clicking to refocus window
 
                 // If the user presses the trigger associated with the hand, we end the trial
                 if (ctrler.CursorController.IsTriggerDown(ctrler.CursorController.CurrentTaskHand) || Input.GetKeyDown(KeyCode.N) || Input.GetMouseButtonDown(0))
@@ -78,10 +111,9 @@ public class LocalizationTask : BaseTask
             case 3: // Select the spot they think their real hand is
                 Target.SetActive(false);
 
-                // TODO: Add support for mouse
                 // We use the target variable to store the cursor position
                 Target.transform.position =
-                    ExperimentController.Instance().CursorController.CurrentHand().transform.position;
+                    ExperimentController.Instance().CursorController.GetHandPosition();
 
                 break;
         }
@@ -92,18 +124,8 @@ public class LocalizationTask : BaseTask
 
     public override void LogParameters()
     {
-
-
-
         // Store where they think their hand is
-        ExperimentController.Instance().Session.CurrentTrial.result["loc_x"] =
-            localizer.transform.localPosition.x;
-
-        ExperimentController.Instance().Session.CurrentTrial.result["loc_y"] =
-            localizer.transform.localPosition.y;
-
-        ExperimentController.Instance().Session.CurrentTrial.result["loc_z"] =
-            localizer.transform.localPosition.z;
+        ExperimentController.Instance().LogObjectPosition("loc", localizer.transform.localPosition);
     }
 
     public override void Setup()
@@ -177,6 +199,8 @@ public class LocalizationTask : BaseTask
 
     public override void Disable()
     {
+        // TODO: reenable camera for VR
+
         foreach (GameObject g in targets)
             g.SetActive(false);
 

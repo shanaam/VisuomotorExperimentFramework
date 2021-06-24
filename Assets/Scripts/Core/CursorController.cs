@@ -254,7 +254,7 @@ public class CursorController : MonoBehaviour
     }
 
     //
-    private Vector3 GetHandPosition()
+    public Vector3 GetHandPosition()
     {
         if (UseVR)
         {
