@@ -484,9 +484,9 @@ public class PinballTask : BilliardsTask
         // Scoreboard is now updated by the pinball class
         scoreboard.GetComponent<Scoreboard>().AllowManualSet = true;
 
-        float targetAngle = ctrler.PollPseudorandomList("per_block_targetListToUse");
-        cameraTilt = ctrler.PollPseudorandomList("per_block_list_camera_tilt");
-        surfaceTilt = ctrler.PollPseudorandomList("per_block_list_surface_tilt");
+        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
+        cameraTilt = (float) ctrler.PollPseudorandomList("per_block_list_camera_tilt");
+        surfaceTilt = (float) ctrler.PollPseudorandomList("per_block_list_surface_tilt");
 
         // initializes the position
         Target.transform.position = new Vector3(0f, 0.065f, 0f);
