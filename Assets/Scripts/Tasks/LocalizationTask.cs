@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UXF;
 
@@ -156,7 +157,7 @@ public class LocalizationTask : BaseTask
         Home = targets[1];
 
         // Grab an angle from the list and then remove it
-        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
+        float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
 
         // Set up the arc object
         targets[2] = GameObject.Find("ArcTarget");
