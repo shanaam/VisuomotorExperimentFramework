@@ -108,7 +108,7 @@ public class ReachToTargetTask : BaseTask
         // Set up the target
 
         // Takes a target angle from the list and removes it
-        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
+        float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
         
         targets[2] = GameObject.Find("Target");
         targets[2].transform.rotation = Quaternion.Euler(
@@ -155,8 +155,6 @@ public class ReachToTargetTask : BaseTask
 
     public override void Disable()
     {
-        Cursor.visible = true;
-
         reachPrefab.SetActive(false);
 
         ctrler.CursorController.SetVRCamera(true);

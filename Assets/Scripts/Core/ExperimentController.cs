@@ -52,6 +52,7 @@ public class ExperimentController : MonoBehaviour
     private Dictionary<string, List<object>> pMap = new Dictionary<string, List<object>>();
 
     // Used for object tracking
+    public bool IsTracking = true;
     private Dictionary<string, GameObject> trackedObjects = new Dictionary<string, GameObject>();
     private Dictionary<string, List<Vector3>> trackedObjectPath = new Dictionary<string, List<Vector3>>();
     private List<float> trackingTimestamps = new List<float>();
@@ -134,14 +135,17 @@ public class ExperimentController : MonoBehaviour
 
     void FixedUpdate()
     {
-        foreach (string key in trackedObjectPath.Keys)
+        if (IsTracking)
         {
-            trackedObjectPath[key].Add(trackedObjects[key].transform.localPosition);
-        }
+            foreach (string key in trackedObjectPath.Keys)
+            {
+                trackedObjectPath[key].Add(trackedObjects[key].transform.localPosition);
+            }
 
-        if (trackedObjectPath.Count > 0)
-        {
-            trackingTimestamps.Add(Time.time);
+            if (trackedObjectPath.Count > 0)
+            {
+                trackingTimestamps.Add(Time.time);
+            }
         }
     }
 
@@ -296,10 +300,10 @@ public class ExperimentController : MonoBehaviour
             // For each element (Select), remove scientific notation and round to 6 decimal places.
             // Then join all these numbers separated by a comma
             Session.CurrentTrial.result[key + "_x"] =
-                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));            
+                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
             
             Session.CurrentTrial.result[key + "_y"] =
-                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));            
+                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));    
             
             Session.CurrentTrial.result[key + "_z"] =
                 string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
@@ -319,6 +323,12 @@ public class ExperimentController : MonoBehaviour
         // Cleanup the current task and destroy it
         BaseTask task = GetComponent<BaseTask>();
         task.Disable();
+
+        // Make the cursor visible again, for the tasks that make it not visible
+        Cursor.visible = true;
+
+        // Re-enables tracking for next trial, in case prev trial disables it
+        IsTracking = true;
 
         if (Session.CurrentTrial.number == Session.LastTrial.number)
             Session.End();
