@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -489,9 +490,9 @@ public class PinballTask : BilliardsTask
         // Scoreboard is now updated by the pinball class
         scoreboard.GetComponent<Scoreboard>().AllowManualSet = true;
 
-        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
-        cameraTilt = (float) ctrler.PollPseudorandomList("per_block_list_camera_tilt");
-        surfaceTilt = (float) ctrler.PollPseudorandomList("per_block_list_surface_tilt");
+        float targetAngle = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_targetListToUse"));
+        cameraTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
+        surfaceTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
 
         // initializes the position
         Target.transform.position = new Vector3(0f, 0.065f, 0f);
