@@ -26,7 +26,7 @@ public class LocalizationTask : BaseTask
         {
             // When the user holds their hand and they are outside the home, begin the next phase of localization
             case 2 when ctrler.CursorController.PauseTime > 0.5f && 
-                        ctrler.CursorController.DistanceFromHome > 0.05f:
+                        ctrler.CursorController.DistanceFromHome > 0.03f:
                 IncrementStep();
                 break;
             case 3: 
@@ -53,8 +53,8 @@ public class LocalizationTask : BaseTask
                     // centre == centre of Arc == centre of Home
                     Vector3 centre = Target.transform.position;
 
-                    // copied from ArcTarget script
-                    float distance = Target.GetComponent<ArcScript>().TargetDistance + centre.z; 
+                    // distance from home: copied from ArcTarget script, multiplied by the size of the arc
+                    float distance = (Target.GetComponent<ArcScript>().TargetDistance + centre.z) * Target.transform.localScale.x;
 
                     // find position along arc
                     Vector3 newPos = new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * distance;
@@ -66,14 +66,14 @@ public class LocalizationTask : BaseTask
                 // switch from click to enter or something? issue with clicking to refocus window
 
                 // If the user presses the trigger associated with the hand, we end the trial
-                if (ctrler.CursorController.IsTriggerDown(ctrler.CursorController.CurrentTaskHand) || Input.GetKeyDown(KeyCode.N) || Input.GetMouseButtonDown(0))
+                if (ctrler.CursorController.IsTriggerDown(ctrler.CursorController.CurrentTaskHand) || Input.GetKeyDown(KeyCode.N) || Input.GetKeyDown(KeyCode.Space))
                     IncrementStep();
 
                 break;
         }
 
         if (Finished)
-            ExperimentController.Instance().EndAndPrepare();
+            ctrler.EndAndPrepare();
     }
 
     public override bool IncrementStep()
@@ -168,9 +168,9 @@ public class LocalizationTask : BaseTask
 
         targets[2].transform.position = targets[1].transform.position;
 
-        targets[2].GetComponent<ArcScript>().TargetDistance = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_distance") / 100f;
+        targets[2].GetComponent<ArcScript>().TargetDistance = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_distance");
         targets[2].GetComponent<ArcScript>().Angle = targets[2].transform.rotation.eulerAngles.y;
-        targets[2].transform.localScale = Vector3.one;
+        //targets[2].transform.localScale = Vector3.one;
         Target = targets[2];
 
         // Set up the GameObject that tracks the user's gaze
@@ -214,6 +214,8 @@ public class LocalizationTask : BaseTask
             Destroy(g);
 
         Destroy(localizer);
+
+        Destroy(localizationPrefab);
 
         base.OnDestroy();
     }
