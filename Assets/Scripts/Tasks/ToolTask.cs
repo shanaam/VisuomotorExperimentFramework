@@ -10,15 +10,14 @@ public class ToolTask : BilliardsTask
     //TODO: 
     /// <summary>
     /// 
-    /// DIFFREENT TYPES OF RACKETS ( sphere is not good a better Racket)
+    ///  sphere is not good a better Racket)
     /// 
     /// 3 types of shooting Styles:
-    ///     Impact
-    ///     Curling --> track the points after the release point
+    ///     Impact:
+    ///         DIFFREENT TYPES OF RACKETS
+    //         
     ///     
     ///     slingShot
-    ///         rubber band should just one line fromt he center of the sling shot ball
-    ///         make the slingshot ball same size and the impact ball
     ///         
     ///              
     ///
@@ -41,6 +40,7 @@ public class ToolTask : BilliardsTask
     private GameObject curlingStone;
     private GameObject slingShotBall;
 
+    // lists for feedback points
     private List<Vector3> PuckPoints = new List<Vector3>();
     private List<Vector3> CurlingStonePoints = new List<Vector3>();
     private List<Vector3> slingShotPoints = new List<Vector3>();
@@ -70,6 +70,8 @@ public class ToolTask : BilliardsTask
 
         Vector3 mousePoint = new Vector3();
 
+
+       
         if (_triggerType == TriggerType.Impact)
         {
             mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up,
@@ -96,7 +98,10 @@ public class ToolTask : BilliardsTask
 
         switch (currentStep)
         {
-            // Return to home position phase
+
+
+
+            // initlize the scene 
             case 0:
 
                 if (_triggerType == TriggerType.Impact)
@@ -132,7 +137,7 @@ public class ToolTask : BilliardsTask
                 
                 break;
 
-            // the user triggers the opbject
+            // the user triggers the object 
             case 1:
                
                 if (_triggerType == TriggerType.Impact)
@@ -196,7 +201,7 @@ public class ToolTask : BilliardsTask
 
                     float time = 0f;
 
-                    // Lien rendere representing the slingshot band is attached to home GameObject
+                    // Line rendere representing the slingshot band is attached to home GameObject
                     Home.GetComponent<LineRenderer>().positionCount = 2;
                     Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
                     Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
@@ -229,7 +234,7 @@ public class ToolTask : BilliardsTask
                 break;
 
             // After the user hits the object
-            // Used to determine if the object hit by the object is heading away from the target
+            // Used to determine if the triggerd object is heading away from the target or not
             case 2:
 
                 // Track a points for feedback trail 
@@ -246,29 +251,16 @@ public class ToolTask : BilliardsTask
                 if (_triggerType == TriggerType.Impact)
                 {
 
-                    //RacketMouseMovement(mousePoint);
+                    
                     Vector3 dir = mousePoint - impactBox.transform.position;
                     dir /= Time.fixedDeltaTime;
                     impactBox.GetComponent<Rigidbody>().velocity = dir;
 
-                    // Rotate the impact: always looking at the puck when close enough 
-                    if (Vector3.Distance(impactBox.transform.position, puck.transform.position) < 0.2f)
-                    {
-                        impactBox.transform.LookAt(puck.transform);
-                    }
-                    else
-                    {
-                        impactBox.transform.rotation = Quaternion.identity;
-                    }
-
+                    //if 
                     impactBox.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
 
 
-
                     float currentDistance = Vector3.Distance(puck.transform.position, Target.transform.position);
-
-
-                    //Debug.Log("this is distance of puck from Target: " + currentDistance);
 
                     // Only check when the distance from puck to target is less than half of the distance
                     // between the target and home position and if the puck is NOT approaching the target
@@ -761,6 +753,9 @@ public class ToolTask : BilliardsTask
         // Set up target
         float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
         string puck_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_puck_type"));
+
+
+        //// cursur represnation type
         string tool_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_tool_type"));
 
         Debug.Log("puck Type" + puck_type);
@@ -824,7 +819,7 @@ public class ToolTask : BilliardsTask
                 InitialDistanceToTarget = Vector3.Distance(Target.transform.position, puck.transform.position);
                 InitialDistanceToTarget += 0.15f;
 
-                // Disable object for first step
+                // Disable object(puck) for first step
                 puck.SetActive(false);
 
                 break;
@@ -842,6 +837,7 @@ public class ToolTask : BilliardsTask
                 ballObject.SetActive(false);
                 slingShotBall.SetActive(false);
 
+                //initial distance between target and curling stone
                 InitialDistanceToTarget = Vector3.Distance(Target.transform.position, curlingStone.transform.position);
                 InitialDistanceToTarget += 0.15f;
                 break;
@@ -940,12 +936,19 @@ public class ToolTask : BilliardsTask
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool" && oldMainCamera != null)
             oldMainCamera.SetActive(true);
     }
-/*
+    
+    
+    
+  /*
     void OnDrawGizmos()
     {
         Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
             0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
 
         Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
-    }*/
+    }
+*/
+
+
+
 }
