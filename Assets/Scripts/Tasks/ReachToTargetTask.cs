@@ -100,15 +100,14 @@ public class ReachToTargetTask : BaseTask
 
         // Set up the home position
         targets[1] = GameObject.Find("Home");
-        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.02f;
+        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
-
         Home = targets[1];
 
         // Set up the target
 
         // Takes a target angle from the list and removes it
-        float targetAngle = (float) ctrler.PollPseudorandomList("per_block_targetListToUse");
+        float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
         
         targets[2] = GameObject.Find("Target");
         targets[2].transform.rotation = Quaternion.Euler(
@@ -155,8 +154,6 @@ public class ReachToTargetTask : BaseTask
 
     public override void Disable()
     {
-        Cursor.visible = true;
-
         reachPrefab.SetActive(false);
 
         ctrler.CursorController.SetVRCamera(true);

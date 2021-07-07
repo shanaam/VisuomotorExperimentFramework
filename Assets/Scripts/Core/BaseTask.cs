@@ -45,13 +45,7 @@ public abstract class BaseTask : MonoBehaviour
 
     protected virtual void OnDestroy()
     {
-        // Delete trackers
-        foreach (GameObject g in Trackers)
-        {
-            ExperimentController.Instance().Session.trackedObjects
-                .Remove(g.GetComponent<PositionRotationTracker>());
-            Destroy(g);
-        }
+        
     }
 
     public int GetCurrentStep => currentStep;

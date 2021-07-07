@@ -35,6 +35,7 @@ public class ArcScript : MonoBehaviour
         expand = true;
     }
 
+    [ContextMenu("Generate Arc")]
     public void GenerateArc()
     {
         Mesh mesh = new Mesh();
