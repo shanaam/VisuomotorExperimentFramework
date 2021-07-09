@@ -19,6 +19,8 @@ public class ReachToTargetTask : BaseTask
     private GameObject reachPrefab;
     private GameObject reachCam;
     private GameObject reachSurface;
+    private GameObject waterBowl;
+    private GameObject water;
 
     public void Update()
     {
@@ -82,6 +84,8 @@ public class ReachToTargetTask : BaseTask
 
         reachCam = GameObject.Find("ReachCamera");
         reachSurface = GameObject.Find("Surface");
+        waterBowl = GameObject.Find("Bowl");
+        water = GameObject.Find("Water");
 
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
@@ -134,6 +138,30 @@ public class ReachToTargetTask : BaseTask
         else
         {
             ctrler.CursorController.SetVRCamera(false);
+        }
+
+        // sets up the water in the level
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_waterPresent") == "wp1")
+        {
+            float waterLevel = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_waterPresent"));
+            waterBowl.SetActive(true);
+            water.SetActive(true);
+
+            if(waterLevel == 0)
+            {
+                water.transform.localPosition = new Vector3(0, waterLevel, 0);
+            }
+
+            else
+            {
+                water.transform.localPosition = new Vector3(0, waterLevel/10, 0);
+            }
+            
+        }
+        else
+        {
+            waterBowl.SetActive(false);
+            water.SetActive(false);
         }
 
 
