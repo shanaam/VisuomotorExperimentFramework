@@ -531,6 +531,8 @@ public class PinballTask : BilliardsTask
             pinballCam.SetActive(false);
         }
 
+        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 240;
+
         // Cutoff distance is 15cm more than the distance to the target
         cutoffDistance = 0.15f + TARGET_DISTANCE;
 
@@ -554,6 +556,19 @@ public class PinballTask : BilliardsTask
         pinballStartPosition = pinball.transform.position;
 
         pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
+
+        // set up surface materials for the plane
+        switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_surface_materials")))
+        {
+            case "default":
+                // Default material in prefab
+                break;
+
+            case "brick":
+                base.SetSurfaceMaterial(ctrler.Materials["GrassMaterial"]);
+                pinballWall.GetComponent<MeshRenderer>().material = ctrler.Materials["BrickMat"];
+                break;
+        }
     }
 
     private void SetTilt()
