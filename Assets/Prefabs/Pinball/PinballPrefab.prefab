@@ -1772,11 +1772,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3485569088281754255}
     m_Modifications:
-    - target: {fileID: 2088866273602323300, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6031364340575690012, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
         type: 3}
       propertyPath: m_RootOrder
@@ -1836,11 +1831,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Surface
-      objectReference: {fileID: 0}
-    - target: {fileID: 6031364340575690014, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 94b78f76b52b5cc4c8a819ae1e64b921, type: 3}
