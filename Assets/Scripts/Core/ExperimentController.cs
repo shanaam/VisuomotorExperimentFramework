@@ -214,10 +214,13 @@ public class ExperimentController : MonoBehaviour
 
                 List<int> indices = InitializePseudorandomList(trial, "per_block_list_camera_tilt");
                 InitializePseudorandomList(trial, "per_block_list_surface_tilt", indices);
+                
+                //Currently does not use same index as the above as camera/surface tilt are lists of 4 elements, while surfacematerials currently has 1 element
+                InitializePseudorandomList(trial, "per_block_surface_materials");
+
                 break;
             case "tool":
-                CurrentTask = gameObject.AddComponent<ToolTask>();
-
+                
                 // Triger type option list shuffled
                 List<int> index = InitializePseudorandomList(trial, "per_block_list_triggerType");
                
@@ -226,6 +229,19 @@ public class ExperimentController : MonoBehaviour
 
                 // tool type option list shuffled
                 InitializePseudorandomList(trial, "per_block_list_tool_type", index);
+
+                switch (Convert.ToString(PollPseudorandomList("per_block_list_triggerType")))
+                {
+                    case "impact":
+                        CurrentTask = gameObject.AddComponent<ImpactToolTask>();
+                        break;
+                    case "slingshot":
+                        CurrentTask = gameObject.AddComponent<SlingshotToolTask>();
+                        break;
+                    case "curling":
+                        CurrentTask = gameObject.AddComponent<CurlingToolTask>();
+                        break;
+                }
 
                 break;
             default:

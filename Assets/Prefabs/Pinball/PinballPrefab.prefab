@@ -422,8 +422,8 @@ Rigidbody:
   m_GameObject: {fileID: 3485569087964679534}
   serializedVersion: 2
   m_Mass: 20
-  m_Drag: 3
-  m_AngularDrag: 3
+  m_Drag: 0
+  m_AngularDrag: 9
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -929,7 +929,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c0d18cefc611a964eaaeec6b48640e57, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
