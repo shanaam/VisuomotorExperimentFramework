@@ -22,7 +22,7 @@
 
     "per_block_list_triggerType":["tt1","tt1","tt1","tt1","tt1"],
 
-    "tt1":["slingshot"],
+    "tt1":["impact","slingshot","impact","impact","curling"],
 
     "per_block_list_puck_type": ["pt1","pt1","pt1","pt1","pt1"],
 
