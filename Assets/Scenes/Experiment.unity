@@ -1134,7 +1134,9 @@ MonoBehaviour:
   SurfaceMaterials:
   - {fileID: 2100000, guid: c8dc7d62f21ce7547bc2598e183ede72, type: 2}
   - {fileID: 2100000, guid: 5c62f3758691d4ba7ae9de514736c755, type: 2}
+  - {fileID: 2100000, guid: 7ef0743cdac00e345b5d2660d034ede9, type: 2}
   Score: 0
+  IsTracking: 1
   StepTimer: []
 --- !u!114 &1000910855
 MonoBehaviour:

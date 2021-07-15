@@ -300,15 +300,11 @@ public class ToolTask : BilliardsTask
             case "fabric":
                 grid.SetActive(false);
                 base.SetSurfaceMaterial(ctrler.Materials["GrassMaterial"]);
-                /*GameObject.Find("Surface").GetComponent<Collider>().material.dynamicFriction = 100;
-                GameObject.Find("Surface").GetComponent<Collider>().material.staticFriction = 100;*/
                 break;
 
             case "ice":
                 grid.SetActive(false);
                 base.SetSurfaceMaterial(ctrler.Materials["Ice"]);
-                /*GameObject.Find("Surface").GetComponent<Collider>().material.dynamicFriction = 0;
-                GameObject.Find("Surface").GetComponent<Collider>().material.staticFriction = 0;*/
                 break;
         }
     }
