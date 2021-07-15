@@ -531,6 +531,8 @@ public class PinballTask : BilliardsTask
             pinballCam.SetActive(false);
         }
 
+        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 240;
+
         // Cutoff distance is 15cm more than the distance to the target
         cutoffDistance = 0.15f + TARGET_DISTANCE;
 
