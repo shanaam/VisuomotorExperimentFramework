@@ -190,6 +190,25 @@ public class ExperimentController : MonoBehaviour
         switch (Session.settings.GetString("experiment_mode"))
         {
             case "target2d":
+                InitializePseudorandomList(trial, "per_block_waterPresent");
+                switch (per_block_type)
+                {
+                    case "aligned":
+                    case "rotated":
+                    case "clamped":
+                    case "nocursor":
+                        CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
+                        break;
+                    case "localization":
+                        CurrentTask = gameObject.AddComponent<LocalizationTask>();
+                        break;
+                    default:
+                        Debug.LogWarning("Task not implemented: " + per_block_type);
+                        trial.End();
+                        break;
+                }
+                break;
+                
             case "target":
                 switch (per_block_type)
                 {
@@ -244,6 +263,9 @@ public class ExperimentController : MonoBehaviour
                 }
 
                 break;
+            //case "target2d":
+            //    InitializePseudorandomList(trial, "per_block_waterPresent");
+            //    break;
             default:
                 Debug.LogWarning("Experiment Type not implemented: " +
                                     Session.settings.GetString("experiment_mode"));
