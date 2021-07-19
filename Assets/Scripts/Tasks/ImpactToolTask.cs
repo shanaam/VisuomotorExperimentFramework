@@ -68,6 +68,8 @@ public class ImpactToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
+
+                // Box follows mouse
                 Vector3 dir = mousePoint - impactBox.transform.position;
                 dir /= Time.fixedDeltaTime;
                 impactBox.GetComponent<Rigidbody>().velocity = dir;

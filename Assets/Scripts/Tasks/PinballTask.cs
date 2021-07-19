@@ -474,7 +474,7 @@ public class PinballTask : BilliardsTask
 
         base.Setup();
 
-        pinball = GameObject.Find("Pinball");
+        pinball = GameObject.Find("Pinball"); 
         Home = GameObject.Find("PinballHome");
         Target = GameObject.Find("PinballTarget");
         pinballCam = GameObject.Find("PinballCamera");
@@ -493,6 +493,7 @@ public class PinballTask : BilliardsTask
         float targetAngle = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_targetListToUse"));
         cameraTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
         surfaceTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
+        cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
 
         // initializes the position
         Target.transform.position = new Vector3(0f, 0.065f, 0f);
@@ -576,6 +577,7 @@ public class PinballTask : BilliardsTask
         SetTilt(pinballCam, pinballSpace, cameraTilt);
         SetTilt(bonusText.transform.parent.gameObject, pinballSpace, cameraTilt);
         SetTilt(pinballWall, pinballSpace, cameraTilt);
+
         SetTilt(pinballSpace, pinballSpace, surfaceTilt);
 
         /*
