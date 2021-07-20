@@ -129,8 +129,10 @@ PlayerSettings:
     Others: 1
   bundleVersion: 0.1
   preloadedAssets:
-  - {fileID: -9013452948234019398, guid: e01268a1f4f4d0f4b8c86ca76950e13a, type: 2}
   - {fileID: 11400000, guid: ac1f80e11a6717a429fca9ee2ae79dba, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 4839607247312717523, guid: f72a52b98f5138146bf2faadfae657ab, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -147,7 +149,8 @@ PlayerSettings:
   resolutionScalingMode: 0
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
-  applicationIdentifier: {}
+  applicationIdentifier:
+    Standalone: com.SensorimotorControlLabYorkUniversity.VisuomotorExperimentFramework
   buildNumber:
     Standalone: 0
     iPhone: 0

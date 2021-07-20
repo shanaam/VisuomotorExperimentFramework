@@ -22,6 +22,11 @@ public class Scoreboard : MonoBehaviour
     /// </summary>
     public bool AllowManualSet = false;
 
+    /// <summary>
+    /// When true, the score text will be prefaced with "Score: "
+    /// </summary>
+    public bool ScorePrefix = true;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -54,11 +59,13 @@ public class Scoreboard : MonoBehaviour
 
         if (AllowManualSet)
         {
-            target.text = "Score: " + ManualScoreText;
+            if (ScorePrefix) target.text = "Score: " + ManualScoreText;
+            else target.text = ManualScoreText;
         }
         else
         {
-            target.text = "Score: " + ExperimentController.Instance().Score;
+            if (ScorePrefix) target.text = "Score: " + ExperimentController.Instance().Score;
+            else target.text = "" + ExperimentController.Instance().Score;
         }
     }
 }

@@ -13,7 +13,7 @@ public class PinballTask : BilliardsTask
     private GameObject XRRig;
     private GameObject pinballWall;
     private GameObject pinballTimerIndicator;
-    private GameObject scoreboard;
+    private Scoreboard scoreboard;
     private GameObject obstacle;
 
     private ExperimentController ctrler;
@@ -63,6 +63,8 @@ public class PinballTask : BilliardsTask
 
     private bool missed;
 
+    private bool trackScore;
+
     private float trialTimer;
     private const float MAX_TRIAL_TIME = 2.0f;
 
@@ -101,7 +103,7 @@ public class PinballTask : BilliardsTask
 
             // Overwrite score only if its greater than the current score
             if (!missed && tempScore > score) score = (int)tempScore;
-            scoreboard.GetComponent<Scoreboard>().ManualScoreText = (ctrler.Score + score).ToString();
+            if (trackScore) scoreboard.ManualScoreText = (ctrler.Score + score).ToString();
 
             // Only check when the distance from pinball to target is less than half of the distance
             // between the target and home position and if the pinball is NOT approaching the target
@@ -180,6 +182,8 @@ public class PinballTask : BilliardsTask
         switch (currentStep)
         {
             case 0:
+                if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
+
                 // If non-vr use mouse inputs, otherwise use the controller as input
                 if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
                 {
@@ -304,7 +308,7 @@ public class PinballTask : BilliardsTask
                     bonusText.transform.position = pinball.transform.position + pinballCam.transform.up * 0.05f;
                     LeanTween.move(bonusText, bonusText.transform.position + (pinballCam.transform.up * 0.05f), 1.5f);
 
-                    // If the participant fired the pinball within the allowed time
+                    // If the participant fired the pinball within the allowed time & score tracking is enabled in json
                     if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
                     {
                         pinballSpace.GetComponent<AudioSource>().Play();
@@ -312,7 +316,7 @@ public class PinballTask : BilliardsTask
                         // Scoring. Note that running out of time yields no points
                         if (Target.GetComponent<BaseTarget>().Collided)
                         {
-                            ctrler.Score += MAX_POINTS + BONUS_POINTS;
+                            if (trackScore) ctrler.Score += MAX_POINTS + BONUS_POINTS;
                             bonusText.GetComponentInChildren<Text>().color = Color.green;
 
                             // Play bonus animation
@@ -321,18 +325,19 @@ public class PinballTask : BilliardsTask
                         }
                         else
                         {
-                            ctrler.Score += score;
+                            if (trackScore) ctrler.Score += score;
                             bonusText.GetComponentInChildren<Text>().text = score + "pts";
                             bonusText.GetComponentInChildren<Text>().color = score == 0 ? Color.red : Color.white;
                         }
                     }
-                    else
+                    else // missed
                     {
                         bonusText.GetComponentInChildren<Text>().text = "0pts";
                         bonusText.GetComponentInChildren<Text>().color = Color.red;
                     }
 
-                    scoreboard.GetComponent<Scoreboard>().ManualScoreText = ctrler.Score.ToString();
+                    if (trackScore)
+                        scoreboard.ManualScoreText = ctrler.Score.ToString(); 
 
                     timer += Time.deltaTime;
                 }
@@ -483,12 +488,14 @@ public class PinballTask : BilliardsTask
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
         pinballTimerIndicator = GameObject.Find("TimerIndicator");
-        scoreboard = GameObject.Find("Scoreboard");
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
 
         // Scoreboard is now updated by the pinball class
-        scoreboard.GetComponent<Scoreboard>().AllowManualSet = true;
+        scoreboard.transform.position += Vector3.one;
+
+        scoreboard.AllowManualSet = true;
 
         float targetAngle = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_targetListToUse"));
         cameraTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
@@ -517,6 +524,11 @@ public class PinballTask : BilliardsTask
         {
             obstacle.SetActive(false);
         }
+
+        trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
+
+        scoreboard.ScorePrefix = false;
+        if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
 
         // Use static camera for non-vr version of pinball
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
