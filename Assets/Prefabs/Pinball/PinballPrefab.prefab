@@ -1449,6 +1449,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6510875991752790500, guid: 58eaa6eaddb506c48ac20629e050cd57,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6510875991752790500, guid: 58eaa6eaddb506c48ac20629e050cd57,
+        type: 3}
       propertyPath: WorldSpace
       value: 1
       objectReference: {fileID: 0}
@@ -1471,6 +1476,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.y
       value: 0.64
+      objectReference: {fileID: 0}
+    - target: {fileID: 7077611417262036450, guid: 58eaa6eaddb506c48ac20629e050cd57,
+        type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8338628760067477892, guid: 58eaa6eaddb506c48ac20629e050cd57,
         type: 3}

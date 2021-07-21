@@ -492,9 +492,19 @@ public class PinballTask : BilliardsTask
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
 
-        // Scoreboard is now updated by the pinball class
-        scoreboard.transform.position += Vector3.one;
+        if (scoreboard == null)
+        {
+            scoreboard = GameObject.Find("Scoreboard").AddComponent<Scoreboard>();
+            scoreboard.TrackTrials = true;
+            scoreboard.CameraSpaceCanvas = GameObject.Find("Canvas");
+            scoreboard.WorldSpaceCanvas = GameObject.Find("WorldSpaceCanvas");
 
+            scoreboard.CamSpaceText = scoreboard.CameraSpaceCanvas.transform.GetChild(0).GetComponent<Text>();
+            scoreboard.WorldSpaceText = scoreboard.WorldSpaceCanvas.GetComponentInChildren<Text>();
+            scoreboard.TrialTrackText = GameObject.Find("TrialsRemaining").GetComponent<Text>();
+        }
+
+        // Scoreboard is now updated by the pinball class
         scoreboard.AllowManualSet = true;
 
         float targetAngle = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_targetListToUse"));
@@ -527,8 +537,11 @@ public class PinballTask : BilliardsTask
 
         trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
 
-        scoreboard.ScorePrefix = false;
-        if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
+        if (!trackScore)
+        {
+            scoreboard.ScorePrefix = false;
+            scoreboard.ManualScoreText = "Practice Round";
+        }
 
         // Use static camera for non-vr version of pinball
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
