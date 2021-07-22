@@ -475,7 +475,7 @@ public class PinballTask : BilliardsTask
         maxSteps = 3;
         ctrler = ExperimentController.Instance();
 
-        pinballSpace = Instantiate(ctrler.GetPrefab("Pinball2"));
+        pinballSpace = Instantiate(ctrler.GetPrefab("PinballPrefab"));
 
         base.Setup();
 
@@ -491,19 +491,7 @@ public class PinballTask : BilliardsTask
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
 
-        Debug.LogError(scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>());
-
-        if (scoreboard == null)
-        {
-            scoreboard = GameObject.Find("Scoreboard").AddComponent<Scoreboard>();
-            scoreboard.TrackTrials = true;
-            scoreboard.CameraSpaceCanvas = GameObject.Find("Canvas");
-            scoreboard.WorldSpaceCanvas = GameObject.Find("WorldSpaceCanvas");
-
-            scoreboard.CamSpaceText = scoreboard.CameraSpaceCanvas.transform.GetChild(0).GetComponent<Text>();
-            scoreboard.WorldSpaceText = scoreboard.WorldSpaceCanvas.GetComponentInChildren<Text>();
-            scoreboard.TrialTrackText = GameObject.Find("TrialsRemaining").GetComponent<Text>();
-        }
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
 
         // Scoreboard is now updated by the pinball class
         scoreboard.AllowManualSet = true;
@@ -536,6 +524,8 @@ public class PinballTask : BilliardsTask
             obstacle.SetActive(false);
         }
 
+        // Whether or not this is a practice trial 
+        // replaces scoreboard with 'Practice Round', doesn't record score
         trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
 
         if (!trackScore)

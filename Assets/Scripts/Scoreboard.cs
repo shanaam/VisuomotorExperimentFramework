@@ -13,8 +13,6 @@ public class Scoreboard : MonoBehaviour
     public GameObject CameraSpaceCanvas, WorldSpaceCanvas;
     public Text CamSpaceText, WorldSpaceText, TrialTrackText;
 
-    private int numTrials;
-
     public String ManualScoreText = "";
 
     /// <summary>
