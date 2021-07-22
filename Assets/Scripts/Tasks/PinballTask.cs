@@ -91,7 +91,7 @@ public class PinballTask : BilliardsTask
         {
             // Current distance from pinball to the target
             distanceToTarget = Vector3.Distance(pinball.transform.position, pinballAlignedTargetPosition);
-            
+
             // Every frame, we track the closest position the pinball has ever been to the target
             if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
                 lastPositionInTarget = pinball.transform.position;
@@ -337,7 +337,7 @@ public class PinballTask : BilliardsTask
                     }
 
                     if (trackScore)
-                        scoreboard.ManualScoreText = ctrler.Score.ToString(); 
+                        scoreboard.ManualScoreText = ctrler.Score.ToString();
 
                     timer += Time.deltaTime;
                 }
@@ -475,7 +475,7 @@ public class PinballTask : BilliardsTask
         maxSteps = 3;
         ctrler = ExperimentController.Instance();
 
-        pinballSpace = Instantiate(ctrler.GetPrefab("PinballPrefab"));
+        pinballSpace = Instantiate(ctrler.GetPrefab("Pinball2"));
 
         base.Setup();
 
@@ -488,9 +488,10 @@ public class PinballTask : BilliardsTask
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
         pinballTimerIndicator = GameObject.Find("TimerIndicator");
-        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
+
+        Debug.LogError(scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>());
 
         if (scoreboard == null)
         {

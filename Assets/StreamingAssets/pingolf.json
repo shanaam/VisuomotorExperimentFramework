@@ -1,6 +1,6 @@
 {
   "experiment_mode": "pinball",
-  "track_score": true,
+  "exp_record_score": true,
   "per_block_type": [ "instruction", "aligned", "instruction", "aligned", "instruction", "aligned", "aligned", "instruction", "aligned", "aligned" ],
   "per_block_rotation": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
   "per_block_n": [ 1, 8, 1, 4, 1, 4, 4, 1, 4, 4 ],
