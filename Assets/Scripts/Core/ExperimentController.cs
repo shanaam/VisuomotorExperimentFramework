@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UXF;
 using System;
@@ -320,7 +320,7 @@ public class ExperimentController : MonoBehaviour
 
         // Track score if score tracking is enabled in the JSON
         // Defaults to disabled if property does not exist in JSON
-        if (Session.settings.GetBool("track_score", false))
+        if (Session.settings.GetBool("exp_record_score", false))
         {
             Session.CurrentTrial.result["score"] = Score;
         }
