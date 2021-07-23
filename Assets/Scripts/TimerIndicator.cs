@@ -8,6 +8,8 @@ public class TimerIndicator : MonoBehaviour
     /// </summary>
     public float Timer = 1.0f;
 
+    private float timerMaxTime;
+
     // Visual cue objects
     public GameObject Fill, Background, Text;
 
@@ -19,6 +21,8 @@ public class TimerIndicator : MonoBehaviour
     /// </summary>
     public void BeginTimer()
     {
+        timerMaxTime = Timer;
+
         // Transition out by fading alpha
         LeanTween.alpha(Fill.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(Timer + 0.5f);
         LeanTween.alpha(Background.GetComponent<RectTransform>(), 0.0f, 0.5f).setDelay(Timer + 0.5f);
@@ -48,7 +52,7 @@ public class TimerIndicator : MonoBehaviour
         if (Timer >= 0.0f)
         {
             Timer -= Time.deltaTime;
-            GetComponent<Slider>().value = Timer;
+            GetComponent<Slider>().value = Timer / timerMaxTime;
         }
         else
         {
