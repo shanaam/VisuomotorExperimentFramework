@@ -68,7 +68,7 @@ public class PinballTask : BilliardsTask
     private float trialTimer;
     private const float MAX_TRIAL_TIME = 2.0f;
 
-    private const float PINBALL_FIRE_FORCE = 12.5f;
+    private const float PINBALL_FIRE_FORCE = 15f;
 
     // Plane that is parallel to the environment plane
     private Plane pPlane;
@@ -210,11 +210,11 @@ public class PinballTask : BilliardsTask
                         // When true, the indicator is in front of the pinball
                         if (indicatorPosition)
                         {
-                            directionIndicator.transform.position = pinball.transform.position + direction / 2f;
+                            directionIndicator.transform.position = pinball.transform.position + direction;
                         }
                         else
                         {
-                            directionIndicator.transform.position = pinball.transform.position - direction / 2f;
+                            directionIndicator.transform.position = pinball.transform.position - direction;
                         }
 
                         directionIndicator.transform.LookAt(pinball.transform.position);
