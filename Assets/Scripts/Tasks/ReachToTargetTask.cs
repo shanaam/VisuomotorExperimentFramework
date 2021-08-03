@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -147,24 +147,29 @@ public class ReachToTargetTask : BaseTask
             waterBowl.SetActive(true);
             water.SetActive(true);
 
-            if(waterLevel == 0)
-            {
-                water.transform.localPosition = new Vector3(0, waterLevel, 0);
-            }
 
+            // If previous trial had a water level, animate water level rising/falling from that level
+            if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
+            {
+                water.transform.localPosition = 
+                    new Vector3(water.transform.localPosition.x, 
+                    Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) / 10, 
+                    water.transform.localPosition.z);
+
+                LeanTween.moveLocalY(water, waterLevel / 10, 1);
+            }
             else
             {
-                water.transform.localPosition = new Vector3(0, waterLevel/10, 0);
+                LeanTween.moveLocalY(water, waterLevel / 10, 1);
             }
-            
+
+
         }
         else
         {
             waterBowl.SetActive(false);
             water.SetActive(false);
         }
-
-
     }
 
     public override void LogParameters()
