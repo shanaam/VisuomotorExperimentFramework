@@ -12,7 +12,7 @@ public class PinballTask : BilliardsTask
     private GameObject directionIndicator;
     private GameObject XRRig;
     private GameObject pinballWall;
-    private GameObject pinballTimerIndicator;
+    private TimerIndicator pinballTimerIndicator;
     private Scoreboard scoreboard;
     private GameObject obstacle;
 
@@ -487,7 +487,7 @@ public class PinballTask : BilliardsTask
         directionIndicator.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
-        pinballTimerIndicator = GameObject.Find("TimerIndicator");
+        pinballTimerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
 
@@ -571,6 +571,8 @@ public class PinballTask : BilliardsTask
             SetTilt();
 
         pinballStartPosition = pinball.transform.position;
+
+        pinballTimerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
         pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
 

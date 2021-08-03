@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -21,6 +21,7 @@ public class ReachToTargetTask : BaseTask
     private GameObject reachSurface;
     private GameObject waterBowl;
     private GameObject water;
+    private TimerIndicator pinballTimerIndicator;
 
     public void Update()
     {
@@ -47,6 +48,9 @@ public class ReachToTargetTask : BaseTask
             case 1:
                 ctrler.StartTimer();
                 ctrler.CursorController.SetMovementType(reachType[2]);
+
+                // Start green timer bar
+                pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
 
                 if (trial.settings.GetString("per_block_type") == "nocursor")
                     ctrler.CursorController.SetCursorVisibility(false);
@@ -86,6 +90,9 @@ public class ReachToTargetTask : BaseTask
         reachSurface = GameObject.Find("Surface");
         waterBowl = GameObject.Find("Bowl");
         water = GameObject.Find("Water");
+        pinballTimerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+
+        pinballTimerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
