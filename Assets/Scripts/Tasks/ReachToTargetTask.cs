@@ -21,7 +21,9 @@ public class ReachToTargetTask : BaseTask
     private GameObject reachSurface;
     private GameObject waterBowl;
     private GameObject water;
-    private TimerIndicator pinballTimerIndicator;
+    private TimerIndicator timerIndicator;
+    private Scoreboard scoreboard;
+    private bool trackScore;
 
     public void Update()
     {
@@ -50,7 +52,7 @@ public class ReachToTargetTask : BaseTask
                 ctrler.CursorController.SetMovementType(reachType[2]);
 
                 // Start green timer bar
-                pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
+                timerIndicator.BeginTimer();
 
                 if (trial.settings.GetString("per_block_type") == "nocursor")
                     ctrler.CursorController.SetCursorVisibility(false);
@@ -63,6 +65,11 @@ public class ReachToTargetTask : BaseTask
 
                 ctrler.AddTrackedObject("cursor_path", ctrler.CursorController.gameObject);
 
+                break;
+            case 2:
+                if (timerIndicator.Timer > 0) 
+                    ctrler.Score++;
+                
                 break;
         }
 
@@ -90,12 +97,14 @@ public class ReachToTargetTask : BaseTask
         reachSurface = GameObject.Find("Surface");
         waterBowl = GameObject.Find("Bowl");
         water = GameObject.Find("Water");
-        pinballTimerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
 
-        pinballTimerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+        timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
+
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
 
         reachType = new MovementType[3];
         reachType[2] = rType;
@@ -135,7 +144,7 @@ public class ReachToTargetTask : BaseTask
         targets[2].SetActive(false);
         Target = targets[2];
 
-        // Use static camera for non-vr version of pinball
+        // Use static camera for non-vr version
         if (ctrler.Session.settings.GetString("experiment_mode") == "target")
         {
             reachSurface.SetActive(false);
@@ -154,7 +163,6 @@ public class ReachToTargetTask : BaseTask
             waterBowl.SetActive(true);
             water.SetActive(true);
 
-
             // If previous trial had a water level, animate water level rising/falling from that level
             if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
             {
@@ -169,8 +177,6 @@ public class ReachToTargetTask : BaseTask
             {
                 LeanTween.moveLocalY(water, waterLevel / 10, 1);
             }
-
-
         }
         else
         {
