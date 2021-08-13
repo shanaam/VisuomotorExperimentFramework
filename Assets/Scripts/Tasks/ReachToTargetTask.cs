@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -22,6 +23,10 @@ public class ReachToTargetTask : BaseTask
     private GameObject waterBowl;
     private GameObject water;
     private TimerIndicator pinballTimerIndicator;
+    private int id;
+    LTDescr d;
+
+    private float speed = 1;
 
     public void Update()
     {
@@ -36,6 +41,16 @@ public class ReachToTargetTask : BaseTask
 
         if (Finished)
             ctrler.EndAndPrepare();
+
+        // checks if there is a water animation in the scene
+        if (d != null)
+        {
+            // after animation has comleted and the current step is the home step it sets the home ball to active
+            if (!LeanTween.isTweening(id) && currentStep == 1)
+            {
+                targets[1].SetActive(true);
+            }
+        }
     }
 
     public override bool IncrementStep()
@@ -69,7 +84,16 @@ public class ReachToTargetTask : BaseTask
         base.IncrementStep();
 
         if (!finished)
-            targets[currentStep].SetActive(true);
+            // if current step is home step and there is a water animation in the scene, it sets the home ball to innactive
+            if(currentStep == 1 && d != null)
+            {
+                targets[1].SetActive(false);
+            }
+            else
+            {
+                targets[currentStep].SetActive(true);
+            }
+            
 
         return finished;
     }
@@ -156,27 +180,40 @@ public class ReachToTargetTask : BaseTask
 
 
             // If previous trial had a water level, animate water level rising/falling from that level
-            if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
+            try
             {
-                water.transform.localPosition = 
-                    new Vector3(water.transform.localPosition.x, 
-                    Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) / 10, 
-                    water.transform.localPosition.z);
+                if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
+                {
+                    water.transform.localPosition =
+                        new Vector3(water.transform.localPosition.x,
+                        Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) / 10,
+                        water.transform.localPosition.z);
 
-                LeanTween.moveLocalY(water, waterLevel / 10, 1);
+                    id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
+                    d = LeanTween.descr(id);
+                }
+                else
+                {
+                    water.transform.localPosition = new Vector3(0, -0.03f, 0);
+                    id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
+                    d = LeanTween.descr(id);
+                }
             }
-            else
+            catch (NoSuchTrialException e)
             {
-                LeanTween.moveLocalY(water, waterLevel / 10, 1);
+                water.transform.localPosition = new Vector3(0, -0.03f, 0);
+                id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
+                d = LeanTween.descr(id);
             }
-
-
+            
         }
         else
         {
             waterBowl.SetActive(false);
             water.SetActive(false);
         }
+
+        
     }
 
     public override void LogParameters()
