@@ -10,23 +10,20 @@ public class ImpactToolTask : ToolTask
     {
         base.Setup();
 
-        impactBox.GetComponent<BoxCollider>().material.bounciness = 1f;
-        impactBox.GetComponent<BoxCollider>().enabled = false;
-
-        curlingStone.SetActive(false);
-        slingShotBall.SetActive(false);
+        toolObjects.GetComponentInChildren<Collider>().material.bounciness = 1f;
+        toolObjects.GetComponentInChildren<Collider>().enabled = false;
 
         string puck_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_puck_type"));
 
         // set up puck type 
         if (puck_type == "puck")
         {
-            baseObject.GetComponent<MeshRenderer>().enabled = false;
-            ballObjects.GetComponent<ToolFollower>().RotateWithObject = false;
+            ballObjects.GetComponent<ToolFollower>().RotateWithObject = false; // So puck doesn't roll like a ball
+            puckobj.SetActive(true);
         }
         else if (puck_type == "ball")
         {
-            puckobj.SetActive(false);
+            ballobj.SetActive(true);
         }
 
         baseObject.GetComponent<SphereCollider>().material.bounciness = 0.8f;
@@ -41,10 +38,14 @@ public class ImpactToolTask : ToolTask
 
     public override bool IncrementStep()
     {
-        if (currentStep == 0)
+        switch (currentStep)
         {
-            baseObject.SetActive(true);
+            case 0:
+                baseObject.SetActive(true);
+                Cursor.visible = false;
+                break;
         }
+
         return base.IncrementStep();
     }
 
@@ -57,9 +58,9 @@ public class ImpactToolTask : ToolTask
         {
             // initlize the scene 
             case 0:
-                impactBox.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                toolObjects.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-                if (Vector3.Distance(mousePoint, impactBox.transform.position) <= 0.05f)
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.05f)
                 {
                     IncrementStep();
                 }
@@ -69,23 +70,23 @@ public class ImpactToolTask : ToolTask
             // the user triggers the object 
             case 1:
 
-                // Box follows mouse
-                Vector3 dir = mousePoint - impactBox.transform.position;
-                dir /= Time.fixedDeltaTime;
-                impactBox.GetComponent<Rigidbody>().velocity = dir;
+                // Tool follows mouse
+                Vector3 toolDir = mousePoint - toolObjects.transform.position;
+                toolDir /= Time.fixedDeltaTime;
+                toolObjects.GetComponent<Rigidbody>().velocity = toolDir;
 
 
-                // Rotate the impact: always looking at the puck when close enough 
-                if (Vector3.Distance(impactBox.transform.position, baseObject.transform.position) < 0.2f)
+                // Rotate the tool: always looking at the ball when close enough 
+                if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
                 {
-                    impactBox.transform.LookAt(baseObject.transform);
+                    toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
                 }
                 else
                 {
-                    impactBox.transform.rotation = Quaternion.identity;
+                    toolObjects.transform.rotation = toolSpace.transform.rotation;
                 }
 
-                impactBox.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
+                toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
 
 
                 break;
@@ -93,19 +94,21 @@ public class ImpactToolTask : ToolTask
             // After the user hits the object
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
-                dir = mousePoint - impactBox.transform.position;
+                Vector3 dir = mousePoint - toolObjects.transform.position;
                 dir /= Time.fixedDeltaTime;
-                impactBox.GetComponent<Rigidbody>().velocity = dir;
+                toolObjects.GetComponent<Rigidbody>().velocity = dir;
 
-                impactBox.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
+                toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
+
+                toolObjects.transform.rotation = toolSpace.transform.rotation;
 
                 break;
 
             // after we either hit the Target or passed by it
             case 3:
                 //freeze impact box 
-                impactBox.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
-                impactBox.GetComponent<Rigidbody>().isKinematic = true;
+                toolObjects.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
+                toolObjects.GetComponent<Rigidbody>().isKinematic = true;
 
                 break;
         }

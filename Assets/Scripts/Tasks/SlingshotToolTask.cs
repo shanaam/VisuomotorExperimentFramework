@@ -8,22 +8,27 @@ public class SlingshotToolTask : ToolTask
     {
         base.Setup();
 
+        Cursor.visible = false;
+
+        toolObjects.GetComponentInChildren<Collider>().enabled = false;
         baseObject.transform.position = Home.transform.position;
 
         //initial distance between target and ball
         InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
         InitialDistanceToTarget += 0.15f;
 
-        impactBox.SetActive(false);
-        puckobj.SetActive(false);
-        curlingStone.SetActive(false);
+        slingShotBall.SetActive(true);
 
-        baseObject.GetComponent<MeshRenderer>().enabled = false;
         baseObject.GetComponent<ToolObjectScript>().enabled = false;
     }
 
     public override bool IncrementStep()
     {
+        if (currentStep == 0)
+        {
+            toolObjects.transform.rotation = toolSpace.transform.rotation;
+        }
+
         return base.IncrementStep();
     }
 
@@ -32,10 +37,25 @@ public class SlingshotToolTask : ToolTask
     {
         base.Update();
 
+        // Tool follows mouse
+        Vector3 toolDir = mousePoint - toolObjects.transform.position;
+        toolDir /= Time.fixedDeltaTime;
+        toolObjects.GetComponent<Rigidbody>().velocity = toolDir;
+
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
+
+                // Rotate the tool: always looking at the ball when close enough 
+                if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
+                {
+                    toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
+                }
+                else
+                {
+                    toolObjects.transform.rotation = toolSpace.transform.rotation;
+                }
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 

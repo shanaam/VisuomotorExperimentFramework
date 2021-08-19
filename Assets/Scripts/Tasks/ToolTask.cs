@@ -27,23 +27,41 @@ public class ToolTask : BilliardsTask
     protected float InitialDistanceToTarget;
     protected ExperimentController ctrler;
 
-    private GameObject toolSpace;
-    private GameObject tool;
-    private GameObject toolCamera;
-    private GameObject grid;
+    protected GameObject toolSpace;
+    protected GameObject toolCamera;
+    protected GameObject grid;
 
     private const float TARGET_DISTANCE = 0.55f;
 
-    protected GameObject impactBox;
+    // Tools 
+    protected GameObject toolBox;
+    protected GameObject toolSphere;
+    protected GameObject toolCylinder;
 
-    //protected GameObject puck;
+    protected GameObject toolObjects; //parent object of each tool type
 
     protected GameObject baseObject; //physics object controlling position of each ball type
     protected GameObject ballObjects; //parent object of each ball type
 
+    // Balls/puck
+    protected GameObject ballobj;
     protected GameObject puckobj;
     protected GameObject curlingStone;
     protected GameObject slingShotBall;
+
+    private TimerIndicator timerIndicator;
+    private Scoreboard scoreboard;
+
+    private bool trackScore;
+    private int score;
+    private float tempScore;
+
+    private bool missed;
+
+    private float cameraTilt, surfaceTilt;
+
+    private const int MAX_POINTS = 10; // Maximum points the participant can earn
+    private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
 
     // lists for feedback points
     //protected List<Vector3> PuckPoints = new List<Vector3>();
@@ -64,12 +82,14 @@ public class ToolTask : BilliardsTask
 
     protected virtual void Update()
     {
-        
-
-        mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up,
-                new Vector3(0f, ballObjects.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+        mousePoint = ctrler.CursorController.MouseToPlanePoint(
+            toolSpace.transform.up * baseObject.transform.position.y,
+            baseObject.transform.position,
+            toolCamera.GetComponent<Camera>());
 
         if (Vector3.Distance(mousePoint, ballObjects.transform.position) > 0.05f && currentStep == 0) return;
+
+        if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
 
         switch (currentStep)
         {
@@ -80,7 +100,13 @@ public class ToolTask : BilliardsTask
 
             // the user triggers the object 
             case 1:
-                //occurs in child classes
+                // If the user runs out of time to fire the pinball, play audio cue
+                if (!missed && timerIndicator.GetComponent<TimerIndicator>().Timer <= 0.0f)
+                {
+                    missed = true;
+                    toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+                    toolSpace.GetComponent<AudioSource>().Play();
+                }
 
                 break;
 
@@ -96,6 +122,14 @@ public class ToolTask : BilliardsTask
 
                 // get the distance btween ball/puck and Target
                 float currentDistance = Vector3.Distance(ballObjects.transform.position, Target.transform.position);
+
+                // Update score if pinball is within 20cm of the target
+                if (currentDistance < 0.20f)
+                    tempScore = Mathf.Round(-5f * (currentDistance - 0.20f) * MAX_POINTS);
+
+                // Overwrite score only if its greater than the current score
+                if (tempScore > score) score = (int)tempScore;
+                if (trackScore) scoreboard.ManualScoreText = (ctrler.Score + score).ToString();
 
                 // Only check when the distance from curling stone to target is less than half of the distance
                 // between the target and home position and if the curlingStone is NOT approaching the target
@@ -116,11 +150,11 @@ public class ToolTask : BilliardsTask
 
                 }
 
+                float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
+
                 if (enteredTarget)
                 {
                     // if distance increases from the previous frame, end trial immediately
-                    float previousDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
-
                     // We are now going away from the target, end trial immediately
                     if (currentDistance > previousDistanceToTarget)
                     {
@@ -150,7 +184,6 @@ public class ToolTask : BilliardsTask
                 }
 
                 // disbale tool object aft 50ms
-
                 if (currentDistance < 0.05f)
                 {
                     enteredTarget = true;
@@ -176,8 +209,8 @@ public class ToolTask : BilliardsTask
                             toolSpace.GetComponent<LineRenderer>().startColor =
                                 toolSpace.GetComponent<LineRenderer>().endColor =
                                     Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
-                            Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
 
+                            if (!missed) Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
                         }
 
                         toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
@@ -191,6 +224,25 @@ public class ToolTask : BilliardsTask
                         baseObject.GetComponent<Rigidbody>().isKinematic = true;
 
                     }
+
+                    // If the participant fired the pinball within the allowed time & score tracking is enabled in json
+                    if (!missed && timerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
+                    {
+                        toolSpace.GetComponent<AudioSource>().Play();
+
+                        // Scoring. Note that running out of time yields no points
+                        if (Target.GetComponent<BaseTarget>().Collided)
+                        {
+                            if (trackScore) ctrler.Score += MAX_POINTS + BONUS_POINTS;
+                        }
+                        else
+                        {
+                            if (trackScore) ctrler.Score += score;
+                        }
+                    }
+
+                    if (trackScore)
+                        scoreboard.ManualScoreText = ctrler.Score.ToString();
 
                 }
 
@@ -242,7 +294,26 @@ public class ToolTask : BilliardsTask
 
     public override bool IncrementStep()
     {
-        Debug.Log("current step: " + currentStep);
+        switch (currentStep)
+        {
+            // 
+            case 0:
+                timerIndicator.BeginTimer();
+
+                break;
+            // User launched the ball/puck
+            case 1:
+                if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+                    SetTilt();
+
+                timerIndicator.Cancel();
+
+                baseObject.GetComponent<Rigidbody>().useGravity = true;
+
+                break;
+        }
+
+                Debug.Log("current step: " + currentStep);
         return base.IncrementStep();
     }
 
@@ -258,9 +329,14 @@ public class ToolTask : BilliardsTask
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");
 
-        impactBox = GameObject.Find("ToolBox");
+        toolBox = GameObject.Find("ToolBox");
+        toolCylinder = GameObject.Find("ToolCylinder");
+        toolSphere = GameObject.Find("ToolSphere");
 
-        puckobj = GameObject.Find("PuckObject");
+        toolObjects = GameObject.Find("ToolObjects");
+
+        puckobj = GameObject.Find("impactPuck");
+        ballobj = GameObject.Find("impactBall");
         baseObject = GameObject.Find("BaseObject");
 
         ballObjects = GameObject.Find("BallObjects");
@@ -269,19 +345,73 @@ public class ToolTask : BilliardsTask
         Home = GameObject.Find("HomePosition");
         base.Setup();
 
+        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+        
+        timerIndicator.transform.rotation = Quaternion.LookRotation(
+            timerIndicator.transform.position - toolCamera.transform.position);
+        timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+
+        // Scoreboard is now updated by the tool class
+        scoreboard.AllowManualSet = true;
+
         // Set up target
         float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
-        
-
-
-        //// cursur represnation type
-        //string tool_type = Convert.ToString(ctrler.PollPseudorandomList("per_block_list_tool_type"));
 
         Target.transform.position = new Vector3(0f, 0.08f, 0f);
         Target.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
         Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
+
+        cameraTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
+        surfaceTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
+        cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
+
+        // Should the tilt be shown to the participant before they release the pinball?
+        if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+            SetTilt();
+
+        // Disable all balls/puck (to be enabled in child classes)
+        puckobj.SetActive(false);
+        curlingStone.SetActive(false);
+        slingShotBall.SetActive(false);
+        ballobj.SetActive(false);
+
+        switch (ctrler.PollPseudorandomList("per_block_list_tool_type"))
+        {
+            case "quad":
+                toolCylinder.SetActive(false);
+                toolSphere.SetActive(false);
+
+                break;
+            case "sphere":
+                toolCylinder.SetActive(false);
+                toolBox.SetActive(false);
+
+                break;
+            case "cylinder":
+                toolSphere.SetActive(false);
+                toolBox.SetActive(false);
+
+                break;
+        }
+
+        toolBox.GetComponent<Collider>().enabled = false;
+        toolCylinder.GetComponent<Collider>().enabled = false;
+        toolSphere.GetComponent<Collider>().enabled = false;
+
+        baseObject.GetComponent<Rigidbody>().useGravity = false;
+
+        // Whether or not this is a practice trial 
+        // replaces scoreboard with 'Practice Round', doesn't record score
+        trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
+
+        if (!trackScore)
+        {
+            scoreboard.ScorePrefix = false;
+            scoreboard.ManualScoreText = "Practice Round";
+        }
 
         // Set up camera for non VR and VR modes
         // VR Mode needs to be added
@@ -290,9 +420,6 @@ public class ToolTask : BilliardsTask
             ctrler.CursorController.SetVRCamera(false);
         }
         else toolCamera.SetActive(false);
-
-        
-
 
         // set up surface materials for the plane
         switch (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials"))
@@ -315,26 +442,34 @@ public class ToolTask : BilliardsTask
         ctrler.LogObjectPosition("target", Target.transform.localPosition);
     }
 
- /*   private void RacketMouseMovement(Vector3 mousePoint)
+    /*   private void RacketMouseMovement(Vector3 mousePoint)
+       {
+           Vector3 dir = mousePoint - tool.transform.position;
+           dir /= Time.fixedDeltaTime;
+
+           tool.GetComponent<Rigidbody>().velocity = dir;
+           if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
+           {
+               tool.transform.LookAt(puck.transform);
+           }
+           else
+           {
+               tool.transform.rotation = Quaternion.identity;
+           }
+           tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
+
+       }*/
+
+    private void SetTilt()
     {
-        Vector3 dir = mousePoint - tool.transform.position;
-        dir /= Time.fixedDeltaTime;
+        SetTilt(toolCamera, toolSpace, cameraTilt);
 
-        tool.GetComponent<Rigidbody>().velocity = dir;
-        if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
-        {
-            tool.transform.LookAt(puck.transform);
-        }
-        else
-        {
-            tool.transform.rotation = Quaternion.identity;
-        }
-        tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
-
-    }*/
+        SetTilt(toolSpace, toolSpace, surfaceTilt);
+    }
 
     public override void Disable()
     {
+
         toolSpace.SetActive(false);
 
         // Enabling this will cause screen flicker. Only use if task involves both Non-VR and VR in the same experiment
@@ -348,19 +483,68 @@ public class ToolTask : BilliardsTask
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool" && oldMainCamera != null)
             oldMainCamera.SetActive(true);
     }
-    
-    
-    
-  /*
+
+
+
+    /*
+      void OnDrawGizmos()
+      {
+          Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
+              0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+          Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
+      }
+  */
+
     void OnDrawGizmos()
     {
-        Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
-            0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+        /*
+        if (currentStep >= 1)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(lastPositionInTarget, 0.025f);
+        }
 
-        Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
+        Vector3 dir = Vector3.zero;
+        if (currentStep < 1)
+        {
+            Quaternion rot = Quaternion.AngleAxis(
+                ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"), pinballSpace.transform.forward);
+
+            mousePoint = ctrler.CursorController.MouseToPlanePoint(pinballPlane.transform.up * pinball.transform.position.y,
+                pinball.transform.position,
+                pinballCam.GetComponent<Camera>());
+
+            dir = mousePoint - pinball.transform.position;
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir * 5f);
+        }
+
+        // Represents the vector of where the mouse is pointing at in world space
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawLine(pinballCam.transform.position, mousePoint);
+
+        // Represents the direction of where the pinball is hit towards
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir.normalized * 0.1f);
+
+        // Represents the forward direction of the pinball
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + pinball.transform.forward * 2f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(
+            direction, 0.02f
+            );
+        */
+        // Positions that are saved for data collection
+
+
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawSphere(mousePoint, 0.02f);
     }
-*/
-
 
 
 }

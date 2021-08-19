@@ -23,10 +23,13 @@ public class ReachToTargetTask : BaseTask
     private GameObject water;
     private TimerIndicator timerIndicator;
     private Scoreboard scoreboard;
+
     private bool trackScore;
 
     public void Update()
     {
+        if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
+
         if (Input.GetKeyDown(KeyCode.N))
             IncrementStep();
 
@@ -67,8 +70,10 @@ public class ReachToTargetTask : BaseTask
 
                 break;
             case 2:
-                if (timerIndicator.Timer > 0) 
+                if (trackScore && timerIndicator.Timer > 0)
+                {
                     ctrler.Score++;
+                }
                 
                 break;
         }
@@ -98,13 +103,24 @@ public class ReachToTargetTask : BaseTask
         waterBowl = GameObject.Find("Bowl");
         water = GameObject.Find("Water");
         timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
 
         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
+        // Whether or not this is a practice trial 
+        // replaces scoreboard with 'Practice Round', doesn't record score
+        trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
+
+        if (!trackScore)
+        {
+            // Scoreboard is now updated by the reach class
+            scoreboard.AllowManualSet = true;
+            scoreboard.ScorePrefix = false;
+            scoreboard.ManualScoreText = "Practice Round";
+        }
+
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
-
-        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
 
         reachType = new MovementType[3];
         reachType[2] = rType;
@@ -163,6 +179,7 @@ public class ReachToTargetTask : BaseTask
             waterBowl.SetActive(true);
             water.SetActive(true);
 
+            
             // If previous trial had a water level, animate water level rising/falling from that level
             if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
             {

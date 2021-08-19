@@ -8,13 +8,11 @@ public class CurlingToolTask : ToolTask
     {
         base.Setup();
 
-        baseObject.GetComponent<SphereCollider>().material.bounciness = 1f;
-        //baseObject.GetComponent<SphereCollider>().enabled = false;
+        Cursor.visible = false;
 
-        impactBox.SetActive(false);
-        puckobj.SetActive(false);
-        slingShotBall.SetActive(false);
-        
+        baseObject.GetComponent<SphereCollider>().material.bounciness = 1f;
+
+        curlingStone.SetActive(true);
 
         baseObject.transform.position = Home.transform.position;
 
@@ -22,7 +20,6 @@ public class CurlingToolTask : ToolTask
         InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
         InitialDistanceToTarget += 0.15f;
 
-        baseObject.GetComponent<MeshRenderer>().enabled = false;
         baseObject.GetComponent<ToolObjectScript>().enabled = false;
         baseObject.SetActive(false);
     }
@@ -32,7 +29,7 @@ public class CurlingToolTask : ToolTask
         if (currentStep == 0)
         {
             baseObject.SetActive(true);
-            curlingStone.SetActive(true);
+            toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
 
         return base.IncrementStep();
@@ -43,10 +40,25 @@ public class CurlingToolTask : ToolTask
     {
         base.Update();
 
+        // Tool follows mouse
+        Vector3 toolDir = mousePoint - toolObjects.transform.position;
+        toolDir /= Time.fixedDeltaTime;
+        toolObjects.GetComponent<Rigidbody>().velocity = toolDir;
+
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
+
+                // Rotate the tool: always looking at the ball when close enough 
+                if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
+                {
+                    toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
+                }
+                else
+                {
+                    toolObjects.transform.rotation = toolSpace.transform.rotation;
+                }
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 

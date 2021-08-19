@@ -249,6 +249,9 @@ public class ExperimentController : MonoBehaviour
                 // tool type option list shuffled
                 InitializePseudorandomList(trial, "per_block_list_tool_type", index);
 
+                InitializePseudorandomList(trial, "per_block_list_camera_tilt", index);
+                InitializePseudorandomList(trial, "per_block_list_surface_tilt", index);
+
                 switch (Convert.ToString(PollPseudorandomList("per_block_list_triggerType")))
                 {
                     case "impact":
