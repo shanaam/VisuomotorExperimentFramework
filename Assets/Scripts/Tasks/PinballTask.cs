@@ -158,7 +158,7 @@ public class PinballTask : BilliardsTask
                 Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
             {
                 Debug.Log("Trial Ended: Ball has stopped moving or ball has exceeded the cutoff distance");
-                lastPositionInTarget = pinball.transform.position;
+                //lastPositionInTarget = pinball.transform.position;
                 IncrementStep();
                 return;
             }

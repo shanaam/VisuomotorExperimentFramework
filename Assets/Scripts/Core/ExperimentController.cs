@@ -139,7 +139,7 @@ public class ExperimentController : MonoBehaviour
         {
             foreach (string key in trackedObjectPath.Keys)
             {
-                trackedObjectPath[key].Add(trackedObjects[key].transform.localPosition);
+                trackedObjectPath[key].Add(trackedObjects[key].transform.position);
             }
 
             if (trackedObjectPath.Count > 0)
