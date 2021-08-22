@@ -25,13 +25,10 @@ public class ToolTask : BilliardsTask
     /// </summary>
 
     protected float InitialDistanceToTarget;
-    protected ExperimentController ctrler;
 
     protected GameObject toolSpace;
     protected GameObject toolCamera;
     protected GameObject grid;
-
-    private const float TARGET_DISTANCE = 0.55f;
 
     // Tools 
     protected GameObject toolBox;
@@ -49,20 +46,6 @@ public class ToolTask : BilliardsTask
     protected GameObject curlingStone;
     protected GameObject slingShotBall;
 
-    private TimerIndicator timerIndicator;
-    private Scoreboard scoreboard;
-
-    private bool trackScore;
-    private int score;
-    private float tempScore;
-
-    private bool missed;
-
-    private float cameraTilt, surfaceTilt;
-
-    private const int MAX_POINTS = 10; // Maximum points the participant can earn
-    private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
-
     // lists for feedback points
     //protected List<Vector3> PuckPoints = new List<Vector3>();
     //private List<Vector3> CurlingStonePoints = new List<Vector3>();
@@ -71,9 +54,7 @@ public class ToolTask : BilliardsTask
 
     private GameObject oldMainCamera;
 
-    private Vector3 previousPosition;
     private float missTimer;
-    private float timer;
     private float delayTimer;
     private bool enteredTarget;
 
@@ -82,10 +63,7 @@ public class ToolTask : BilliardsTask
 
     protected virtual void Update()
     {
-        mousePoint = ctrler.CursorController.MouseToPlanePoint(
-            toolSpace.transform.up * baseObject.transform.position.y,
-            baseObject.transform.position,
-            toolCamera.GetComponent<Camera>());
+        mousePoint = GetMousePoint(baseObject.transform);
 
         if (Vector3.Distance(mousePoint, ballObjects.transform.position) > 0.05f && currentStep == 0) return;
 
@@ -121,20 +99,20 @@ public class ToolTask : BilliardsTask
                 }
 
                 // get the distance btween ball/puck and Target
-                float currentDistance = Vector3.Distance(ballObjects.transform.position, Target.transform.position);
+                distanceToTarget = Vector3.Distance(ballObjects.transform.position, Target.transform.position);
 
                 // Update score if pinball is within 20cm of the target
-                if (currentDistance < 0.20f)
-                    tempScore = Mathf.Round(-5f * (currentDistance - 0.20f) * MAX_POINTS);
+                if (distanceToTarget < 0.20f)
+                    tempScore = Mathf.Round(-5f * (distanceToTarget - 0.20f) * MAX_POINTS);
 
                 // Overwrite score only if its greater than the current score
-                if (tempScore > score) score = (int)tempScore;
+                if (!missed & tempScore > score) score = (int)tempScore;
                 if (trackScore) scoreboard.ManualScoreText = (ctrler.Score + score).ToString();
 
                 // Only check when the distance from curling stone to target is less than half of the distance
                 // between the target and home position and if the curlingStone is NOT approaching the target
-                if (currentDistance <= TARGET_DISTANCE / 2f &&
-                    currentDistance > Vector3.Distance(previousPosition, Target.transform.position))
+                if (distanceToTarget <= TARGET_DISTANCE / 2f &&
+                    distanceToTarget > Vector3.Distance(previousPosition, Target.transform.position))
                 {
 
                     // The object only has 500ms of total time to move away from the target
@@ -156,7 +134,7 @@ public class ToolTask : BilliardsTask
                 {
                     // if distance increases from the previous frame, end trial immediately
                     // We are now going away from the target, end trial immediately
-                    if (currentDistance > previousDistanceToTarget)
+                    if (distanceToTarget > previousDistanceToTarget)
                     {
                         //lastPositionInTarget = previousPosition;
                         IncrementStep();
@@ -184,7 +162,7 @@ public class ToolTask : BilliardsTask
                 }
 
                 // disbale tool object aft 50ms
-                if (currentDistance < 0.05f)
+                if (distanceToTarget < 0.05f)
                 {
                     enteredTarget = true;
                 }
@@ -310,6 +288,9 @@ public class ToolTask : BilliardsTask
 
                 baseObject.GetComponent<Rigidbody>().useGravity = true;
 
+                // Add ball to tracked objects
+                ctrler.AddTrackedObject("ball_path", baseObject);
+
                 break;
         }
 
@@ -320,8 +301,13 @@ public class ToolTask : BilliardsTask
     public override void Setup()
     {
         maxSteps = 4;
+
         ctrler = ExperimentController.Instance();
+
         toolSpace = Instantiate(ctrler.GetPrefab("ToolPrefab"));
+
+        base.Setup();
+
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         grid = GameObject.Find("Grid");
@@ -343,30 +329,14 @@ public class ToolTask : BilliardsTask
 
         // Set up home position
         Home = GameObject.Find("HomePosition");
-        base.Setup();
-
-        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
-        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         
         timerIndicator.transform.rotation = Quaternion.LookRotation(
             timerIndicator.transform.position - toolCamera.transform.position);
         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
-        // Scoreboard is now updated by the tool class
-        scoreboard.AllowManualSet = true;
-
         // Set up target
         float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
-
-        Target.transform.position = new Vector3(0f, 0.08f, 0f);
-        Target.transform.rotation = Quaternion.Euler(
-            0f, -targetAngle + 90f, 0f);
-
-        Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
-
-        cameraTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
-        surfaceTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
-        cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
+        SetTargetPosition(targetAngle);
 
         // Should the tilt be shown to the participant before they release the pinball?
         if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
@@ -403,15 +373,12 @@ public class ToolTask : BilliardsTask
 
         baseObject.GetComponent<Rigidbody>().useGravity = false;
 
-        // Whether or not this is a practice trial 
-        // replaces scoreboard with 'Practice Round', doesn't record score
-        trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
+        baseObject.transform.position = Home.transform.position;
 
-        if (!trackScore)
-        {
-            scoreboard.ScorePrefix = false;
-            scoreboard.ManualScoreText = "Practice Round";
-        }
+        //initial distance between target and ball
+        InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
+        InitialDistanceToTarget += 0.15f;
+
 
         // Set up camera for non VR and VR modes
         // VR Mode needs to be added
@@ -420,6 +387,7 @@ public class ToolTask : BilliardsTask
             ctrler.CursorController.SetVRCamera(false);
         }
         else toolCamera.SetActive(false);
+
 
         // set up surface materials for the plane
         switch (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials"))
@@ -438,27 +406,12 @@ public class ToolTask : BilliardsTask
 
     public override void LogParameters()
     {
-        ctrler.LogObjectPosition("tool", ballObjects.transform.localPosition);
-        ctrler.LogObjectPosition("target", Target.transform.localPosition);
+        // Note: ALL vectors are in world space
+
+        ctrler.LogObjectPosition("tool", ballObjects.transform.position);
+        ctrler.LogObjectPosition("target", Target.transform.position);
+
     }
-
-    /*   private void RacketMouseMovement(Vector3 mousePoint)
-       {
-           Vector3 dir = mousePoint - tool.transform.position;
-           dir /= Time.fixedDeltaTime;
-
-           tool.GetComponent<Rigidbody>().velocity = dir;
-           if (Vector3.Distance(tool.transform.position, puck.transform.position) < 0.2f)
-           {
-               tool.transform.LookAt(puck.transform);
-           }
-           else
-           {
-               tool.transform.rotation = Quaternion.identity;
-           }
-           tool.GetComponent<Collider>().enabled = mousePoint.z <= 0.05f;
-
-       }*/
 
     private void SetTilt()
     {
@@ -484,6 +437,25 @@ public class ToolTask : BilliardsTask
             oldMainCamera.SetActive(true);
     }
 
+    protected virtual void ObjectFollowMouse(GameObject objFollower)
+    {
+        Vector3 dir = mousePoint - objFollower.transform.position;
+        dir /= Time.fixedDeltaTime;
+        objFollower.GetComponent<Rigidbody>().velocity = dir;
+    }
+
+    protected virtual void ToolLookAtBall()
+    {
+        // Rotate the tool: always looking at the ball when close enough 
+        if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
+        {
+            toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
+        }
+        else
+        {
+            toolObjects.transform.rotation = toolSpace.transform.rotation;
+        }
+    }    
 
 
     /*

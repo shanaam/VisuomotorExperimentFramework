@@ -11,11 +11,7 @@ public class SlingshotToolTask : ToolTask
         Cursor.visible = false;
 
         toolObjects.GetComponentInChildren<Collider>().enabled = false;
-        baseObject.transform.position = Home.transform.position;
 
-        //initial distance between target and ball
-        InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
-        InitialDistanceToTarget += 0.15f;
 
         slingShotBall.SetActive(true);
 
@@ -38,24 +34,14 @@ public class SlingshotToolTask : ToolTask
         base.Update();
 
         // Tool follows mouse
-        Vector3 toolDir = mousePoint - toolObjects.transform.position;
-        toolDir /= Time.fixedDeltaTime;
-        toolObjects.GetComponent<Rigidbody>().velocity = toolDir;
+        ObjectFollowMouse(toolObjects);
 
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
 
-                // Rotate the tool: always looking at the ball when close enough 
-                if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
-                {
-                    toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
-                }
-                else
-                {
-                    toolObjects.transform.rotation = toolSpace.transform.rotation;
-                }
+                ToolLookAtBall();
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
@@ -68,9 +54,7 @@ public class SlingshotToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
-                Vector3 dir = mousePoint - baseObject.transform.position;
-                dir /= Time.fixedDeltaTime;
-                baseObject.GetComponent<Rigidbody>().velocity = dir;
+                ObjectFollowMouse(baseObject);
 
                 float time = 0f;
 
