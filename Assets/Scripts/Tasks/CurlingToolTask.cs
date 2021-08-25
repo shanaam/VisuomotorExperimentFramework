@@ -75,7 +75,7 @@ public class CurlingToolTask : ToolTask
                 {
                     shotDir = startPos - mousePoint;
                     shotDir /= time;
-                    baseObject.GetComponent<Rigidbody>().AddForce(-shotDir * 3f);
+                    baseObject.GetComponent<Rigidbody>().AddForce(-shotDir.normalized * FIRE_FORCE);
 
                     IncrementStep();
                 }

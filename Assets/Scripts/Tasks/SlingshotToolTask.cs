@@ -69,12 +69,14 @@ public class SlingshotToolTask : ToolTask
                     time += Time.fixedDeltaTime;
                 }
 
-                if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.25f)
+                if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
                 {
                     Vector3 shotDir = Home.transform.position - mousePoint;
                     shotDir /= time;
 
-                    baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+                    //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+
+                    baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
                     Home.GetComponent<LineRenderer>().positionCount = 0;
 
                     IncrementStep();

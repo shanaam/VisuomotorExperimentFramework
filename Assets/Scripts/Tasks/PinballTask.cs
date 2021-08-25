@@ -28,8 +28,8 @@ public class PinballTask : BilliardsTask
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();
 
+    // Used to determine if the ball moved away from the target for too long
     private float missTimer;
-
 
     private Vector3 pinballStartPosition;
 
@@ -62,6 +62,21 @@ public class PinballTask : BilliardsTask
 
     private GameObject bonusText;
 
+    private Vector3 previousPosition;
+
+    private int score;
+    private float tempScore;
+    private const int MAX_POINTS = 10; // Maximum points the participant can earn
+    private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
+
+    private float timer;
+
+    // Set to true if the user runs out of time 
+    private bool missed;
+
+    // Used to store the current distance t
+    private float distanceToTarget;
+
     void FixedUpdate()
     {
         // While the pinball is in motion
@@ -74,7 +89,13 @@ public class PinballTask : BilliardsTask
             if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
                 lastPositionInTarget = pinball.transform.position;
 
-            GetTempScore();
+            // Update score if pinball is within 20cm of the target
+            if (distanceToTarget < 0.20f)
+                tempScore = CalculateScore(distanceToTarget, .2f, MAX_POINTS);
+
+            // Overwrite score only if its greater than the current score
+            if (!missed && tempScore > score) score = (int)tempScore;
+            if (trackScore) scoreboard.ManualScoreText = (ctrler.Score + score).ToString();
 
             // Only check when the distance from pinball to target is less than half of the distance
             // between the target and home position and if the pinball is NOT approaching the target
@@ -376,7 +397,7 @@ public class PinballTask : BilliardsTask
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
 
-        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 200;
+        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 240;
 
         pinball.GetComponent<Rigidbody>().velocity =
             pinball.transform.forward * direction.magnitude * PINBALL_FIRE_FORCE;
@@ -493,8 +514,6 @@ public class PinballTask : BilliardsTask
         {
             pinballCam.SetActive(false);
         }
-
-        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 240;
 
         // Cutoff distance is 15cm more than the distance to the target
         cutoffDistance = 0.15f + TARGET_DISTANCE;

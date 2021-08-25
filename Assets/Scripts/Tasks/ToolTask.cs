@@ -7,23 +7,6 @@ using MovementType = CursorController.MovementType;
 public class ToolTask : BilliardsTask
 {
 
-    //TODO: 
-    /// <summary>
-    /// 
-    ///  sphere is not good a better Racket)
-    /// 
-    /// 3 types of shooting Styles:
-    ///     Impact:
-    ///         DIFFREENT TYPES OF RACKETS
-    //         
-    ///     
-    ///     slingShot
-    ///         
-    ///              
-    ///
-    /// 
-    /// </summary>
-
     protected float InitialDistanceToTarget;
 
     protected GameObject toolSpace;
@@ -60,6 +43,22 @@ public class ToolTask : BilliardsTask
 
     protected Vector3 mousePoint;
 
+    private Vector3 previousPosition;
+
+    private int score;
+    private float tempScore;
+    private const int MAX_POINTS = 10; // Maximum points the participant can earn
+    private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
+
+    private float timer;
+
+    // Set to true if the user runs out of time 
+    private bool missed;
+
+    // Used to store the current distance between the ball and target
+    private float distanceToTarget;
+
+    protected const float FIRE_FORCE = 3f;
 
     protected virtual void Update()
     {
@@ -103,7 +102,7 @@ public class ToolTask : BilliardsTask
 
                 // Update score if pinball is within 20cm of the target
                 if (distanceToTarget < 0.20f)
-                    tempScore = Mathf.Round(-5f * (distanceToTarget - 0.20f) * MAX_POINTS);
+                    tempScore = CalculateScore(distanceToTarget, 0.2f, MAX_POINTS);
 
                 // Overwrite score only if its greater than the current score
                 if (!missed & tempScore > score) score = (int)tempScore;
@@ -374,6 +373,8 @@ public class ToolTask : BilliardsTask
         baseObject.GetComponent<Rigidbody>().useGravity = false;
 
         baseObject.transform.position = Home.transform.position;
+
+        baseObject.GetComponent<Rigidbody>().maxAngularVelocity = 240;
 
         //initial distance between target and ball
         InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);

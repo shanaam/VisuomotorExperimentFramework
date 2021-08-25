@@ -13,23 +13,9 @@ public abstract class BilliardsTask : BaseTask
     protected Scoreboard scoreboard;
     protected TimerIndicator timerIndicator;
 
-    protected float distanceToTarget;
-
-    // Set to true if the user runs out of time 
-    protected bool missed; 
-
     protected bool trackScore;
 
-    protected float timer;
-
     protected float cameraTilt, surfaceTilt;
-
-    protected Vector3 previousPosition;
-
-    protected int score;
-    protected float tempScore;
-    protected const int MAX_POINTS = 10; // Maximum points the participant can earn
-    protected const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
 
     // Minimum distance to score any points. this is also the cutoff distance
     // for starting the miss timer
@@ -109,18 +95,15 @@ public abstract class BilliardsTask : BaseTask
 
     /// <summary>
     /// Calculates tempScore based on distance to target.
-    /// Overwrites score if tempScore is greater.
-    /// Sets scoreboard text to new score.
     /// </summary>
-    protected virtual void GetTempScore()
+    /// <returns>A float between 0-1 calculated linearly using currDistance, multiplied by MAX_POINTS.</returns>
+    /// <param name="currDistance">The current distance between the ball object and the target</param>
+    /// <param name="maxDistance">The furthest distance from the target that score should be received for (cannot be 0)</param>
+    protected virtual float CalculateScore(float currDistance, float maxDistance, float maxPoints)
     {
-        // Update score if pinball is within 20cm of the target
-        if (distanceToTarget < 0.20f)
-            tempScore = Mathf.Round(-5f * (distanceToTarget - 0.20f) * MAX_POINTS);
+        float m = 1 / -maxDistance; // Slope of score calculation, so that currDistance = 0 -> max score, currDistance = maxDistance -> no score
 
-        // Overwrite score only if its greater than the current score
-        if (!missed && tempScore > score) score = (int)tempScore;
-        if (trackScore) scoreboard.ManualScoreText = (ctrler.Score + score).ToString();
+        return Mathf.Round(m * (currDistance - maxDistance) * maxPoints);
     }
 
     /// <summary>
