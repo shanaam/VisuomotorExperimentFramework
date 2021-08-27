@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Target
   - Hand
+  - TrailRailing
   layers:
   - Default
   - TransparentFX

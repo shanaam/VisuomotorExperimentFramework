@@ -266,6 +266,11 @@ public class ExperimentController : MonoBehaviour
                 }
 
                 break;
+            case "trail":
+
+                CurrentTask = gameObject.AddComponent<Trails>();
+
+                break;
             //case "target2d":
             //    InitializePseudorandomList(trial, "per_block_waterPresent");
             //    break;
