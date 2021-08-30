@@ -80,6 +80,16 @@ public class Trails : BaseTask
             railing.tag = "TrailRailing";
         }
 
+        for(int i = 0; i < railing1.transform.GetChild(0).transform.childCount; i++)
+        {
+            railing1.transform.GetChild(i).gameObject.AddComponent<BaseTarget>();
+        }
+
+        for (int i = 0; i < railing2.transform.childCount; i++)
+        {
+            railing2.transform.GetChild(i).gameObject.AddComponent<BaseTarget>();
+        }
+
         car = GameObject.Find("Car");
 
         // Use static camera for non-vr version of pinball
@@ -104,7 +114,6 @@ public class Trails : BaseTask
     // Update is called once per frame
     void Update()
     {
-       
 
 
         if (Finished) ctrler.EndAndPrepare();
@@ -112,7 +121,8 @@ public class Trails : BaseTask
 
     public void Impact()
     {
-        IncrementStep();
+        Debug.Log("Hit!");
+        //IncrementStep();
     }
 
     public override bool IncrementStep()

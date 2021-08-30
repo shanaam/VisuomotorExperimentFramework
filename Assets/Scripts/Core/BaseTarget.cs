@@ -25,6 +25,19 @@ public class BaseTarget : MonoBehaviour
         ctrler.CurrentTask.IncrementStep();
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Car":
+                GameObject.Find("ExperimentController").GetComponent<Trails>().Impact();
+                break;
+            default:
+                Debug.LogWarning("Tag not implemented");
+                break;
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!enabled) return;
@@ -35,6 +48,9 @@ public class BaseTarget : MonoBehaviour
             {
                 case "Hand":
                     AdvanceStep();
+                    break;
+                case "Car":
+                    Debug.Log("Finished");
                     break;
                 default:
                     Debug.LogWarning("Tag not implemented");

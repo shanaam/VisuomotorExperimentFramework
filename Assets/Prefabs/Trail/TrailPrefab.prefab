@@ -175,7 +175,7 @@ GameObject:
   - component: {fileID: 4691035172233358573}
   m_Layer: 0
   m_Name: Car
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -481,6 +481,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 542698451047346393}
     m_Modifications:
+    - target: {fileID: 536126370896853447, guid: a8bd30a5a6b80fe49b53d8b5344d8595,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2901438810734233383, guid: a8bd30a5a6b80fe49b53d8b5344d8595,
+        type: 3}
+      propertyPath: m_TagString
+      value: FinishLine
+      objectReference: {fileID: 0}
     - target: {fileID: 6237002731092315768, guid: a8bd30a5a6b80fe49b53d8b5344d8595,
         type: 3}
       propertyPath: m_Name
@@ -556,6 +566,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 542698451047346393}
     m_Modifications:
+    - target: {fileID: 536126370896853447, guid: a8bd30a5a6b80fe49b53d8b5344d8595,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6237002731092315768, guid: a8bd30a5a6b80fe49b53d8b5344d8595,
         type: 3}
       propertyPath: m_Name
