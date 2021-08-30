@@ -10,7 +10,7 @@ public class GatePlacement : MonoBehaviour
     private List<Vector3> v = new List<Vector3>();
 
     /*
-     * Vertex positions along splinemesh path:
+     * Vertex positions along splinemesh track:
      *  
      * 0 2 4
      *  \/\/\/\/\/\/
@@ -34,8 +34,8 @@ public class GatePlacement : MonoBehaviour
         Vector3 n1 = v[placement];
         Vector3 n2 = v[placement + 2];
 
-        gate1.transform.position = (n2 + n1) / 2;
-        gate2.transform.position = v[placement + 1];
+        gate1.transform.position = (n2 + n1) / 2 + Vector3.up * 0.5f;
+        gate2.transform.position = v[placement + 1] + Vector3.up * 0.5f;
 
         Vector3 dir = gate1.transform.position - gate2.transform.position;
         Vector3 left = Vector3.Cross(dir, Vector3.up).normalized;
@@ -43,8 +43,8 @@ public class GatePlacement : MonoBehaviour
         gate1.transform.forward = left;
         gate2.transform.forward = left;
 
-        lr.SetPosition(0, gate1.transform.position);
-        lr.SetPosition(1, gate2.transform.position);
+        lr.SetPosition(0, gate1.transform.position + Vector3.up * 0.45f);
+        lr.SetPosition(1, gate2.transform.position + Vector3.up * 0.45f);
 
         col.transform.position = (gate1.transform.position + gate2.transform.position) / 2;
         col.transform.forward = left;

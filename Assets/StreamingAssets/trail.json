@@ -8,5 +8,5 @@
   "per_block_track_score": [ null, true, null ],
   "per_block_timerTime": [ 1, 1, 1 ],
   "per_block_startPoint": [ 0, 0.5, 1 ],
-  "per_block_endPoint": [ 1, 0.5, 0 ]
+  "per_block_endPoint": [ 0.5, 0.5, 0 ]
 }
