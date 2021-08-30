@@ -40,6 +40,14 @@ public class ImpactToolTask : ToolTask
                 baseObject.SetActive(true);
                 Cursor.visible = false;
                 break;
+
+            case 1:
+                baseObject.GetComponent<Rigidbody>().velocity = Vector3.ClampMagnitude(toolObjects.GetComponent<Rigidbody>().velocity, FIRE_FORCE);
+
+                toolObjects.transform.rotation = toolSpace.transform.rotation;
+
+                toolObjects.GetComponentInChildren<Collider>().enabled = false;
+                break;
         }
 
         return base.IncrementStep();
@@ -73,6 +81,7 @@ public class ImpactToolTask : ToolTask
 
                 toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
 
+                
 
                 break;
 
@@ -80,10 +89,6 @@ public class ImpactToolTask : ToolTask
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
                 ObjectFollowMouse(toolObjects);
-
-                toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
-
-                toolObjects.transform.rotation = toolSpace.transform.rotation;
 
                 break;
 
