@@ -20,6 +20,12 @@ public class Trails : BaseTask
 
     private GameObject car;
 
+    [SerializeField]
+    private float carFollowMouseSpeed = 25;
+
+    [SerializeField]
+    private bool carSpeedDependantOnMouseDistance = false;
+
     /*
      * Step 1:
      * spawn at startpoint gate
@@ -54,27 +60,25 @@ public class Trails : BaseTask
             gatePlacement.mesh.Add(roadSegments.transform.GetChild(i).GetComponent<MeshFilter>().mesh);
         }
 
-        //gatePlacement.mesh.AddRange(roadSegments.GetComponentsInChildren<Mesh>());
-
         gatePlacement.Setup();
 
         startPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_startPoint");
-        endPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_endPoint");
-
+        
         gatePlacement.SetGatePosition(trailGate1.transform.GetChild(0).gameObject, trailGate1.transform.GetChild(1).gameObject,
             trailGate1.transform.GetChild(2).GetComponent<LineRenderer>(), trailGate1.transform.GetChild(3).GetComponent<BoxCollider>(), startPoint);
+
+        endPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_endPoint");
 
         gatePlacement.SetGatePosition(trailGate2.transform.GetChild(0).gameObject, trailGate2.transform.GetChild(1).gameObject,
             trailGate2.transform.GetChild(2).GetComponent<LineRenderer>(), trailGate2.transform.GetChild(3).GetComponent<BoxCollider>(), endPoint);
 
         railing1 = GameObject.Find("generated_by_SplineMeshTiling");
-        railing2 = GameObject.Find("generated_by_SplineMeshTiling_1");
-
         foreach (Transform railing in railing1.transform.GetComponentsInChildren<Transform>())
         {
             railing.tag = "TrailRailing";
         }
 
+        railing2 = GameObject.Find("generated_by_SplineMeshTiling_1");
         foreach (Transform railing in railing2.transform.GetComponentsInChildren<Transform>())
         {
             railing.tag = "TrailRailing";
@@ -106,9 +110,23 @@ public class Trails : BaseTask
 
     private void FixedUpdate()
     {
-        Vector3 dir = ctrler.CursorController.MouseToPlanePoint(transform.up, Vector3.zero, Camera.main) - car.transform.position;
-        //dir /= Time.deltaTime;
-        car.GetComponent<Rigidbody>().velocity = dir;
+        switch (currentStep)
+        {
+            case 2:
+
+                Vector3 dir = ctrler.CursorController.MouseToPlanePoint(transform.up, car.transform.position, Camera.main) - car.transform.position;
+
+                if (dir.magnitude > 1 && !carSpeedDependantOnMouseDistance)
+                    dir.Normalize();
+
+                dir *= carFollowMouseSpeed;
+
+                car.GetComponent<Rigidbody>().velocity = dir;
+
+                break;
+        }
+
+        
     }
 
     // Update is called once per frame
