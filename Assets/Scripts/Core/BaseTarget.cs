@@ -7,6 +7,7 @@ public class BaseTarget : MonoBehaviour
 {
     protected ExperimentController ctrler;
 
+    [SerializeField]
     public bool Collided { get; private set; }
     public Collider CollidedWith { get; private set; }
 
@@ -27,15 +28,20 @@ public class BaseTarget : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        switch (collision.gameObject.tag)
+        if (!enabled) return;
+
+        if (!CollisionModeOnly)
         {
-            case "Car":
-                GameObject.Find("ExperimentController").GetComponent<Trails>().Impact();
-                break;
-            default:
-                Debug.LogWarning("Tag not implemented");
-                break;
+            switch (collision.gameObject.tag)
+            {
+                default:
+                    Debug.LogWarning("Tag not implemented");
+                    break;
+            }
         }
+
+        Collided = true;
+        CollidedWith = collision.collider;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -50,7 +56,7 @@ public class BaseTarget : MonoBehaviour
                     AdvanceStep();
                     break;
                 case "Car":
-                    Debug.Log("Finished");
+                    AdvanceStep();
                     break;
                 default:
                     Debug.LogWarning("Tag not implemented");
@@ -60,6 +66,12 @@ public class BaseTarget : MonoBehaviour
 
         Collided = true;
         CollidedWith = other;
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        Collided = false;
+        CollidedWith = null;
     }
 
     private void OnTriggerExit(Collider other)
