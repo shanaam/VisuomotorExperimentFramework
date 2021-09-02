@@ -10,6 +10,7 @@ public class PinballTask : BilliardsTask
     private GameObject pinballCam;
     private GameObject pinball;
     private GameObject directionIndicator;
+    private ArcScript arcIndicator;
     private GameObject XRRig;
     private GameObject pinballWall;
     private TimerIndicator pinballTimerIndicator;
@@ -204,6 +205,10 @@ public class PinballTask : BilliardsTask
                             pinballCam.GetComponent<Camera>());
 
                         direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
+
+
+                        arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
+                        arcIndicator.GenerateArc();
 
                         // Setup visual feedback for where the participant is aiming
 
@@ -485,6 +490,8 @@ public class PinballTask : BilliardsTask
         pinballCam = GameObject.Find("PinballCamera");
         directionIndicator = GameObject.Find("PinballSpring");
         directionIndicator.SetActive(false);
+        arcIndicator = GameObject.Find("ArcTarget").GetComponent<ArcScript>();
+        arcIndicator.gameObject.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
         pinballTimerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
