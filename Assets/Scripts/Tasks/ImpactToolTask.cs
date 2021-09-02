@@ -28,10 +28,6 @@ public class ImpactToolTask : ToolTask
 
         baseObject.GetComponent<SphereCollider>().material.bounciness = 0.8f;
 
-        //initial distance between target and ball
-        InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
-        InitialDistanceToTarget += 0.15f;
-
         // Disable object(puck) for first step
         baseObject.SetActive(false);
     }
@@ -43,6 +39,14 @@ public class ImpactToolTask : ToolTask
             case 0:
                 baseObject.SetActive(true);
                 Cursor.visible = false;
+                break;
+
+            case 1:
+                baseObject.GetComponent<Rigidbody>().velocity = Vector3.ClampMagnitude(toolObjects.GetComponent<Rigidbody>().velocity, FIRE_FORCE);
+
+                toolObjects.transform.rotation = toolSpace.transform.rotation;
+
+                toolObjects.GetComponentInChildren<Collider>().enabled = false;
                 break;
         }
 
@@ -71,36 +75,20 @@ public class ImpactToolTask : ToolTask
             case 1:
 
                 // Tool follows mouse
-                Vector3 toolDir = mousePoint - toolObjects.transform.position;
-                toolDir /= Time.fixedDeltaTime;
-                toolObjects.GetComponent<Rigidbody>().velocity = toolDir;
+                ObjectFollowMouse(toolObjects);
 
-
-                // Rotate the tool: always looking at the ball when close enough 
-                if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
-                {
-                    toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
-                }
-                else
-                {
-                    toolObjects.transform.rotation = toolSpace.transform.rotation;
-                }
+                ToolLookAtBall();
 
                 toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
 
+                
 
                 break;
 
             // After the user hits the object
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
-                Vector3 dir = mousePoint - toolObjects.transform.position;
-                dir /= Time.fixedDeltaTime;
-                toolObjects.GetComponent<Rigidbody>().velocity = dir;
-
-                toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
-
-                toolObjects.transform.rotation = toolSpace.transform.rotation;
+                ObjectFollowMouse(toolObjects);
 
                 break;
 

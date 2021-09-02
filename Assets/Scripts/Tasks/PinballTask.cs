@@ -13,24 +13,13 @@ public class PinballTask : BilliardsTask
     private ArcScript arcIndicator;
     private GameObject XRRig;
     private GameObject pinballWall;
-    private TimerIndicator pinballTimerIndicator;
-    private Scoreboard scoreboard;
+    
     private GameObject obstacle;
-
-    private ExperimentController ctrler;
 
     // Used for pinball aiming
     private Vector3 direction;
 
-    private float timer;
-
     private float cutoffDistance;
-
-    // Minimum distance to score any points. this is also the cutoff distance
-    // for starting the miss timer
-    private const float TARGET_DISTANCE = 0.55f; // Target distance from home
-
-    private float cameraTilt, surfaceTilt;
 
     // True when the participant is holding the trigger down to aim the pinball
     private bool aiming;
@@ -40,10 +29,8 @@ public class PinballTask : BilliardsTask
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();
 
+    // Used to determine if the ball moved away from the target for too long
     private float missTimer;
-    private Vector3 previousPosition;
-
-    private float distanceToTarget;
 
     private Vector3 pinballStartPosition;
 
@@ -62,10 +49,6 @@ public class PinballTask : BilliardsTask
     // Distance from pinball in meters the indicator will be shown
     private float indicatorLength = 0.2f;
 
-    private bool missed;
-
-    private bool trackScore;
-
     private float trialTimer;
     private const float MAX_TRIAL_TIME = 2.0f;
 
@@ -78,12 +61,22 @@ public class PinballTask : BilliardsTask
     // of plane tilt
     private Vector3 pinballAlignedTargetPosition;
 
+    private GameObject bonusText;
+
+    private Vector3 previousPosition;
+
     private int score;
     private float tempScore;
     private const int MAX_POINTS = 10; // Maximum points the participant can earn
     private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
 
-    private GameObject bonusText;
+    private float timer;
+
+    // Set to true if the user runs out of time 
+    private bool missed;
+
+    // Used to store the current distance t
+    private float distanceToTarget;
 
     void FixedUpdate()
     {
@@ -97,10 +90,9 @@ public class PinballTask : BilliardsTask
             if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
                 lastPositionInTarget = pinball.transform.position;
 
-
             // Update score if pinball is within 20cm of the target
             if (distanceToTarget < 0.20f)
-                tempScore = Mathf.Round(-5f * (distanceToTarget - 0.20f) * MAX_POINTS);
+                tempScore = CalculateScore(distanceToTarget, .2f, MAX_POINTS);
 
             // Overwrite score only if its greater than the current score
             if (!missed && tempScore > score) score = (int)tempScore;
@@ -199,10 +191,7 @@ public class PinballTask : BilliardsTask
 
                         // Direction is calculated by projecting the mouse position onto the 
                         // pinball plane and clamping it to a maximum length of 10 centimeters
-                        Vector3 mouse = ctrler.CursorController.MouseToPlanePoint(
-                            Surface.transform.up * pinball.transform.position.y,
-                            pinball.transform.position,
-                            pinballCam.GetComponent<Camera>());
+                        Vector3 mouse = GetMousePoint(pinball.transform);
 
                         direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
 
@@ -267,7 +256,7 @@ public class PinballTask : BilliardsTask
                 }
 
                 // If the user runs out of time to fire the pinball, play audio cue
-                if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer <= 0.0f)
+                if (!missed && timerIndicator.GetComponent<TimerIndicator>().Timer <= 0.0f)
                 {
                     missed = true;
                     pinballSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
@@ -314,7 +303,7 @@ public class PinballTask : BilliardsTask
                     LeanTween.move(bonusText, bonusText.transform.position + (pinballCam.transform.up * 0.05f), 1.5f);
 
                     // If the participant fired the pinball within the allowed time & score tracking is enabled in json
-                    if (!missed && pinballTimerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
+                    if (!missed && timerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
                     {
                         pinballSpace.GetComponent<AudioSource>().Play();
 
@@ -413,14 +402,14 @@ public class PinballTask : BilliardsTask
 
         pinball.GetComponent<Rigidbody>().useGravity = true;
 
-        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 200;
+        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 240;
 
         pinball.GetComponent<Rigidbody>().velocity =
             pinball.transform.forward * direction.magnitude * PINBALL_FIRE_FORCE;
 
         directionIndicator.GetComponent<AudioSource>().Play();
 
-        pinballTimerIndicator.GetComponent<TimerIndicator>().Cancel();
+        timerIndicator.GetComponent<TimerIndicator>().Cancel();
 
         // Creates a plane parallel to the main surface
         pPlane = new Plane(Surface.transform.up, Surface.transform.position);
@@ -478,6 +467,7 @@ public class PinballTask : BilliardsTask
     public override void Setup()
     {
         maxSteps = 3;
+
         ctrler = ExperimentController.Instance();
 
         pinballSpace = Instantiate(ctrler.GetPrefab("PinballPrefab"));
@@ -494,26 +484,13 @@ public class PinballTask : BilliardsTask
         arcIndicator.gameObject.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
-        pinballTimerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
 
-        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+        float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
 
-        // Scoreboard is now updated by the pinball class
-        scoreboard.AllowManualSet = true;
-
-        float targetAngle = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_targetListToUse"));
-        cameraTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
-        surfaceTilt = Convert.ToSingle (ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
-        cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
-
-        // initializes the position
-        Target.transform.position = new Vector3(0f, 0.065f, 0f);
-        //rotates the object
-        Target.transform.rotation = Quaternion.Euler(0f, -targetAngle + 90f, 0f);
-        //moves object forward towards the direction it is facing
-        Target.transform.position += Target.transform.forward.normalized * TARGET_DISTANCE;
+        SetTargetPosition(targetAngle);
 
         // checks if the current trial uses the obstacle and activates it if it does
         if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_obstacle"))
@@ -531,16 +508,6 @@ public class PinballTask : BilliardsTask
             obstacle.SetActive(false);
         }
 
-        // Whether or not this is a practice trial 
-        // replaces scoreboard with 'Practice Round', doesn't record score
-        trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
-
-        if (!trackScore)
-        {
-            scoreboard.ScorePrefix = false;
-            scoreboard.ManualScoreText = "Practice Round";
-        }
-
         // Use static camera for non-vr version of pinball
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
         {
@@ -555,8 +522,6 @@ public class PinballTask : BilliardsTask
             pinballCam.SetActive(false);
         }
 
-        pinball.GetComponent<Rigidbody>().maxAngularVelocity = 240;
-
         // Cutoff distance is 15cm more than the distance to the target
         cutoffDistance = 0.15f + TARGET_DISTANCE;
 
@@ -570,8 +535,8 @@ public class PinballTask : BilliardsTask
         pinballSpace.GetComponent<LineRenderer>().startWidth =
             pinballSpace.GetComponent<LineRenderer>().endWidth = 0.015f;
 
-        pinballTimerIndicator.transform.rotation = Quaternion.LookRotation(
-            pinballTimerIndicator.transform.position - pinballCam.transform.position);
+        timerIndicator.transform.rotation = Quaternion.LookRotation(
+            timerIndicator.transform.position - pinballCam.transform.position);
 
         // Should the tilt be shown to the participant before they release the pinball?
         if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
@@ -579,9 +544,9 @@ public class PinballTask : BilliardsTask
 
         pinballStartPosition = pinball.transform.position;
 
-        pinballTimerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+        timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
-        pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
+        timerIndicator.GetComponent<TimerIndicator>().BeginTimer();
 
         // set up surface materials for the plane
         switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_surface_materials")))
@@ -604,35 +569,6 @@ public class PinballTask : BilliardsTask
         SetTilt(pinballWall, pinballSpace, cameraTilt);
 
         SetTilt(pinballSpace, pinballSpace, surfaceTilt);
-
-        /*
-        // Unparent wall and camera so plane moves independently
-        pinballWall.transform.SetParent(null);
-        pinballCam.transform.SetParent(null);
-        bonusText.transform.parent.SetParent(null);
-
-        // Set the tilt of the camera
-        pinballCam.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            cameraTilt);
-
-        // Axis align the popup text for displaying points to the camera
-        bonusText.transform.parent.RotateAround(pinballSpace.transform.position, 
-            pinballSpace.transform.forward, 
-            cameraTilt);
-
-        // Rotate the wall
-        pinballWall.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            cameraTilt);
-
-        // Set the tilt of the table
-        pinballSpace.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            surfaceTilt);
-
-        // Reparent wall and camera
-        pinballWall.transform.SetParent(pinballSpace.transform);
-        pinballCam.transform.SetParent(pinballSpace.transform);
-        bonusText.transform.parent.SetParent(pinballSpace.transform);
-        */
     }
 
     public override void Disable()
