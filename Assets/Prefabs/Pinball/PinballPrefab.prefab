@@ -1696,6 +1696,11 @@ PrefabInstance:
       propertyPath: TargetDistance
       value: -0.337
       objectReference: {fileID: 0}
+    - target: {fileID: 2047916128925123979, guid: 448b9c4e72ca9d9478dadd3f5680bbfd,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6a3027f39e2cd824ababf264fbe28178, type: 2}
     - target: {fileID: 2406072035776469984, guid: 448b9c4e72ca9d9478dadd3f5680bbfd,
         type: 3}
       propertyPath: m_Name

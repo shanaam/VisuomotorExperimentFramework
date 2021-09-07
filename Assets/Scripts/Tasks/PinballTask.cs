@@ -163,7 +163,6 @@ public class PinballTask : BilliardsTask
                 enteredTarget = true;
             }
 
-
             previousPosition = pinball.transform.position;
         }
     }
@@ -182,6 +181,8 @@ public class PinballTask : BilliardsTask
                 {
                     if (Input.GetMouseButton(0))
                     {
+                        Cursor.visible = false;
+
                         // Draw the indicator if it hasn't been already enabled
                         if (!directionIndicator.activeSelf)
                         {
@@ -195,9 +196,19 @@ public class PinballTask : BilliardsTask
 
                         direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
 
-
-                        arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
-                        arcIndicator.GenerateArc();
+                        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
+                        {
+                            if (direction.z < 0)
+                            {
+                                arcIndicator.gameObject.SetActive(true);
+                                arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
+                                arcIndicator.GenerateArc();
+                            }
+                            else
+                            {
+                                arcIndicator.gameObject.SetActive(false);
+                            }
+                        }
 
                         // Setup visual feedback for where the participant is aiming
 
@@ -547,6 +558,13 @@ public class PinballTask : BilliardsTask
         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
         timerIndicator.GetComponent<TimerIndicator>().BeginTimer();
+
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
+        {
+            directionIndicator.GetComponent<MeshRenderer>().enabled = false;
+            
+        }
+
 
         // set up surface materials for the plane
         switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_surface_materials")))
