@@ -78,6 +78,11 @@ public class PinballTask : BilliardsTask
     // Used to store the current distance t
     private float distanceToTarget;
 
+    // if in flick launch mode, the time the user starts the flick
+    private float flickStartTime;
+    private Vector3 flickStartPos;
+    private bool flickStarted = false;
+
     void FixedUpdate()
     {
         // While the pinball is in motion
@@ -181,52 +186,77 @@ public class PinballTask : BilliardsTask
                 {
                     if (Input.GetMouseButton(0))
                     {
-                        Cursor.visible = false;
-
-                        // Draw the indicator if it hasn't been already enabled
-                        if (!directionIndicator.activeSelf)
+                        if (ctrler.Session.CurrentTrial.settings.GetString("per_block_fire_mode") == "flick")
                         {
-                            directionIndicator.SetActive(true);
-                            ctrler.StartTimer();
-                        }
+                            Vector3 mouse = GetMousePoint(pinball.transform);
 
-                        // Direction is calculated by projecting the mouse position onto the 
-                        // pinball plane and clamping it to a maximum length of 10 centimeters
-                        Vector3 mouse = GetMousePoint(pinball.transform);
-
-                        direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
-
-                        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
-                        {
-                            if (direction.z < 0)
+                            if (!flickStarted)
                             {
-                                arcIndicator.gameObject.SetActive(true);
-                                arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
-                                arcIndicator.GenerateArc();
+                                flickStartTime = Time.time;
+                                flickStartPos = mouse;
+                                flickStarted = true;
+                                ctrler.StartTimer();
+                            }    
+                            else if (Vector3.Distance(mouse, flickStartPos) > indicatorLength)
+                            { // end flick if reaches max distance (2cm)
+                                FlickPinball();
                             }
-                            else
-                            {
-                                arcIndicator.gameObject.SetActive(false);
-                            }
-                        }
-
-                        // Setup visual feedback for where the participant is aiming
-
-                        // When true, the indicator is in front of the pinball
-                        if (indicatorPosition)
-                        {
-                            directionIndicator.transform.position = pinball.transform.position + direction;
                         }
                         else
                         {
-                            directionIndicator.transform.position = pinball.transform.position - direction;
-                        }
 
-                        directionIndicator.transform.LookAt(pinball.transform.position);
+
+
+                            Cursor.visible = false;
+
+                            // Draw the indicator if it hasn't been already enabled
+                            if (!directionIndicator.activeSelf)
+                            {
+                                directionIndicator.SetActive(true);
+                                ctrler.StartTimer();
+                            }
+
+                            // Direction is calculated by projecting the mouse position onto the 
+                            // pinball plane and clamping it to a maximum length of 10 centimeters
+                            Vector3 mouse = GetMousePoint(pinball.transform);
+
+                            direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
+
+                            if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
+                            {
+                                if (direction.z < 0)
+                                {
+                                    arcIndicator.gameObject.SetActive(true);
+                                    arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
+                                    arcIndicator.GenerateArc();
+                                }
+                                else
+                                {
+                                    arcIndicator.gameObject.SetActive(false);
+                                }
+                            }
+
+                            // Setup visual feedback for where the participant is aiming
+
+                            // When true, the indicator is in front of the pinball
+                            if (indicatorPosition)
+                            {
+                                directionIndicator.transform.position = pinball.transform.position + direction;
+                            }
+                            else
+                            {
+                                directionIndicator.transform.position = pinball.transform.position - direction;
+                            }
+
+                            directionIndicator.transform.LookAt(pinball.transform.position);
+                        }
                     }
                     else if (Input.GetMouseButtonUp(0))
                     {
-                        FirePinball();
+                        if (ctrler.Session.CurrentTrial.settings.GetString("per_block_fire_mode") == "spring")
+                            FirePinball();
+                        else
+                            FlickPinball();
                     }
                 }
                 else // VR Controls
@@ -390,6 +420,19 @@ public class PinballTask : BilliardsTask
         }
 
         if (Finished) ctrler.EndAndPrepare();
+    }
+
+    private void FlickPinball()
+    {
+        Vector3 mouse = GetMousePoint(pinball.transform);
+
+        float flickTime = Time.time - flickStartTime;
+
+        Vector3 tempDir = flickStartPos - mouse;
+        tempDir.Normalize();
+
+        direction = Vector3.ClampMagnitude((flickStartPos - mouse) / (flickTime * 10), indicatorLength);
+        FirePinball();        
     }
 
     private void FirePinball()
