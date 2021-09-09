@@ -10,26 +10,20 @@ public class Trails : BaseTask
 
     private GameObject trailGate1, trailGate2;
 
-    private BoxCollider startCollider;
-    private BoxCollider midwayCollider;
+    private BoxCollider startCollider; // Trigger attached to trailgate1 (start gate)
+    private BoxCollider midwayCollider; // Standalone trigger used to determine if user is going correct direction
     [SerializeField]
     private List<BaseTarget> innerTrackColliders = new List<BaseTarget>();
 
-    private GameObject railing1, railing2;
+    private GameObject railing1, railing2; 
 
-    private GatePlacement gatePlacement;
+    private GatePlacement gatePlacement; 
 
-    private GameObject roadSegments;
+    private GameObject roadSegments; 
 
-    private float startPoint, endPoint, midPoint;
+    private float startPoint, endPoint, midPoint; // Percentages between 0-1 where the start, mid, and end gates will be placed along the track (clockwise)
 
     private GameObject car;
-
-    [SerializeField]
-    private float carFollowMouseSpeed = 50;
-
-    [SerializeField]
-    private bool carSpeedDependantOnMouseDistance = false;
 
     [SerializeField]
     private bool carPastMidpoint = false;
@@ -76,19 +70,23 @@ public class Trails : BaseTask
         roadSegments = GameObject.Find("generated_by_SplineExtrusion");
         
         for (int i = 0; i < roadSegments.transform.childCount; i++)
-        {
+        { // add road segments to gatePlacement list of meshes
             gatePlacement.mesh.Add(roadSegments.transform.GetChild(i).GetComponent<MeshFilter>().mesh);
         }
-
         gatePlacement.Setup();
 
+        /* TrailGate children:
+        * 0: pole1
+        * 2: pole2 
+        * 3: checkered line (line renderer component)
+        * 4: trigger (collider component)
+        */
+
         startPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_startPoint");
-        
         gatePlacement.SetGatePosition(trailGate1, trailGate1.transform.GetChild(0).gameObject, trailGate1.transform.GetChild(1).gameObject,
             trailGate1.transform.GetChild(2).GetComponent<LineRenderer>(), trailGate1.transform.GetChild(3).GetComponent<BoxCollider>(), startPoint);
 
         endPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_endPoint");
-
         gatePlacement.SetGatePosition(trailGate2, trailGate2.transform.GetChild(0).gameObject, trailGate2.transform.GetChild(1).gameObject,
             trailGate2.transform.GetChild(2).GetComponent<LineRenderer>(), trailGate2.transform.GetChild(3).GetComponent<BoxCollider>(), endPoint);
 
@@ -162,14 +160,14 @@ public class Trails : BaseTask
         {
             case 0:
 
-                
-
                 break;
 
             case 1:
                 onTrack = true;
+                // Use raycasts to determine if car is on track
                 foreach (Transform t in raycastOrigins)
                 {
+                    // if any rays don't hit a collider, then the car is at least partially off the track 
                     if (!Physics.Raycast(t.position, t.TransformDirection(Vector3.down)))
                         onTrack = false;
                 }
@@ -203,22 +201,26 @@ public class Trails : BaseTask
                 break;
 
             case 1:
-/*                onTrack = false;
+                onTrack = false;
+                // Use inner track to determine if car (must be a cylinder with 0.5 scale) is on the track
                 foreach (BaseTarget innerTrackSegment in innerTrackColliders)
                 {
+                    // if the cylinder is at least slightly touching any inner track segment, then the car is still on the main track.
                     if (innerTrackSegment.Collided)
                     {
                         onTrack = true;
                     }
-                }*/
+                }
 
-
+                // if the car hits the midway trigger, it is going the correct way
                 if (midwayCollider.GetComponent<BaseTarget>().Collided)
                     carPastMidpoint = true;
 
+                // if the car hits the start gate trigger, it is not going the right way 
                 if (startCollider.GetComponent<BaseTarget>().Collided)
                     carPastMidpoint = false;
 
+                // car position = mouse position
                 car.transform.position = ctrler.CursorController.MouseToPlanePoint(transform.up, car.transform.position, Camera.main);
 
                 break;
@@ -235,8 +237,8 @@ public class Trails : BaseTask
         switch (currentStep)
         {
             case 0:
+                // make the start trigger smaller after the car is picked up
                 startCollider.size = new Vector3(startCollider.size.z, startCollider.size.y, 0.1f);
-
 
                 break;
             case 1:
