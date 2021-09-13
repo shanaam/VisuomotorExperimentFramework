@@ -188,7 +188,7 @@ public class PinballTask : BilliardsTask
                     {
                         if (ctrler.Session.CurrentTrial.settings.GetString("per_block_fire_mode") == "flick")
                         {
-                            Vector3 mouse = GetMousePoint(pinball.transform);
+                            Vector3 mouse = GetMouseScreenPercentage();
 
                             if (!flickStarted)
                             {
@@ -197,16 +197,15 @@ public class PinballTask : BilliardsTask
                                 flickStarted = true;
                                 ctrler.StartTimer();
                             }    
-                            else if (Vector3.Distance(mouse, flickStartPos) > indicatorLength)
-                            { // end flick if reaches max distance (2cm)
+                            //pinballCam.GetComponent<Camera>().WorldToScreenPoint(pinball.transform.position),
+                            //pinballCam.GetComponent<Camera>().WorldToScreenPoint(pinball.transform.position + new Vector3(indicatorLength, 0, 0))))
+                            else if (Vector3.Distance(mouse, flickStartPos) > .1)
+                            { // end flick if reaches max distance (10% of the screen)
                                 FlickPinball();
                             }
                         }
                         else
                         {
-
-
-
                             Cursor.visible = false;
 
                             // Draw the indicator if it hasn't been already enabled
@@ -424,14 +423,18 @@ public class PinballTask : BilliardsTask
 
     private void FlickPinball()
     {
-        Vector3 mouse = GetMousePoint(pinball.transform);
+        Vector3 mouse = GetMouseScreenPercentage();
 
         float flickTime = Time.time - flickStartTime;
 
         Vector3 tempDir = flickStartPos - mouse;
         tempDir.Normalize();
 
-        direction = Vector3.ClampMagnitude((flickStartPos - mouse) / (flickTime * 10), indicatorLength);
+        // I don't know enough about math to know why this doesn't work in a single line
+        tempDir = Quaternion.Euler(90, 0, 0) * tempDir;
+        tempDir = Quaternion.Euler(0, 0, surfaceTilt) * tempDir;
+
+        direction = Vector3.ClampMagnitude(tempDir / (flickTime * 50), indicatorLength);
         FirePinball();        
     }
 
@@ -608,6 +611,11 @@ public class PinballTask : BilliardsTask
             
         }
 
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_fire_mode") == "flick")
+        {
+            //Cursor.visible = false;
+        }
+
 
         // set up surface materials for the plane
         switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_surface_materials")))
@@ -650,6 +658,13 @@ public class PinballTask : BilliardsTask
     protected override void OnDestroy()
     {
         Destroy(pinballSpace);
+    }
+
+    // returns how far across the screen the mouse is
+    // ex. middle of the screen returns (0.5, 0.5, 0)
+    public Vector3 GetMouseScreenPercentage()
+    {
+        return new Vector3(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height, 0);
     }
 
     private Vector3 mousePoint;
