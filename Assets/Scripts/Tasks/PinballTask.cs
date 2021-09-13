@@ -613,7 +613,7 @@ public class PinballTask : BilliardsTask
 
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_fire_mode") == "flick")
         {
-            //Cursor.visible = false;
+            Cursor.visible = false;
         }
 
 
