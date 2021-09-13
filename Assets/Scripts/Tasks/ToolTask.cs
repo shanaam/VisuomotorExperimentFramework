@@ -52,6 +52,8 @@ public class ToolTask : BilliardsTask
 
     private float timer;
 
+    private GameObject selectedObject;
+
     // Set to true if the user runs out of time 
     private bool missed;
 
@@ -313,15 +315,15 @@ public class ToolTask : BilliardsTask
         
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");
-
-        toolBox = GameObject.Find("ToolBox");
-        toolCylinder = GameObject.Find("ToolCylinder");
-        toolSphere = GameObject.Find("ToolSphere");
-
-        toolObjects = GameObject.Find("ToolObjects");
-
         puckobj = GameObject.Find("impactPuck");
         ballobj = GameObject.Find("impactBall");
+
+        toolBox = GameObject.Find("paddle");
+        toolCylinder = GameObject.Find("slingshot");
+        toolSphere = GameObject.Find("squeegee");
+
+        toolObjects = GameObject.Find("ToolObjects");
+   
         baseObject = GameObject.Find("BaseObject");
 
         ballObjects = GameObject.Find("BallObjects");
@@ -349,19 +351,22 @@ public class ToolTask : BilliardsTask
 
         switch (ctrler.PollPseudorandomList("per_block_list_tool_type"))
         {
-            case "quad":
+            case "paddle":
                 toolCylinder.SetActive(false);
                 toolSphere.SetActive(false);
+                selectedObject = toolBox;
 
                 break;
-            case "sphere":
+            case "squeegee":
                 toolCylinder.SetActive(false);
                 toolBox.SetActive(false);
+                selectedObject = toolSphere;
 
                 break;
-            case "cylinder":
+            case "slingshot":
                 toolSphere.SetActive(false);
                 toolBox.SetActive(false);
+                selectedObject = toolCylinder;
 
                 break;
         }
@@ -442,7 +447,27 @@ public class ToolTask : BilliardsTask
     {
         Vector3 dir = mousePoint - objFollower.transform.position;
         dir /= Time.fixedDeltaTime;
-        objFollower.GetComponent<Rigidbody>().velocity = dir;
+        
+        switch (currentStep)
+        {
+            case 0:
+                objFollower.GetComponent<Rigidbody>().velocity = dir;
+                
+                break;
+            case 1:
+                objFollower.GetComponent<Rigidbody>().velocity = dir;
+                //objFollower.transform.rotation = Quaternion.LookRotation(objFollower.GetComponent<Rigidbody>().velocity);
+                break;
+            case 2:
+                objFollower.GetComponent<Rigidbody>().velocity = dir;
+                //objFollower.transform.rotation = Quaternion.LookRotation(objFollower.GetComponent<Rigidbody>().velocity);
+                break;
+            case 3:
+                objFollower.GetComponent<Rigidbody>().velocity = dir;
+                //objFollower.transform.rotation = Quaternion.LookRotation(objFollower.GetComponent<Rigidbody>().velocity);
+                break;
+        }
+        
     }
 
     protected virtual void ToolLookAtBall()
