@@ -47,7 +47,7 @@ public abstract class BilliardsTask : BaseTask
     /// <summary>
     /// Sets the target's position using targetAngle and TARGET_DISTANCE
     /// </summary>
-    /// <param name="targetAngle">Angle to set the target (usually from JSON)</param>
+    /// <param name="targetAngle">Angle in degrees to set the target (usually from JSON)</param>
     protected virtual void SetTargetPosition(float targetAngle)
     {
         // initializes the position

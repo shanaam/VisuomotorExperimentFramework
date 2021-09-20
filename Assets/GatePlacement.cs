@@ -35,6 +35,9 @@ public class GatePlacement : MonoBehaviour
 
     public void SetGatePosition(GameObject gateParent, GameObject gate1, GameObject gate2, LineRenderer lr, BoxCollider col, float percent)
     {
+        // Detach children
+        List<Transform> gateChildren = new List<Transform>();
+        gateChildren.AddRange(gateParent.GetComponentsInChildren<Transform>());
         gateParent.transform.DetachChildren();
 
         // Get a vertex position in array from percent
@@ -79,10 +82,10 @@ public class GatePlacement : MonoBehaviour
         lr.SetPosition(1, gate2.transform.position + Vector3.up * 0.45f);
 
         // Reparent to gateParent
-        gate1.transform.SetParent(gateParent.transform);
-        gate2.transform.SetParent(gateParent.transform);
-        lr.transform.SetParent(gateParent.transform);
-        col.transform.SetParent(gateParent.transform);
+        foreach (Transform child in gateChildren)
+        {
+            child.SetParent(gateParent.transform);
+        }
     }
 
     public void SetColliderPosition(BoxCollider col, float percent)
