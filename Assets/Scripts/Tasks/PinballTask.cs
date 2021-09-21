@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using CommonUsages = UnityEngine.XR.CommonUsages;
 
 public class PinballTask : BilliardsTask
 {
@@ -82,6 +83,7 @@ public class PinballTask : BilliardsTask
     private float flickStartTime;
     private Vector3 flickStartPos;
     private bool flickStarted = false;
+
 
     void FixedUpdate()
     {
@@ -260,38 +262,64 @@ public class PinballTask : BilliardsTask
                 }
                 else // VR Controls
                 {
-                    if (ctrler.CursorController.IsTriggerDown() &&
-                        pinball.GetComponent<Grabbable>().Grabbed)
+                    if (ctrler.Session.CurrentTrial.settings.GetString("per_block_fire_mode") == "flick")
                     {
-                        // If the user presses the trigger while hovering over the pinball, move to next step
-                        aiming = true;
+                        if (ctrler.CursorController.IsTriggerDown())
+                        {
+                            Vector3 hand = ctrler.CursorController.GetHandPosition();
 
-                        directionIndicator.SetActive(true);
-                        ctrler.StartTimer();
+                            //ctrler.CursorController.RightHandDevice.TryGetFeatureValue(CommonUsages., out bool val)
+
+                            if (!flickStarted)
+                            {
+                                flickStartTime = Time.time;
+                                flickStartPos = hand;
+                                flickStarted = true;
+                                ctrler.StartTimer();
+                            }
+                            else if (Vector3.Distance(hand, flickStartPos) > indicatorLength / 10f)
+                            { // end flick if reaches max distance 
+                                FlickPinball();
+                            }
+                        }
+                        else if (ctrler.CursorController.OnTriggerUp() && flickStarted)
+                            FlickPinball();
                     }
-                    else if (aiming)
+                    else
                     {
-                        Vector3 handCoordinates = new Vector3(
-                            currentHand.transform.position.x,
-                            pinball.transform.position.y,
-                            currentHand.transform.position.z);
+                        if (ctrler.CursorController.IsTriggerDown() &&
+                            pinball.GetComponent<Grabbable>().Grabbed)
+                        {
+                            // If the user presses the trigger while hovering over the pinball, move to next step
+                            aiming = true;
 
-                        direction = Vector3.ClampMagnitude(pinball.transform.position - handCoordinates, 0.1f);
+                            directionIndicator.SetActive(true);
+                            ctrler.StartTimer();
+                        }
+                        else if (aiming)
+                        {
+                            Vector3 handCoordinates = new Vector3(
+                                currentHand.transform.position.x,
+                                pinball.transform.position.y,
+                                currentHand.transform.position.z);
 
-                        directionIndicator.transform.localScale = new Vector3(
-                            direction.magnitude,
-                            directionIndicator.transform.localScale.y,
-                            directionIndicator.transform.localScale.z
-                        );
+                            direction = -Vector3.ClampMagnitude(pinball.transform.position - handCoordinates, indicatorLength);
 
-                        directionIndicator.transform.position = pinball.transform.position - direction / 2f;
-                        directionIndicator.transform.LookAt(pinball.transform.position);
-                        directionIndicator.transform.RotateAround(directionIndicator.transform.position,
-                            directionIndicator.transform.up,
-                            90f);
+                            directionIndicator.transform.localScale = new Vector3(
+                                direction.magnitude,
+                                directionIndicator.transform.localScale.y,
+                                directionIndicator.transform.localScale.z
+                            );
 
-                        if (ctrler.CursorController.triggerUp)
-                            FirePinball();
+                            directionIndicator.transform.position = pinball.transform.position - direction / 2f;
+                            directionIndicator.transform.LookAt(pinball.transform.position);
+                            directionIndicator.transform.RotateAround(directionIndicator.transform.position,
+                                directionIndicator.transform.up,
+                                90f);
+
+                            if (ctrler.CursorController.triggerUp)
+                                FirePinball();
+                        }
                     }
                 }
 
@@ -423,15 +451,22 @@ public class PinballTask : BilliardsTask
 
     private void FlickPinball()
     {
-        Vector3 mouse = GetMouseScreenPercentage();
-
         float flickTime = Time.time - flickStartTime;
+
+        Vector3 mouse;
+
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
+            mouse = GetMouseScreenPercentage();
+        else
+            mouse = new Vector3 (ctrler.CursorController.GetHandPosition().x, flickStartPos.y, ctrler.CursorController.GetHandPosition().z);
+
+        
 
         Vector3 tempDir = flickStartPos - mouse;
         tempDir.Normalize();
 
-        // I don't know enough about math to know why this doesn't work in a single line
-        tempDir = Quaternion.Euler(90, 0, 0) * tempDir;
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
+            tempDir = Quaternion.Euler(90, 0, 0) * tempDir;
         tempDir = Quaternion.Euler(0, 0, surfaceTilt) * tempDir;
 
         direction = Vector3.ClampMagnitude(tempDir / (flickTime * 50), indicatorLength);
@@ -576,7 +611,9 @@ public class PinballTask : BilliardsTask
         }
         else
         {
+            ctrler.CursorController.UseVR = true;
             pinballCam.SetActive(false);
+            ctrler.CursorController.SetCursorVisibility(false);
         }
 
         // Cutoff distance is 15cm more than the distance to the target
@@ -638,6 +675,12 @@ public class PinballTask : BilliardsTask
         SetTilt(pinballWall, pinballSpace, cameraTilt);
 
         SetTilt(pinballSpace, pinballSpace, surfaceTilt);
+
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        {
+            XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
+               cameraTilt);
+        }
     }
 
     public override void Disable()
@@ -645,8 +688,8 @@ public class PinballTask : BilliardsTask
         // Realign XR Rig to non-tilted position
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
         {
-            XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-                ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt") * -1);
+            XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
+                cameraTilt * -1);
         }
 
         pinballSpace.SetActive(false);
