@@ -443,31 +443,53 @@ public class ToolTask : BilliardsTask
             oldMainCamera.SetActive(true);
     }
 
+    // method used to move the tool around based on mouse position
     protected virtual void ObjectFollowMouse(GameObject objFollower)
     {
         Vector3 dir = mousePoint - objFollower.transform.position;
-        dir /= Time.fixedDeltaTime;
-        
+        //dir /= Time.fixedDeltaTime;
+        //objFollower.GetComponent<Rigidbody>().velocity = dir;
+
+
         switch (currentStep)
         {
             case 0:
-                objFollower.GetComponent<Rigidbody>().velocity = dir;
-                
+                objFollower.transform.position = mousePoint;
                 break;
+
             case 1:
-                objFollower.GetComponent<Rigidbody>().velocity = dir;
-                //objFollower.transform.rotation = Quaternion.LookRotation(objFollower.GetComponent<Rigidbody>().velocity);
+                switch(selectedObject.name)
+                {
+                    // the slingshot is placed at the home position and it rotates based on the direction the player is aiming at
+                    case "slingshot":
+                        objFollower.transform.position = Home.transform.position;
+                        Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
+                        objFollower.transform.localRotation = Quaternion.LookRotation(direc);
+                        break;
+
+                    // squeegee rotates based on the direction that the player is moving towards
+                    case "squeegee":
+                        objFollower.transform.position = mousePoint;
+                        dir = new Vector3(dir.x, 0, dir.z);
+                        dir.Normalize();
+                        objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
+                        break;
+                }     
                 break;
             case 2:
-                objFollower.GetComponent<Rigidbody>().velocity = dir;
-                //objFollower.transform.rotation = Quaternion.LookRotation(objFollower.GetComponent<Rigidbody>().velocity);
+                objFollower.transform.position = mousePoint;
                 break;
             case 3:
-                objFollower.GetComponent<Rigidbody>().velocity = dir;
-                //objFollower.transform.rotation = Quaternion.LookRotation(objFollower.GetComponent<Rigidbody>().velocity);
+                objFollower.transform.position = mousePoint;
                 break;
         }
-        
+
+    }
+
+    // moves the ball based on mouse position
+    protected virtual void BallFollowMouse(GameObject objFollower)
+    {
+        objFollower.transform.position = mousePoint;
     }
 
     protected virtual void ToolLookAtBall()
@@ -479,7 +501,7 @@ public class ToolTask : BilliardsTask
         }
         else
         {
-            toolObjects.transform.rotation = toolSpace.transform.rotation;
+            //toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
     }    
 
