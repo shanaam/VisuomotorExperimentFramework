@@ -424,6 +424,7 @@ MonoBehaviour:
   triggerUp: 0
   LeftHand: {fileID: 734581677}
   RightHand: {fileID: 1116743203}
+  prevVelocity: {x: 0, y: 0, z: 0}
   UseVR: 0
 --- !u!1 &705507993
 GameObject:

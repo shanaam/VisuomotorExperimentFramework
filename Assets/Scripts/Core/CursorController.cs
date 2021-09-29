@@ -44,6 +44,9 @@ public class CursorController : MonoBehaviour
     // Bools for when the trigger is pressed
     private bool prevLeftTrigger, prevRightTrigger;
 
+    // Prev controller velocity for the current controller
+    public Vector3 prevVelocity;
+
     // Bool for whether or not to use VR controllers as input for the cursor position
     public bool UseVR;
 
@@ -69,7 +72,6 @@ public class CursorController : MonoBehaviour
         //InputDevices.GetDevices(devices);
 
         InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right, devices);
-
         if (devices.Count > 0)
         {
             RightHandDevice = devices[0];
@@ -78,9 +80,20 @@ public class CursorController : MonoBehaviour
         {
             Debug.Log("No devices detected.");
         }
-
         Debug.Log("Detecting devices...");
         Debug.Log("Found Right Device: " + RightHandDevice);
+
+        InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Left, devices);
+        if (devices.Count > 0)
+        {
+            LeftHandDevice = devices[0];
+        }
+        else
+        {
+            Debug.Log("No devices detected.");
+        }
+        Debug.Log("Detecting devices...");
+        Debug.Log("Found Left Device: " + LeftHandDevice);
 
         vrCamera = GameObject.Find("Main Camera");
 
@@ -113,7 +126,7 @@ public class CursorController : MonoBehaviour
         if (hand == "l") {
             return LeftHandDevice == null
                 ? false
-                : LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val);
+                : LeftHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val) && val;
         } else {
 
             return RightHandDevice == null
@@ -128,7 +141,7 @@ public class CursorController : MonoBehaviour
     {
         return OnTriggerUp(CurrentTaskHand);
     }
-
+    
     public bool OnTriggerUp(String hand)
     {
         if (hand == "l")
@@ -140,6 +153,27 @@ public class CursorController : MonoBehaviour
             return RightHandDevice == null
                 ? false
                 : !RightHandDevice.TryGetFeatureValue(CommonUsages.triggerButton, out bool val) && prevRightTrigger;
+        }
+    }
+
+    public Vector3 GetVelocity()
+    {
+        return GetVelocity(CurrentTaskHand);
+    }
+
+    public Vector3 GetVelocity(String hand)
+    {
+        if (hand == "l")
+        {
+            Vector3 vel;
+            LeftHandDevice.TryGetFeatureValue(CommonUsages.deviceVelocity, out vel);
+            return vel;
+        }
+        else
+        {
+            Vector3 vel;
+            RightHandDevice.TryGetFeatureValue(CommonUsages.deviceVelocity, out vel);
+            return vel;
         }
     }
 
@@ -169,8 +203,10 @@ public class CursorController : MonoBehaviour
         switch (trial.settings.GetString("per_block_hand"))
         {
             case "r":
+                CurrentTaskHand = "r";
+                break;
             case "l":
-                CurrentTaskHand = trial.settings.GetString("per_block_hand");
+                CurrentTaskHand = "l";
                 break;
             default:
                 Debug.LogWarning("\"per_block_hand\" is not 'l' or 'r'. Check the JSON.");
