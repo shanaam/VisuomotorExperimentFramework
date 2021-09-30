@@ -15,7 +15,8 @@ public class PinballTask : BilliardsTask
     private GameObject XRRig;
     private GameObject pinballWall;
     private GameObject pinballSurface;
-    
+    private GameObject XRPosLock;
+
     private GameObject obstacle;
 
     private GameObject handL, handR;
@@ -608,6 +609,7 @@ public class PinballTask : BilliardsTask
         arcIndicator.gameObject.SetActive(false);
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
+        XRPosLock = GameObject.Find("XRPosLock");
         
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
@@ -719,27 +721,35 @@ public class PinballTask : BilliardsTask
 
     private void SetTilt()
     {
-        SetTilt(pinballCam, pinballSpace, cameraTilt);
-        SetTilt(bonusText.transform.parent.gameObject, pinballSpace, cameraTilt);
-        SetTilt(pinballWall, pinballSpace, cameraTilt);
-        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
+        //Vector3 rot_axis = pinballSpace.transform.forward;
+
+        SetTilt(pinballCam, ball_pos, pinballSpace, cameraTilt);
+        SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, cameraTilt);
+        SetTilt(pinballWall, ball_pos, pinballSpace, cameraTilt);
+
+        SetTilt(pinballSpace, ball_pos, pinballSpace, surfaceTilt); //Tilt surface
+
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr") //Tilt VR Camera if needed
         {
-            //XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
-            //    cameraTilt + surfaceTilt);
-            XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
-               cameraTilt + surfaceTilt);
+            //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
+            //   cameraTilt + surfaceTilt);
+            SetTilt(XRRig, ball_pos, pinballSpace, cameraTilt + surfaceTilt);
+            XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
+
         }
-        SetTilt(pinballSpace, pinballSpace, surfaceTilt);
-      
+
     }
 
     public override void Disable()
     {
+        Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
         // Realign XR Rig to non-tilted position
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
         {
-            XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
-                (cameraTilt + surfaceTilt) * -1);
+            //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
+            //    (cameraTilt + surfaceTilt) * -1);
+            SetTilt(XRRig, ball_pos, pinballSpace, (cameraTilt + surfaceTilt) * -1);
         }
 
         pinballSpace.SetActive(false);

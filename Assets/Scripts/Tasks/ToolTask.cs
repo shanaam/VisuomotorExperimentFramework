@@ -416,9 +416,9 @@ public class ToolTask : BilliardsTask
 
     private void SetTilt()
     {
-        SetTilt(toolCamera, toolSpace, cameraTilt);
+        SetTilt(toolCamera, toolSpace.transform.position, toolSpace, cameraTilt);
 
-        SetTilt(toolSpace, toolSpace, surfaceTilt);
+        SetTilt(toolSpace, toolSpace.transform.position, toolSpace, surfaceTilt);
     }
 
     public override void Disable()
