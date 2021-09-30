@@ -16,9 +16,13 @@ public class InstructionTask : BaseTask
     private double timeRemaining = 3f;
 
     private GameObject instructionPanel;
+    private GameObject vrInstructions;
     private GameObject instruction;
     private GameObject timer;
     private GameObject done;
+
+    private GameObject pinballDummy;
+    
 
     private Camera tempMainCamera;
 
@@ -26,13 +30,16 @@ public class InstructionTask : BaseTask
     {
         ctrler = ExperimentController.Instance();
 
+        //pinballDummy = Instantiate(ctrler.GetPrefab("PinballPrefabDummy"));
+        //pinballDummy.transform.SetParent(ctrler.gameObject.transform);
+        //pinballDummy.transform.localPosition = new Vector3(0, 0, 0);
 
         string per_block_ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
         ins = ctrler.Session.CurrentTrial.settings.GetString(per_block_ins);
 
         // Temporarily disable VR Camera
         // TODO: This needs to be changed when we implement instruction task for VR
-        ctrler.CursorController.SetVRCamera(false);
+        //ctrler.CursorController.SetVRCamera(false);
 
         //Task GameObjects
         instructionPanel = Instantiate(ctrler.GetPrefab("InstructionPanel"), this.transform);
@@ -40,8 +47,10 @@ public class InstructionTask : BaseTask
         instruction = GameObject.Find("Instruction");
         timer = GameObject.Find("Timer");
         done = GameObject.Find("Done");
+        vrInstructions = GameObject.Find("VRInstructions");
 
         instruction.GetComponent<Text>().text = ins;
+        vrInstructions.GetComponent<TextMesh>().text = ins;
 
         //countdown Timer start
         timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();
@@ -84,5 +93,6 @@ public class InstructionTask : BaseTask
     protected override void OnDestroy()
     {
         Destroy(instructionPanel);
+        //pinballDummy.SetActive(false);
     }
 }

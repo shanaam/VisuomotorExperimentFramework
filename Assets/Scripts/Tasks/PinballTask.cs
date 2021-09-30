@@ -14,6 +14,7 @@ public class PinballTask : BilliardsTask
     private ArcScript arcIndicator;
     private GameObject XRRig;
     private GameObject pinballWall;
+    private GameObject pinballSurface;
     
     private GameObject obstacle;
 
@@ -610,7 +611,7 @@ public class PinballTask : BilliardsTask
         
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
-
+        pinballSurface = GameObject.Find("Surface");
         handL = GameObject.Find("handL");
         handR = GameObject.Find("handR");
         handL.SetActive(false);
@@ -721,14 +722,15 @@ public class PinballTask : BilliardsTask
         SetTilt(pinballCam, pinballSpace, cameraTilt);
         SetTilt(bonusText.transform.parent.gameObject, pinballSpace, cameraTilt);
         SetTilt(pinballWall, pinballSpace, cameraTilt);
-
-        SetTilt(pinballSpace, pinballSpace, surfaceTilt);
-
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
         {
+            //XRRig.transform.RotateAround(pinballSpace.transform.position, pinballSpace.transform.forward,
+            //    cameraTilt + surfaceTilt);
             XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
                cameraTilt + surfaceTilt);
         }
+        SetTilt(pinballSpace, pinballSpace, surfaceTilt);
+      
     }
 
     public override void Disable()

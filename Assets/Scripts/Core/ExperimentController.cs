@@ -172,7 +172,7 @@ public class ExperimentController : MonoBehaviour
     {
         transform.position = new Vector3(Camera.main.transform.position.x, CursorController.GetHandPosition().y, CursorController.GetHandPosition().z) 
             - Vector3.up * .075f
-            + Vector3.left * .1f;
+            + Vector3.left * 0f;
         StartCoroutine(TempDisableCursor());
     }
 
