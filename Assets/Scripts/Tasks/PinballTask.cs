@@ -16,6 +16,7 @@ public class PinballTask : BilliardsTask
     private GameObject pinballWall;
     private GameObject pinballSurface;
     private GameObject XRPosLock;
+    private GameObject XRCamOffset;
 
     private GameObject obstacle;
 
@@ -610,7 +611,8 @@ public class PinballTask : BilliardsTask
         XRRig = GameObject.Find("XR Rig");
         pinballWall = GameObject.Find("PinballWall");
         XRPosLock = GameObject.Find("XRPosLock");
-        
+        XRCamOffset = GameObject.Find("Dummy Camera");
+
         bonusText = GameObject.Find("BonusText");
         obstacle = GameObject.Find("Obstacle");
         pinballSurface = GameObject.Find("Surface");
@@ -736,7 +738,7 @@ public class PinballTask : BilliardsTask
             //   cameraTilt + surfaceTilt);
             SetTilt(XRRig, ball_pos, pinballSpace, cameraTilt + surfaceTilt);
             XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
-
+            //XRCamOffset.transform.position = new Vector3(0, -0.8f, -0.2f);
         }
 
     }
