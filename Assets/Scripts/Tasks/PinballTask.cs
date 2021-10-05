@@ -85,12 +85,16 @@ public class PinballTask : BilliardsTask
     private float distanceToTarget;
 
     // if in flick launch mode, the time the user starts the flick
-    private float flickStartTime;
+    private float flickStartTime, flickEndTime;
     private Vector3 flickStartPos;
     private bool flickStarted = false;
     // The max distance before a VR flick automatically ends
     private float flickCutoff = 0.12f;
     private const float VR_FLICK_FIRE_FORCE = 2;
+
+    private Vector3 initialVelocity;
+
+    private float timeBallTrackingStarts, timeHandTrackingStarts;
 
 
     void FixedUpdate()
@@ -479,7 +483,8 @@ public class PinballTask : BilliardsTask
         }
         else // VR flick
         {
-            direction = -ctrler.CursorController.GetVelocity();
+            initialVelocity = ctrler.CursorController.GetVelocity();
+            direction = -initialVelocity;
             direction.y = 0;
 
             // Perturbation
@@ -494,6 +499,7 @@ public class PinballTask : BilliardsTask
             direction = Quaternion.Euler(0, 0, surfaceTilt) * direction;
         }
 
+        flickEndTime = Time.time;
 
         FirePinball();        
     }
@@ -550,6 +556,7 @@ public class PinballTask : BilliardsTask
 
         // Add Pinball to tracked objects
         ctrler.AddTrackedObject("pinball_path", pinball);
+        timeBallTrackingStarts = Time.time;
 
         IncrementStep();
     }
@@ -588,6 +595,15 @@ public class PinballTask : BilliardsTask
 
         ctrler.Session.CurrentTrial.result["tilt_after_fire"] =
             ctrler.Session.CurrentTrial.settings.GetBool("per_block_tilt_after_fire");
+
+        ctrler.LogObjectPosition("flick_velocity", initialVelocity);
+        ctrler.LogObjectPosition("flick_direction", direction);
+        ctrler.Session.CurrentTrial.result["flick_multiplier"] = VR_FLICK_FIRE_FORCE;
+
+        ctrler.Session.CurrentTrial.result["flick_start_time"] = flickStartTime;
+        ctrler.Session.CurrentTrial.result["flick_end_time"] = flickEndTime;
+        ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeBallTrackingStarts;
+        ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeHandTrackingStarts;
     }
 
     public override void Setup()
@@ -706,6 +722,9 @@ public class PinballTask : BilliardsTask
             Cursor.visible = false;
         }
 
+        // Start tracking hand pos
+        ctrler.AddTrackedObject("hand", ctrler.CursorController.CurrentHand());
+        timeHandTrackingStarts = Time.time;
 
         // set up surface materials for the plane
         switch (Convert.ToString(ctrler.PollPseudorandomList("per_block_surface_materials")))
