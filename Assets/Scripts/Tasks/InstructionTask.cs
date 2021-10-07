@@ -20,6 +20,7 @@ public class InstructionTask : BaseTask
     private GameObject instruction;
     private GameObject timer;
     private GameObject done;
+    private float vrInstructionOffset = -184.55f;
 
     private GameObject pinballDummy;
     
@@ -48,6 +49,7 @@ public class InstructionTask : BaseTask
         timer = GameObject.Find("Timer");
         done = GameObject.Find("Done");
         vrInstructions = GameObject.Find("VRInstructions");
+        vrInstructions.transform.localPosition = new Vector3(vrInstructions.transform.localPosition.x, vrInstructionOffset, vrInstructions.transform.localPosition.z);
 
         instruction.GetComponent<Text>().text = ins;
         vrInstructions.GetComponent<TextMesh>().text = ins;

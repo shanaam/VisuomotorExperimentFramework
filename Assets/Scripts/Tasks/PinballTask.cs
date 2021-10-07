@@ -89,8 +89,9 @@ public class PinballTask : BilliardsTask
     private Vector3 flickStartPos;
     private bool flickStarted = false;
     // The max distance before a VR flick automatically ends
-    private float flickCutoff = 0.12f;
-    private const float VR_FLICK_FIRE_FORCE = 2;
+    private float flickCutoff = 0.15f;
+    private const float VR_FLICK_FIRE_FORCE = 1.8f;
+    private const float MAX_MAGNITUDE = 2.2f;
 
     private Vector3 initialVelocity;
 
@@ -483,8 +484,18 @@ public class PinballTask : BilliardsTask
         }
         else // VR flick
         {
-            initialVelocity = ctrler.CursorController.GetVelocity();
+            initialVelocity = ctrler.CursorController.GetVelocity();   
+            
+            // if magnitude of initialVelocity > #, then cap it at max Magnitude     
+            if (initialVelocity.magnitude > MAX_MAGNITUDE)
+            {
+                //normalizing the vector and then multiplying by the max_magnitude
+                initialVelocity.Normalize();
+                initialVelocity = initialVelocity * MAX_MAGNITUDE;
+            }
+
             direction = -initialVelocity;
+            // y component to 0 so the ball does not fly off
             direction.y = 0;
 
             // Perturbation
@@ -685,8 +696,8 @@ public class PinballTask : BilliardsTask
             }
         }
 
-        // Cutoff distance is 15cm more than the distance to the target
-        cutoffDistance = 0.15f + TARGET_DISTANCE;
+        // Cutoff distance is 30cm more than the distance to the target
+        cutoffDistance = 0.30f + TARGET_DISTANCE;
 
         currentHand = ctrler.CursorController.CurrentHand();
 
