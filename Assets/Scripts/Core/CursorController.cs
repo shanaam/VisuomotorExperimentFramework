@@ -176,6 +176,12 @@ public class CursorController : MonoBehaviour
             return vel;
         }
     }
+    //if left hand joystick is pressed then this send a true bool
+    public bool MenuSkip()
+    {
+        LeftHandDevice.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out bool val);
+        return val;
+    }
 
     /// <summary>
     /// Returns the GameObject that represents the hand involved in the current trial

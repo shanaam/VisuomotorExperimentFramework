@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UXF;
+using CommonUsages = UnityEngine.XR.CommonUsages;
+using InputDevice = UnityEngine.XR.InputDevice;
 
 public class InstructionTask : BaseTask
 {
@@ -72,6 +74,14 @@ public class InstructionTask : BaseTask
         {
             //Enable Done Button
             done.GetComponent<Button>().interactable = true;
+        }
+        //checks to see if left hand controller pressed the joystick button to skip the menu
+        if(ctrler.CursorController.MenuSkip())
+        {
+            End();
+        }
+        {
+
         }
     }
 
