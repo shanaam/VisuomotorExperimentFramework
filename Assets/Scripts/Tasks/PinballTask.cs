@@ -495,8 +495,11 @@ public class PinballTask : BilliardsTask
             }
 
             direction = -initialVelocity;
-            // y component to 0 so the ball does not fly off
+
+            float magnitude = direction.magnitude;
+            // remove y component while keeping magnitude the same
             direction.y = 0;
+            direction = direction.normalized * magnitude;
 
             // Perturbation
             if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
