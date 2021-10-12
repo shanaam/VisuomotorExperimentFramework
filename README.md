@@ -1,4 +1,4 @@
-# VisuomotorExperimentFramework wiki!
+# Visuomotor Experiment Framework - Sensorimotor Control Lab
 
 ## This is a flexible experiment creation tool for experimenters.
 
