@@ -22,14 +22,19 @@ public class ReachToTargetTask : BaseTask
     private GameObject reachSurface;
     private GameObject waterBowl;
     private GameObject water;
-    private TimerIndicator pinballTimerIndicator;
+    private TimerIndicator timerIndicator;
+    private Scoreboard scoreboard;
+
+    private float speed = 1;
     private int id;
     LTDescr d;
 
-    private float speed = 1;
+    private bool trackScore;
 
     public void Update()
     {
+        if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
+
         if (Input.GetKeyDown(KeyCode.N))
             IncrementStep();
 
@@ -65,7 +70,7 @@ public class ReachToTargetTask : BaseTask
                 ctrler.CursorController.SetMovementType(reachType[2]);
 
                 // Start green timer bar
-                pinballTimerIndicator.GetComponent<TimerIndicator>().BeginTimer();
+                timerIndicator.BeginTimer();
 
                 if (trial.settings.GetString("per_block_type") == "nocursor")
                     ctrler.CursorController.SetCursorVisibility(false);
@@ -79,13 +84,20 @@ public class ReachToTargetTask : BaseTask
                 ctrler.AddTrackedObject("cursor_path", ctrler.CursorController.gameObject);
 
                 break;
+            case 2:
+                if (trackScore && timerIndicator.Timer > 0)
+                {
+                    ctrler.Score++;
+                }
+                
+                break;
         }
 
         base.IncrementStep();
 
         if (!finished)
             // if current step is home step and there is a water animation in the scene, it sets the home ball to innactive
-            if(currentStep == 1 && d != null)
+            if(currentStep == 1)
             {
                 targets[1].SetActive(false);
             }
@@ -114,9 +126,22 @@ public class ReachToTargetTask : BaseTask
         reachSurface = GameObject.Find("Surface");
         waterBowl = GameObject.Find("Bowl");
         water = GameObject.Find("Water");
-        pinballTimerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
 
-        pinballTimerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+        timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+
+        // Whether or not this is a practice trial 
+        // replaces scoreboard with 'Practice Round', doesn't record score
+        trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
+
+        if (!trackScore)
+        {
+            // Scoreboard is now updated by the reach class
+            scoreboard.AllowManualSet = true;
+            scoreboard.ScorePrefix = false;
+            scoreboard.ManualScoreText = "Practice Round";
+        }
 
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
@@ -159,7 +184,7 @@ public class ReachToTargetTask : BaseTask
         targets[2].SetActive(false);
         Target = targets[2];
 
-        // Use static camera for non-vr version of pinball
+        // Use static camera for non-vr version
         if (ctrler.Session.settings.GetString("experiment_mode") == "target")
         {
             reachSurface.SetActive(false);
@@ -205,7 +230,6 @@ public class ReachToTargetTask : BaseTask
                 id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
                 d = LeanTween.descr(id);
             }
-            
         }
         else
         {

@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Target
   - Hand
+  - TrailRailing
+  - FinishLine
+  - Car
   layers:
   - Default
   - TransparentFX

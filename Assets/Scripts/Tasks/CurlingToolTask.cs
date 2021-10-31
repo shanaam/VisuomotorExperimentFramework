@@ -8,21 +8,13 @@ public class CurlingToolTask : ToolTask
     {
         base.Setup();
 
+        Cursor.visible = false;
+
         baseObject.GetComponent<SphereCollider>().material.bounciness = 1f;
-        //baseObject.GetComponent<SphereCollider>().enabled = false;
 
-        impactBox.SetActive(false);
-        puckobj.SetActive(false);
-        slingShotBall.SetActive(false);
-        
+        curlingStone.SetActive(true);
 
-        baseObject.transform.position = Home.transform.position;
 
-        //initial distance between target and ball
-        InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
-        InitialDistanceToTarget += 0.15f;
-
-        baseObject.GetComponent<MeshRenderer>().enabled = false;
         baseObject.GetComponent<ToolObjectScript>().enabled = false;
         baseObject.SetActive(false);
     }
@@ -32,7 +24,7 @@ public class CurlingToolTask : ToolTask
         if (currentStep == 0)
         {
             baseObject.SetActive(true);
-            curlingStone.SetActive(true);
+            toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
 
         return base.IncrementStep();
@@ -43,10 +35,15 @@ public class CurlingToolTask : ToolTask
     {
         base.Update();
 
+        // Tool follows mouse
+        ObjectFollowMouse(toolObjects);
+
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
+
+                ToolLookAtBall();
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
@@ -61,15 +58,12 @@ public class CurlingToolTask : ToolTask
             case 1:
 
                 // Ball follows mouse
-                Vector3 dir = mousePoint - baseObject.transform.position;
-                dir /= Time.fixedDeltaTime;
-                baseObject.GetComponent<Rigidbody>().velocity = dir;
+                ObjectFollowMouse(baseObject);
 
                 Vector3 startPos = new Vector3();
                 Vector3 shotDir = new Vector3();
 
                 float time = 0f;
-
 
                 if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
                 {
@@ -81,7 +75,7 @@ public class CurlingToolTask : ToolTask
                 {
                     shotDir = startPos - mousePoint;
                     shotDir /= time;
-                    baseObject.GetComponent<Rigidbody>().AddForce(-shotDir * 3f);
+                    baseObject.GetComponent<Rigidbody>().AddForce(-shotDir.normalized * FIRE_FORCE);
 
                     IncrementStep();
                 }

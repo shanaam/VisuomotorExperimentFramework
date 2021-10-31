@@ -7,6 +7,7 @@ public class BaseTarget : MonoBehaviour
 {
     protected ExperimentController ctrler;
 
+    [SerializeField]
     public bool Collided { get; private set; }
     public Collider CollidedWith { get; private set; }
 
@@ -25,6 +26,24 @@ public class BaseTarget : MonoBehaviour
         ctrler.CurrentTask.IncrementStep();
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (!enabled) return;
+
+        if (!CollisionModeOnly)
+        {
+            switch (collision.gameObject.tag)
+            {
+                default:
+                    Debug.LogWarning("Tag not implemented");
+                    break;
+            }
+        }
+
+        Collided = true;
+        CollidedWith = collision.collider;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!enabled) return;
@@ -36,6 +55,9 @@ public class BaseTarget : MonoBehaviour
                 case "Hand":
                     AdvanceStep();
                     break;
+                case "Car":
+                    AdvanceStep();
+                    break;
                 default:
                     Debug.LogWarning("Tag not implemented");
                     break;
@@ -44,6 +66,12 @@ public class BaseTarget : MonoBehaviour
 
         Collided = true;
         CollidedWith = other;
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        Collided = false;
+        CollidedWith = null;
     }
 
     private void OnTriggerExit(Collider other)

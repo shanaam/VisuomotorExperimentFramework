@@ -19,7 +19,7 @@ public class Grabbable : MonoBehaviour
     void OnTriggerStay(Collider other)
     {
         // set Grabbed to True when trigger is down AND cursor model is inside this collider
-        Grabbed = "CursorModel" == other.gameObject.name &&
+        Grabbed = "RightHandCollider" == other.gameObject.name &&
             ExperimentController.Instance().CursorController.IsTriggerDown();
     }
 

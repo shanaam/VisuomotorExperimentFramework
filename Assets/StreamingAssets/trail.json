@@ -1,0 +1,12 @@
+{
+  "experiment_mode": "trail",
+  "exp_record_score": true,
+  "per_block_n": [ 1, 1, 4 ],
+  "per_block_hand": [ "r", "r", "r" ],
+  "per_block_type": [ "", "", "" ],
+  "per_block_instruction": [ "ins1", null, "ins3" ],
+  "per_block_track_score": [ null, true, null ],
+  "per_block_timerTime": [ 1, 1, 1 ],
+  "per_block_startPoint": [ 0, 0.25, 0 ],
+  "per_block_endPoint": [ 0.25, 0, 1 ]
+}

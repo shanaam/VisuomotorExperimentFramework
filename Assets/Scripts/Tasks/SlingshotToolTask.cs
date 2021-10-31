@@ -8,22 +8,23 @@ public class SlingshotToolTask : ToolTask
     {
         base.Setup();
 
-        baseObject.transform.position = Home.transform.position;
+        Cursor.visible = false;
 
-        //initial distance between target and ball
-        InitialDistanceToTarget = Vector3.Distance(Target.transform.position, ballObjects.transform.position);
-        InitialDistanceToTarget += 0.15f;
+        toolObjects.GetComponentInChildren<Collider>().enabled = false;
 
-        impactBox.SetActive(false);
-        puckobj.SetActive(false);
-        curlingStone.SetActive(false);
 
-        baseObject.GetComponent<MeshRenderer>().enabled = false;
+        slingShotBall.SetActive(true);
+
         baseObject.GetComponent<ToolObjectScript>().enabled = false;
     }
 
     public override bool IncrementStep()
     {
+        if (currentStep == 0)
+        {
+            toolObjects.transform.rotation = toolSpace.transform.rotation;
+        }
+
         return base.IncrementStep();
     }
 
@@ -32,10 +33,15 @@ public class SlingshotToolTask : ToolTask
     {
         base.Update();
 
+        // Tool follows mouse
+        ObjectFollowMouse(toolObjects);
+
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
+
+                ToolLookAtBall();
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
@@ -48,9 +54,7 @@ public class SlingshotToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
-                Vector3 dir = mousePoint - baseObject.transform.position;
-                dir /= Time.fixedDeltaTime;
-                baseObject.GetComponent<Rigidbody>().velocity = dir;
+                ObjectFollowMouse(baseObject);
 
                 float time = 0f;
 
@@ -65,12 +69,14 @@ public class SlingshotToolTask : ToolTask
                     time += Time.fixedDeltaTime;
                 }
 
-                if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.25f)
+                if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
                 {
                     Vector3 shotDir = Home.transform.position - mousePoint;
                     shotDir /= time;
 
-                    baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+                    //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+
+                    baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
                     Home.GetComponent<LineRenderer>().positionCount = 0;
 
                     IncrementStep();
