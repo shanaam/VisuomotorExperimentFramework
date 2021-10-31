@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using UnityEngine.EventSystems;
 
 public class BlockPanel : MonoBehaviour
 {
@@ -32,15 +34,17 @@ public class BlockPanel : MonoBehaviour
     {
         this.index = index;
 
-        BlockInfoText.GetComponent<Text>().text = "Block Properties:\n\n";
+        BlockInfoText.GetComponent<TextMeshProUGUI>().text = "Block Properties:\n\n";
 
+        int i = 0;
         List<string> options = new List<string>();
         foreach (KeyValuePair<string, object> kp in uiManager.ExpContainer.Data)
         {
             if (kp.Key.StartsWith("per_block"))
             {
-                BlockInfoText.GetComponent<Text>().text += kp.Key + " : " + (kp.Value as List<object>)[index] + "\n";
+                BlockInfoText.GetComponent<TextMeshProUGUI>().text += "<u><link=\"" + i + "\">" + kp.Key + " : " + (kp.Value as List<object>)[index] + "</link></u>\n";
                 options.Add(kp.Key);
+                i++;
             }
         }
         PropertySelectionDropdown.GetComponent<Dropdown>().ClearOptions();
@@ -59,7 +63,9 @@ public class BlockPanel : MonoBehaviour
 
     public void OnClickOption(int option)
     {
+        Debug.Log(option);
         selectedParameter = PropertySelectionDropdown.GetComponent<Dropdown>().options[option].text;
+        Debug.Log(selectedParameter);
         BlockParameterText.GetComponent<Text>().text = selectedParameter;
         BlockParameterValue.GetComponent<Text>().text = "Value: " +
                                                         (uiManager.ExpContainer.Data[selectedParameter] as List<object>)[index];
@@ -143,13 +149,15 @@ public class BlockPanel : MonoBehaviour
 
     private void UpdateBlockPropertyText()
     {
-        BlockInfoText.GetComponent<Text>().text = "Block Properties:\n\n";
+        BlockInfoText.GetComponent<TextMeshProUGUI>().text = "Block Properties:\n\n";
 
+        int i = 0;
         foreach (KeyValuePair<string, object> kp in uiManager.ExpContainer.Data)
         {
             if (kp.Key.StartsWith("per_block"))
             {
-                BlockInfoText.GetComponent<Text>().text += kp.Key + " : " + (kp.Value as List<object>)[index] + "\n";
+                BlockInfoText.GetComponent<TextMeshProUGUI>().text += "<u><link=\"" + i + "\">" + kp.Key + " : " + (kp.Value as List<object>)[index] + "</link></u>\n";
+                i++;
             }
         }
     }

@@ -15,6 +15,7 @@ public class ExperimentContainer
     public const string STRING_PROPERTY_ID = "%string%";
     public const string INTEGER_PROPERTY_ID = "%integer%";
     public const string BOOLEAN_PROPERTY_ID = "%bool%";
+    public const string FLOAT_PROPERTY_ID = "%float%";
 
     // A master JSON allows us to type check input and only allow certain types to be saved for
     // a specific property. Here is an example:
@@ -146,6 +147,8 @@ public class ExperimentContainer
                         return "";
                     case "%bool%":
                         return false;
+                    case "%float%":
+                        return 0.0f;
                     default:
                         return list;
                 }

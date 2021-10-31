@@ -1,0 +1,22 @@
+{
+  "experiment_mode": [ "pinball", "pinball_vr", "tool", "tool_vr" ],
+  "per_block_type": [ "instruction", "rotated", "aligned", "clamped" ],
+  "per_block_rotation": [ "%integer%" ],
+  "per_block_tilt": [ "%integer%" ],
+  "per_block_n": [ "%integer%" ],
+  "per_block_hand": [ "r", "l" ],
+  "per_block_visual_feedback": [ "%bool%" ],
+  "per_block_visual_tilt": [ "%integer%" ],
+  "per_block_targetListToUse": [ "%string%" ],
+  "per_block_instruction": [ "%string%" ],
+  "per_block_indicator_type": [ "arc", "spring" ],
+  "per_block_fire_mode": [ "spring", "flick" ],
+  "per_block_show_path": [ "%bool%" ],
+  "per_block_tilt_after_fire": [ "%bool%" ],
+  "per_block_list_camera_tilt": [ "%string%" ],
+  "per_block_list_surface_tilt": [ "%string%" ],
+  "per_block_obstacle": [ "%bool%" ],
+  "per_block_surface_materials": [ "%string%" ],
+  "per_block_track_score": [ "%bool%" ],
+  "per_block_timerTime": [ "%float%" ]
+}

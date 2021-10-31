@@ -25,6 +25,7 @@ public class ConfigurationBlockManager : MonoBehaviour
 
     public HashSet<GameObject> SelectedBlocks = new HashSet<GameObject>();
     public HashSet<GameObject> SelectedNotches = new HashSet<GameObject>();
+    public HashSet<GameObject> CopiedBlocks = new HashSet<GameObject>();
 
     private ColorBlock selectedColourPalette, normalColourPalette;
 
@@ -132,6 +133,16 @@ public class ConfigurationBlockManager : MonoBehaviour
                     UpdateNotchButtons();
                     UpdateBlockButtons();
                 }
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C))
+            {
+                CopyBlocks();
+                Debug.LogError("copied!");
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V))
+            {
+                PasteBlocks();
+                Debug.LogError("pasted!");
             }
         }
     }
@@ -566,7 +577,7 @@ public class ConfigurationBlockManager : MonoBehaviour
                     }
                 }
 
-                per_block_type[insertIndex] = "instruction";
+                //per_block_type[insertIndex] = "instruction";
 
                 uiManager.Dirty = true;
 
@@ -616,5 +627,80 @@ public class ConfigurationBlockManager : MonoBehaviour
         Blocks[uiManager.CurrentSelectedBlock].GetComponentInChildren<Text>().text =
             Blocks[uiManager.CurrentSelectedBlock].name + "\n" +
             Convert.ToString(per_block_type[uiManager.CurrentSelectedBlock]);
+    }
+
+    public void CopyBlocks()
+    {
+        CopiedBlocks.Clear();
+        CopiedBlocks = new HashSet<GameObject>(SelectedBlocks, SelectedBlocks.Comparer);
+    }
+
+    public void PasteBlocks()
+    {
+        if (SelectedNotches.Count == 1)
+        {
+            GameObject notch = null;
+
+            foreach (GameObject notches in SelectedNotches)
+            {
+                notch = notches;
+            }
+
+            foreach (GameObject copiedBlock in CopiedBlocks)
+            {
+
+                // Instantiate prefab that represents the block in the UI
+                List<object> per_block_type = expContainer.Data["per_block_type"] as List<object>;
+                GameObject g = Instantiate(BlockPrefab, Content.transform);
+                g.name = "Block " + per_block_type.Count;
+
+                BlockComponent blckCmp = g.GetComponent<BlockComponent>();
+
+                blckCmp.BlockController = this;
+
+                int insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID;
+                g.transform.SetSiblingIndex(insertIndex + 1);
+
+                // Note: We set block ID before adding another block to the dictionary because
+                // block ID is zero based and the count will be 1 off after the GameObject
+                // is set up.
+                foreach (KeyValuePair<string, object> kp in expContainer.Data)
+                {
+                    if (kp.Key.StartsWith("per_block"))
+                    {
+                        List<object> per_block_list = expContainer.Data[kp.Key] as List<object>;
+                        object o = expContainer.GetDefaultValue(kp.Key);
+                        //copiedBlock.GetComponent<BlockComponent>()
+
+                        // The default value of 
+                        if (o is IList && o.GetType().IsGenericType &&
+                            o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))
+                        {
+                            per_block_list.Insert(insertIndex, (o as List<object>)[0]);
+                        }
+                        else
+                        {
+                            per_block_list.Insert(insertIndex, o);
+                        }
+                    }
+                }
+
+                uiManager.Dirty = true;
+
+                // Add listener for onClick function
+                blckCmp.Block.GetComponent<Button>().onClick.AddListener(
+                    () => { uiManager.OnClickBlock(g); });
+
+                blckCmp.Block.GetComponent<Button>().onClick.AddListener(
+                    () => { OnClickBlock(g); });
+
+                blckCmp.Notch.GetComponent<Button>().onClick.AddListener(
+                    () => { OnNotchPress(blckCmp.Notch); });
+
+                Blocks.Insert(insertIndex + 1, g);
+            }
+
+            ResetBlockText();
+        }
     }
 }
