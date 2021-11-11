@@ -669,8 +669,13 @@ public class ConfigurationBlockManager : MonoBehaviour
                     if (kp.Key.StartsWith("per_block"))
                     {
                         List<object> per_block_list = expContainer.Data[kp.Key] as List<object>;
-                        object o = expContainer.GetDefaultValue(kp.Key);
+                        //object o = expContainer.GetDefaultValue(kp.Key);
                         //copiedBlock.GetComponent<BlockComponent>()
+
+                        object o = (per_block_list[copiedBlock.GetComponent<BlockComponent>().BlockID]);
+
+
+
 
                         // The default value of 
                         if (o is IList && o.GetType().IsGenericType &&
