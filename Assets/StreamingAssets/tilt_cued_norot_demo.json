@@ -1,0 +1,35 @@
+{
+  "experiment_mode": "pinball_vr",
+  "exp_record_score": true,
+
+  "per_block_type": [ "instruction", "aligned", "instruction", "aligned", "instruction", "aligned", "aligned", "aligned", "instruction", "aligned", "rotated"],
+  "per_block_n": [1, 20, 1, 20, 1, 80, 80, 20, 1, 40, 40 ],
+  "per_block_rotation": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30 ],
+  "per_block_hand": [ "r", "r", "r", "l", "r", "r", "r", "r", "r", "l", "r" ],
+  "per_block_targetListToUse": [ "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1" ],
+  "per_block_indicator_type": [ "arc", "arc", "arc", "arc", "spring", "arc", "spring", "arc", "arc", "spring", "arc" ],
+  "per_block_fire_mode": [ "flick", "flick", "flick", "flick", "flick", "flick", "flick", "flick","flick", "flick", "flick"],
+  "per_block_show_path": [ true, true, true, true, true, true, true, true, true, true, true ],
+  "per_block_tilt_after_fire": [ false, false, false, false, false, false, false, false, false, false, false ],
+  "per_block_list_camera_tilt": [ null, "ct1", null, "ct1", null, "ct1", null, "ct1", null, null, "ct1" ],
+  "per_block_list_surface_tilt": [ null, "ct1", null, "ct1", null, "ct1", "st1", "ct1", "st1", "st1", "ct1" ],
+  "per_block_obstacle": [ null, null, null, null, null, null, null, null, null, null, null ],
+  "per_block_instruction": [ "ins1", null, "ins2", null, "ins3", null, null, null, "ins2", null, null],
+  "per_block_surface_materials": [ null, "mat1", "mat1", "mat1", "mat1", "mat1", "mat2", "mat1",  "mat2", "mat2", "mat1" ],
+  "per_block_track_score": [ false, false, false, false, false, true, true, true, true,  true, true ],
+  "per_block_timerTime": [ 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+
+  "tl1": [ 81, 87, 93, 99 ],
+  "tl2": [ 90 ],
+
+  "ct1": [ -3, -1, 1, 3 ],
+  "ct2": [ -60, 60 ],
+  "st1": [ 25, 25, 25, 25 ],
+
+  "mat1": [ "default" ],
+  "mat2": [ "brick" ],
+
+  "ins1": "Thank you for participating in the Pingolf task!\n\nYour goal is to get points by rolling the ball\nto get it as close to the target as possible!\nBonus points for hitting the target!\n\nWhen you are ready to roll the ball, hold down\nthe trigger and move your hand in any direction.\nYou will not get any points if you take too long!\n\nThe next few trials are practice, try things out!",
+  "ins2": "Try using your left hand now!",
+  "ins3": "The real task starts now!\n\n Try and hit the target!\n\nUse your right hand."
+}

@@ -19,7 +19,7 @@ public abstract class BilliardsTask : BaseTask
 
     // Minimum distance to score any points. this is also the cutoff distance
     // for starting the miss timer
-    protected const float TARGET_DISTANCE = 0.55f; // Target distance from home
+    protected const float TARGET_DISTANCE = 1.0f; // Target distance from home
 
     public override void Setup()
     {
@@ -63,15 +63,16 @@ public abstract class BilliardsTask : BaseTask
     /// Rotates obj around axis by angle degrees
     /// </summary>
     /// <param name="obj">Object to be rotated</param>
+    /// <param name="point">Point to rotate around</param>
     /// <param name="axis">Object to rotate around</param>
     /// <param name="angle">Angle in degrees of rotation</param>
-    protected static void SetTilt(GameObject obj, GameObject axis, float angle)
+    protected static void SetTilt(GameObject obj, Vector3 point, GameObject axis, float angle)
     {
         // Decouple object from parent
         Transform parent = obj.transform.parent;
         obj.transform.SetParent(null);
 
-        obj.transform.RotateAround(axis.transform.position, axis.transform.forward, angle);
+        obj.transform.RotateAround(point, axis.transform.forward, angle);
         
         // Reparent obj
         obj.transform.SetParent(parent);

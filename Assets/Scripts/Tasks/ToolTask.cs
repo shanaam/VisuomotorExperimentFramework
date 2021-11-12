@@ -62,6 +62,23 @@ public class ToolTask : BilliardsTask
     // Used to store the current distance between the ball and target
     private float distanceToTarget;
 
+    protected Vector3 mousePoint;
+
+    private Vector3 previousPosition;
+
+    private int score;
+    private float tempScore;
+    private const int MAX_POINTS = 10; // Maximum points the participant can earn
+    private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
+
+    private float timer;
+
+    // Set to true if the user runs out of time 
+    private bool missed;
+
+    // Used to store the current distance between the ball and target
+    private float distanceToTarget;
+
     protected const float FIRE_FORCE = 3f;
 
     protected virtual void Update()
@@ -375,6 +392,25 @@ public class ToolTask : BilliardsTask
 
         currentHand = ctrler.CursorController.CurrentHand();
 
+        switch (ctrler.PollPseudorandomList("per_block_list_tool_type"))
+        {
+            case "quad":
+                toolCylinder.SetActive(false);
+                toolSphere.SetActive(false);
+
+                break;
+            case "sphere":
+                toolCylinder.SetActive(false);
+                toolBox.SetActive(false);
+
+                break;
+            case "cylinder":
+                toolSphere.SetActive(false);
+                toolBox.SetActive(false);
+
+                break;
+        }
+
         toolBox.GetComponent<Collider>().enabled = false;
         toolCylinder.GetComponent<Collider>().enabled = false;
         toolSphere.GetComponent<Collider>().enabled = false;
@@ -430,6 +466,13 @@ public class ToolTask : BilliardsTask
         SetTilt(toolSpace, toolSpace, surfaceTilt);
     }
 
+    private void SetTilt()
+    {
+        SetTilt(toolCamera, toolSpace.transform.position, toolSpace, cameraTilt);
+
+        SetTilt(toolSpace, toolSpace.transform.position, toolSpace, surfaceTilt);
+    }
+
     public override void Disable()
     {
 
@@ -453,6 +496,12 @@ public class ToolTask : BilliardsTask
         Vector3 dir = mousePoint - objFollower.transform.position;
         dir /= Time.fixedDeltaTime;
         objFollower.GetComponent<Rigidbody>().velocity = dir;
+    protected virtual void ObjectFollowMouse(GameObject objFollower)
+    {
+        Vector3 dir = mousePoint - objFollower.transform.position;
+        dir /= Time.fixedDeltaTime;
+        objFollower.GetComponent<Rigidbody>().velocity = dir;
+    }
 
 
         switch (currentStep)
@@ -509,6 +558,81 @@ public class ToolTask : BilliardsTask
         else
         {
             //toolObjects.transform.rotation = toolSpace.transform.rotation;
+        }
+    }    
+
+
+    /*
+      void OnDrawGizmos()
+      {
+          Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
+              0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+          Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
+      }
+  */
+
+    void OnDrawGizmos()
+    {
+        /*
+        if (currentStep >= 1)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(lastPositionInTarget, 0.025f);
+        }
+
+        Vector3 dir = Vector3.zero;
+        if (currentStep < 1)
+        {
+            Quaternion rot = Quaternion.AngleAxis(
+                ctrler.Session.CurrentBlock.settings.GetFloat("per_block_tilt"), pinballSpace.transform.forward);
+
+            mousePoint = ctrler.CursorController.MouseToPlanePoint(pinballPlane.transform.up * pinball.transform.position.y,
+                pinball.transform.position,
+                pinballCam.GetComponent<Camera>());
+
+            dir = mousePoint - pinball.transform.position;
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir * 5f);
+        }
+
+        // Represents the vector of where the mouse is pointing at in world space
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawLine(pinballCam.transform.position, mousePoint);
+
+        // Represents the direction of where the pinball is hit towards
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + dir.normalized * 0.1f);
+
+        // Represents the forward direction of the pinball
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(pinball.transform.position, pinball.transform.position + pinball.transform.forward * 2f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(
+            direction, 0.02f
+            );
+        */
+        // Positions that are saved for data collection
+
+
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawSphere(mousePoint, 0.02f);
+    }
+
+
+    protected virtual void ToolLookAtBall()
+    {
+        // Rotate the tool: always looking at the ball when close enough 
+        if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
+        {
+            toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
+        }
+        else
+        {
+            toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
     }    
 
