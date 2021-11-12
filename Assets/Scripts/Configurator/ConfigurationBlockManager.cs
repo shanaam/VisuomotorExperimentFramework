@@ -646,6 +646,7 @@ public class ConfigurationBlockManager : MonoBehaviour
                 notch = notches;
             }
 
+            int count = 0;
             foreach (GameObject copiedBlock in CopiedBlocks)
             {
 
@@ -658,7 +659,7 @@ public class ConfigurationBlockManager : MonoBehaviour
 
                 blckCmp.BlockController = this;
 
-                int insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID;
+                int insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID + count;
                 g.transform.SetSiblingIndex(insertIndex + 1);
 
                 // Note: We set block ID before adding another block to the dictionary because
@@ -703,6 +704,26 @@ public class ConfigurationBlockManager : MonoBehaviour
                     () => { OnNotchPress(blckCmp.Notch); });
 
                 Blocks.Insert(insertIndex + 1, g);
+
+
+                var newList = expContainer.Data["per_block_type"] as List<object>;
+
+                // Fix numbering for the new block orientation
+                for (int i = 0; i < Blocks.Count; i++)
+                {
+                    Blocks[i].name = "Block " + i;
+                    BlockComponent blockCmp = Blocks[i].GetComponent<BlockComponent>();
+                    blockCmp.BlockID = i;
+                    blockCmp.Block.GetComponentInChildren<Text>().text = Blocks[i].name + "\n" + newList[i];
+
+                    Blocks[i].transform.SetSiblingIndex(i);
+                    /*
+                    Blocks[i].GetComponent<RectTransform>().position = new Vector3(
+                        INITIAL_OFFSET + (BLOCK_SPACING * i), 0f, 0f) + GetComponent<RectTransform>().position;
+                    */
+                }
+
+                count++;
             }
 
             ResetBlockText();
