@@ -451,16 +451,16 @@ public class ToolTask : BilliardsTask
     protected virtual void ObjectFollowMouse(GameObject objFollower)
     {
         Vector3 dir = mousePoint - objFollower.transform.position;
-        //dir /= Time.fixedDeltaTime;
-        //objFollower.GetComponent<Rigidbody>().velocity = dir;
+        dir /= Time.fixedDeltaTime;
+        objFollower.GetComponent<Rigidbody>().velocity = dir;
 
 
         switch (currentStep)
         {
             case 0:
-                objFollower.transform.position = mousePoint;
-                dir /= Time.fixedDeltaTime;
-                objFollower.GetComponent<Rigidbody>().velocity = dir;
+                //objFollower.transform.position = mousePoint;
+                //dir /= Time.fixedDeltaTime;
+                //objFollower.GetComponent<Rigidbody>().velocity = dir;
                 break;
 
             case 1:
@@ -480,11 +480,6 @@ public class ToolTask : BilliardsTask
                         dir = new Vector3(dir.x, 0, dir.z);
                         dir.Normalize();
                         objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
-                        break;
-                    case "paddle":
-                        objFollower.transform.position = mousePoint;
-                        dir /= Time.fixedDeltaTime;
-                        objFollower.GetComponent<Rigidbody>().velocity = dir;
                         break;
                 }     
                 break;
