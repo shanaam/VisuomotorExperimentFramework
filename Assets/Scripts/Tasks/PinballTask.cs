@@ -16,6 +16,8 @@ public class PinballTask : BilliardsTask
     
     private GameObject obstacle;
 
+    private GameObject currentHand;
+
     // Used for pinball aiming
     private Vector3 direction;
 
@@ -23,8 +25,6 @@ public class PinballTask : BilliardsTask
 
     // True when the participant is holding the trigger down to aim the pinball
     private bool aiming;
-
-    private GameObject currentHand;
 
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();

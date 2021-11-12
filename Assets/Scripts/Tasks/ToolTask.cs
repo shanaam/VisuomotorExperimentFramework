@@ -13,6 +13,8 @@ public class ToolTask : BilliardsTask
     protected GameObject toolCamera;
     protected GameObject grid;
 
+    private GameObject currentHand;
+
     // Tools 
     protected GameObject toolBox;
     protected GameObject toolSphere;
@@ -371,6 +373,8 @@ public class ToolTask : BilliardsTask
                 break;
         }
 
+        currentHand = ctrler.CursorController.CurrentHand();
+
         toolBox.GetComponent<Collider>().enabled = false;
         toolCylinder.GetComponent<Collider>().enabled = false;
         toolSphere.GetComponent<Collider>().enabled = false;
@@ -455,10 +459,13 @@ public class ToolTask : BilliardsTask
         {
             case 0:
                 objFollower.transform.position = mousePoint;
+                dir /= Time.fixedDeltaTime;
+                objFollower.GetComponent<Rigidbody>().velocity = dir;
                 break;
 
             case 1:
-                switch(selectedObject.name)
+                Debug.Log("here");
+                switch (selectedObject.name)
                 {
                     // the slingshot is placed at the home position and it rotates based on the direction the player is aiming at
                     case "slingshot":
@@ -473,6 +480,11 @@ public class ToolTask : BilliardsTask
                         dir = new Vector3(dir.x, 0, dir.z);
                         dir.Normalize();
                         objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
+                        break;
+                    case "paddle":
+                        objFollower.transform.position = mousePoint;
+                        dir /= Time.fixedDeltaTime;
+                        objFollower.GetComponent<Rigidbody>().velocity = dir;
                         break;
                 }     
                 break;

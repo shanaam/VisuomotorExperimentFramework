@@ -238,6 +238,7 @@ public class ExperimentController : MonoBehaviour
                 InitializePseudorandomList(trial, "per_block_surface_materials");
 
                 break;
+            case "tool_vr":
             case "tool":
                 
                 // Triger type option list shuffled
