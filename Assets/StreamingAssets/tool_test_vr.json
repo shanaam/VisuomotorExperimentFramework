@@ -1,5 +1,5 @@
 {
-    "experiment_mode": "tool",
+    "experiment_mode": "tool_vr",
 
     "exp_record_score": true,
 
@@ -22,7 +22,7 @@
 
     "per_block_list_triggerType": [ "tt1", "tt1", "tt1" ],
 
-    "tt1": [ "curling", "slingshot", "impact" ],
+    "tt1": [ "impact", "impact", "impact" ],
 
     "per_block_list_puck_type": [ "pt1", "pt1", "pt1" ],
 
@@ -30,7 +30,7 @@
 
     "per_block_list_tool_type": [ "tT", "tT", "tT" ],
 
-    "tT": [ "squeegee", "slingshot", "paddle" ],
+    "tT": [ "paddle", "paddle", "paddle" ],
 
     "per_block_surface_dynamic_friction": [ 0.1, 0.1, 0.1 ],
 
