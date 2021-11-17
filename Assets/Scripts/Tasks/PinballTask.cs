@@ -22,6 +22,8 @@ public class PinballTask : BilliardsTask
 
     private GameObject handL, handR;
 
+    private GameObject currentHand;
+
     // Used for pinball aiming
     private Vector3 direction;
 
@@ -29,8 +31,6 @@ public class PinballTask : BilliardsTask
 
     // True when the participant is holding the trigger down to aim the pinball
     private bool aiming;
-
-    private GameObject currentHand;
 
     // Used to draw the path of the pinball for feedback mode
     private List<Vector3> pinballPoints = new List<Vector3>();
@@ -712,12 +712,12 @@ public class PinballTask : BilliardsTask
         pinballSpace.GetComponent<LineRenderer>().startWidth =
             pinballSpace.GetComponent<LineRenderer>().endWidth = 0.015f;
 
-        timerIndicator.transform.rotation = Quaternion.LookRotation(
-            timerIndicator.transform.position - pinballCam.transform.position);
-
         // Should the tilt be shown to the participant before they release the pinball?
         if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
             SetTilt();
+
+        if (ctrler.Session.settings.GetString("experiment_mode") != "pinball")
+            timerIndicator.transform.rotation = Quaternion.LookRotation(timerIndicator.transform.position - pinballCam.transform.position);
 
         pinballStartPosition = pinball.transform.position;
 
