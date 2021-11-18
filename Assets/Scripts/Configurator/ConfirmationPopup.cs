@@ -17,6 +17,7 @@ public class ConfirmationPopup : MonoBehaviour
     void Start()
     {
         ConfirmPosition = ConfirmButton.GetComponent<RectTransform>().position;
+
     }
 
     public void ShowPopup(string message, ConfirmationCallback callback)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 public class ExperimentContainer
 {
@@ -178,6 +179,14 @@ public class ExperimentContainer
         {
             return int.Parse(input);
         }
+
+        Regex rx = new Regex(@"[+-]?([0-9]*[.])?[0-9]+");
+
+        if (rx.IsMatch(input))
+        {
+            return float.Parse(input);
+        }
+
 
         // Convert the string "true" and "false" to the bool type
         if (input.ToLower() == "true")

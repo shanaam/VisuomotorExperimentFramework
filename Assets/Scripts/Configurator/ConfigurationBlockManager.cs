@@ -639,6 +639,8 @@ public class ConfigurationBlockManager : MonoBehaviour
     {
         if (SelectedNotches.Count == 1)
         {
+            IEnumerable<GameObject> query = CopiedBlocks.OrderBy(pet => pet.name);
+
             GameObject notch = null;
 
             foreach (GameObject notches in SelectedNotches)
@@ -647,7 +649,7 @@ public class ConfigurationBlockManager : MonoBehaviour
             }
 
             int count = 0;
-            foreach (GameObject copiedBlock in CopiedBlocks)
+            foreach (GameObject copiedBlock in query)
             {
 
                 // Instantiate prefab that represents the block in the UI
@@ -660,7 +662,7 @@ public class ConfigurationBlockManager : MonoBehaviour
                 blckCmp.BlockController = this;
 
                 int insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID + count;
-                g.transform.SetSiblingIndex(insertIndex + 1);
+                g.transform.SetSiblingIndex(insertIndex + 2);
 
                 // Note: We set block ID before adding another block to the dictionary because
                 // block ID is zero based and the count will be 1 off after the GameObject
@@ -675,18 +677,15 @@ public class ConfigurationBlockManager : MonoBehaviour
 
                         object o = (per_block_list[copiedBlock.GetComponent<BlockComponent>().BlockID]);
 
-
-
-
                         // The default value of 
                         if (o is IList && o.GetType().IsGenericType &&
                             o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))
                         {
-                            per_block_list.Insert(insertIndex, (o as List<object>)[0]);
+                            per_block_list.Insert(insertIndex + 1, (o as List<object>)[0]);
                         }
                         else
                         {
-                            per_block_list.Insert(insertIndex, o);
+                            per_block_list.Insert(insertIndex + 1, o);
                         }
                     }
                 }

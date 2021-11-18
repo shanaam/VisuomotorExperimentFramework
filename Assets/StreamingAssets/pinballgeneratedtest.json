@@ -74,7 +74,7 @@
     true
   ],
   "per_block_timerTime": [
-    "%float%",
+    1.5,
     0
   ],
   "tl1": [ 75, 85, 95, 105 ],
