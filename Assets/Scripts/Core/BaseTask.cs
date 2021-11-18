@@ -63,4 +63,18 @@ public abstract class BaseTask : MonoBehaviour
     public abstract void LogParameters();
 
     public abstract void Disable();
+
+
+    protected void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            CenterExperiment();
+        }
+    }
+
+    public void CenterExperiment()
+    {
+        ExperimentController.Instance().CenterExperiment();
+    }
 }

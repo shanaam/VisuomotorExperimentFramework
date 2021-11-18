@@ -13,6 +13,9 @@ public class ToolTask : BilliardsTask
     protected GameObject toolCamera;
     protected GameObject grid;
 
+    private GameObject currentHand;
+    private GameObject handL, handR;
+
     // Tools 
     protected GameObject toolBox;
     protected GameObject toolSphere;
@@ -52,6 +55,8 @@ public class ToolTask : BilliardsTask
 
     private float timer;
 
+    private GameObject selectedObject;
+
     // Set to true if the user runs out of time 
     private bool missed;
 
@@ -64,7 +69,14 @@ public class ToolTask : BilliardsTask
     {
         mousePoint = GetMousePoint(baseObject.transform);
 
-        if (Vector3.Distance(mousePoint, ballObjects.transform.position) > 0.05f && currentStep == 0) return;
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+        {
+            if (Vector3.Distance(mousePoint, ballObjects.transform.position) > 0.05f && currentStep == 0) return;
+        }
+        else if (ctrler.Session.settings.GetString("experiment_mode") == "tool_vr")
+        {
+            if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), ballObjects.transform.position) > 0.05f && currentStep == 0) return;
+        }
 
         if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
 
@@ -310,18 +322,21 @@ public class ToolTask : BilliardsTask
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
         grid = GameObject.Find("Grid");
-        
+        handL = GameObject.Find("handL");
+        handR = GameObject.Find("handR");
+
+
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");
-
-        toolBox = GameObject.Find("ToolBox");
-        toolCylinder = GameObject.Find("ToolCylinder");
-        toolSphere = GameObject.Find("ToolSphere");
-
-        toolObjects = GameObject.Find("ToolObjects");
-
         puckobj = GameObject.Find("impactPuck");
         ballobj = GameObject.Find("impactBall");
+
+        toolBox = GameObject.Find("paddle");
+        toolCylinder = GameObject.Find("slingshot");
+        toolSphere = GameObject.Find("squeegee");
+
+        toolObjects = GameObject.Find("ToolObjects");
+   
         baseObject = GameObject.Find("BaseObject");
 
         ballObjects = GameObject.Find("BallObjects");
@@ -349,22 +364,27 @@ public class ToolTask : BilliardsTask
 
         switch (ctrler.PollPseudorandomList("per_block_list_tool_type"))
         {
-            case "quad":
+            case "paddle":
                 toolCylinder.SetActive(false);
                 toolSphere.SetActive(false);
+                selectedObject = toolBox;
 
                 break;
-            case "sphere":
+            case "squeegee":
                 toolCylinder.SetActive(false);
                 toolBox.SetActive(false);
+                selectedObject = toolSphere;
 
                 break;
-            case "cylinder":
+            case "slingshot":
                 toolSphere.SetActive(false);
                 toolBox.SetActive(false);
+                selectedObject = toolCylinder;
 
                 break;
         }
+
+        currentHand = ctrler.CursorController.CurrentHand();
 
         toolBox.GetComponent<Collider>().enabled = false;
         toolCylinder.GetComponent<Collider>().enabled = false;
@@ -387,7 +407,21 @@ public class ToolTask : BilliardsTask
         {
             ctrler.CursorController.SetVRCamera(false);
         }
-        else toolCamera.SetActive(false);
+        else
+        {
+            toolCamera.SetActive(false);
+            ctrler.CursorController.UseVR = true;
+            ctrler.CursorController.SetCursorVisibility(false);
+
+            if (ctrler.Session.CurrentBlock.settings.GetString("per_block_hand") == "l")
+            {
+                handL.SetActive(true);
+            }
+            else
+            {
+                handR.SetActive(true);
+            }
+        }
 
 
         // set up surface materials for the plane
@@ -414,11 +448,18 @@ public class ToolTask : BilliardsTask
 
     }
 
+    //private void SetTilt()
+    //{
+    //    SetTilt(toolCamera, toolSpace, cameraTilt);
+
+    //    SetTilt(toolSpace, toolSpace, surfaceTilt);
+    //}
+
     private void SetTilt()
     {
-        SetTilt(toolCamera, toolSpace, cameraTilt);
+        SetTilt(toolCamera, toolSpace.transform.position, toolSpace, cameraTilt);
 
-        SetTilt(toolSpace, toolSpace, surfaceTilt);
+        SetTilt(toolSpace, toolSpace.transform.position, toolSpace, surfaceTilt);
     }
 
     public override void Disable()
@@ -438,11 +479,65 @@ public class ToolTask : BilliardsTask
             oldMainCamera.SetActive(true);
     }
 
+    // method used to move the tool around based on mouse position
     protected virtual void ObjectFollowMouse(GameObject objFollower)
     {
-        Vector3 dir = mousePoint - objFollower.transform.position;
-        dir /= Time.fixedDeltaTime;
-        objFollower.GetComponent<Rigidbody>().velocity = dir;
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+        {
+            Vector3 dir = mousePoint - objFollower.transform.position;
+            dir /= Time.fixedDeltaTime;
+            objFollower.GetComponent<Rigidbody>().velocity = dir;
+
+            switch (currentStep)
+            {
+                case 0:
+                    //objFollower.transform.position = mousePoint;
+                    //dir /= Time.fixedDeltaTime;
+                    //objFollower.GetComponent<Rigidbody>().velocity = dir;
+                    break;
+
+                case 1:
+                    Debug.Log("here");
+                    switch (selectedObject.name)
+                    {
+                        // the slingshot is placed at the home position and it rotates based on the direction the player is aiming at
+                        case "slingshot":
+                            objFollower.transform.position = Home.transform.position;
+                            Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
+                            objFollower.transform.localRotation = Quaternion.LookRotation(direc);
+                            break;
+
+                        // squeegee rotates based on the direction that the player is moving towards
+                        case "squeegee":
+                            objFollower.transform.position = mousePoint;
+                            dir = new Vector3(dir.x, 0, dir.z);
+                            dir.Normalize();
+                            objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
+                            break;
+                    }
+                    break;
+                case 2:
+                    objFollower.transform.position = mousePoint;
+                    break;
+                case 3:
+                    objFollower.transform.position = mousePoint;
+                    break;
+            }
+        }
+        else
+        {
+            //objFollower.transform.position = ctrler.CursorController.GetHandPosition();
+            Vector3 dir = ctrler.CursorController.GetHandPosition() - objFollower.transform.position;
+            dir /= Time.fixedDeltaTime;
+            objFollower.GetComponent<Rigidbody>().velocity = dir;
+        }    
+
+    }
+
+    // moves the ball based on mouse position
+    protected virtual void BallFollowMouse(GameObject objFollower)
+    {
+        objFollower.transform.position = mousePoint;
     }
 
     protected virtual void ToolLookAtBall()
@@ -454,9 +549,34 @@ public class ToolTask : BilliardsTask
         }
         else
         {
-            toolObjects.transform.rotation = toolSpace.transform.rotation;
+            //toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
-    }    
+    }
+
+
+    /*
+      void OnDrawGizmos()
+      {
+          Vector3 mousePoint = ctrler.CursorController.MouseToPlanePoint(Vector3.up, new Vector3(
+              0f, tool.transform.position.y, 0f), toolCamera.GetComponent<Camera>());
+
+          Gizmos.DrawLine(toolCamera.transform.position, mousePoint);
+      }
+  */
+
+
+    //protected virtual void ToolLookAtBall()
+    //{
+    //    // Rotate the tool: always looking at the ball when close enough 
+    //    if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
+    //    {
+    //        toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
+    //    }
+    //    else
+    //    {
+    //        toolObjects.transform.rotation = toolSpace.transform.rotation;
+    //    }
+    //}    
 
 
     /*

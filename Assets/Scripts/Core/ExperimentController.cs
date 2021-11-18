@@ -152,18 +152,28 @@ public class ExperimentController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            Debug.Log("Re-centered Experiment to: " + CursorController.transform.position);
-            transform.position = CursorController.RightHand.transform.position;
-            StartCoroutine(TempDisableCursor());
-        }
+        //if (Input.GetKeyDown(KeyCode.C))
+        //{
+        //    Debug.Log("Re-centered Experiment to: " + CursorController.transform.position);
+        //    transform.position = CursorController.RightHand.transform.position - Vector3.up * .075f;
+        //    // TODO: offset by ball height
+
+        //    StartCoroutine(TempDisableCursor());
+        //}
 
         if (Input.GetKeyDown(KeyCode.M))
             EndAndPrepare();
 
         if (Input.GetKey(KeyCode.Escape))
             Application.Quit();
+    }
+
+    public void CenterExperiment()
+    {
+        transform.position = new Vector3(Camera.main.transform.position.x, CursorController.GetHandPosition().y, CursorController.GetHandPosition().z) 
+            - Vector3.up * .075f
+            + Vector3.left * 0f;
+        StartCoroutine(TempDisableCursor());
     }
 
     /// <summary>
@@ -238,6 +248,7 @@ public class ExperimentController : MonoBehaviour
                 InitializePseudorandomList(trial, "per_block_surface_materials");
 
                 break;
+            case "tool_vr":
             case "tool":
                 
                 // Triger type option list shuffled

@@ -50,11 +50,18 @@ public class SlingshotToolTask : ToolTask
                     IncrementStep();
                 }
 
+                if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), ballObjects.transform.position) <= 0.05f)
+                {
+                    IncrementStep();
+                }
+
                 break;
 
             // the user triggers the object 
             case 1:
-                ObjectFollowMouse(baseObject);
+                BallFollowMouse(baseObject);
+
+                
 
                 float time = 0f;
 
@@ -63,6 +70,7 @@ public class SlingshotToolTask : ToolTask
                 Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
                 Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
 
+                
 
                 if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
                 {
