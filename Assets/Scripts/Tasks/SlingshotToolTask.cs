@@ -50,6 +50,11 @@ public class SlingshotToolTask : ToolTask
                     IncrementStep();
                 }
 
+                if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), ballObjects.transform.position) <= 0.05f)
+                {
+                    IncrementStep();
+                }
+
                 break;
 
             // the user triggers the object 
