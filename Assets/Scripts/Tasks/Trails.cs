@@ -10,34 +10,47 @@ public class Trails : BaseTask
 
     private GameObject trailGate1, trailGate2;
 
-    private BoxCollider startCollider;
-    private BoxCollider midwayCollider;
+    private BoxCollider startCollider; // Trigger attached to trailgate1 (start gate)
+    private BoxCollider midwayCollider; // Standalone trigger used to determine if user is going correct direction
     [SerializeField]
     private List<BaseTarget> innerTrackColliders = new List<BaseTarget>();
 
-    private GameObject railing1, railing2;
+    private GameObject railing1, railing2; 
 
-    private GatePlacement gatePlacement;
+    private GatePlacement gatePlacement; 
 
-    private GameObject roadSegments;
+    private GameObject roadSegments; 
 
-    private float startPoint, endPoint, midPoint;
+    private float startPoint, endPoint, midPoint; // Percentages between 0-1 where the start, mid, and end gates will be placed along the track (clockwise)
 
     private GameObject car;
-
-    [SerializeField]
-    private float carFollowMouseSpeed = 50;
-
-    [SerializeField]
-    private bool carSpeedDependantOnMouseDistance = false;
 
     [SerializeField]
     private bool carPastMidpoint = false;
 
     [SerializeField]
-    private bool onTrack = true;
+    private bool isOnTrack = true;
+
+    // num times car went off track
+    [SerializeField]
+    private int numImpacts = 0;
 
     private List<Transform> raycastOrigins = new List<Transform>();
+
+    // Number of triggers spread evenly between start & end point.
+    // The user has to contact at least one of these for a lap to count.
+    private const int NUM_MID_TRIGGERS = 2;
+
+    private List<BaseTarget> midwayTriggers = new List<BaseTarget>();
+
+    // Whether to use raycasts or use the inner track to dermine whether offtrack
+    private bool useRayCasts = false;
+
+    private float inTrackTime, outTrackTime;
+
+    [SerializeField]
+    private int score;
+    private Scoreboard scoreboard;
 
     /*
      * Step 0: 
@@ -74,37 +87,58 @@ public class Trails : BaseTask
         gatePlacement = GameObject.Find("gatePlacement").GetComponent<GatePlacement>();
 
         roadSegments = GameObject.Find("generated_by_SplineExtrusion");
-        
+
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+
         for (int i = 0; i < roadSegments.transform.childCount; i++)
-        {
+        { // add road segments to gatePlacement list of meshes
             gatePlacement.mesh.Add(roadSegments.transform.GetChild(i).GetComponent<MeshFilter>().mesh);
         }
-
         gatePlacement.Setup();
 
+        /* TrailGate children:
+        * 0: pole1
+        * 2: pole2 
+        * 3: checkered line (line renderer component)
+        * 4: trigger (collider component)
+        */
+
         startPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_startPoint");
-        
         gatePlacement.SetGatePosition(trailGate1, trailGate1.transform.GetChild(0).gameObject, trailGate1.transform.GetChild(1).gameObject,
             trailGate1.transform.GetChild(2).GetComponent<LineRenderer>(), trailGate1.transform.GetChild(3).GetComponent<BoxCollider>(), startPoint);
 
         endPoint = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_endPoint");
-
         gatePlacement.SetGatePosition(trailGate2, trailGate2.transform.GetChild(0).gameObject, trailGate2.transform.GetChild(1).gameObject,
             trailGate2.transform.GetChild(2).GetComponent<LineRenderer>(), trailGate2.transform.GetChild(3).GetComponent<BoxCollider>(), endPoint);
 
-        midPoint = (startPoint + endPoint) / 2;
-
-        // If the end point comes before the start point,
-        // move the midpoint to the opposite end of the track.
-        if (endPoint < startPoint)
+        // Place midway triggers throughout the track
+        for (int i = 0; i < NUM_MID_TRIGGERS; i++)
         {
-            if (midPoint > 0.5f)
-                midPoint -= 0.5f;
+            midwayTriggers.Add(Instantiate(midwayCollider.gameObject).GetComponent<BaseTarget>());
+
+            // Start    Mid1     Mid2     End
+            // |--------|--------|--------|
+            if (endPoint < startPoint)
+            {
+                // If the end point comes before the start point
+
+                float distance = 1 - startPoint + endPoint;
+
+                midPoint = ((distance) / (NUM_MID_TRIGGERS + 1)) * (i + 1) + startPoint;
+
+                if (midPoint > 1)
+                    midPoint -= 1;
+            }
             else
-                midPoint += 0.5f;
+            {
+                float distance = endPoint - startPoint;
+
+                midPoint = ((distance) / (NUM_MID_TRIGGERS + 1)) * (i + 1) + startPoint;
+            }
+
+            gatePlacement.SetColliderPosition(midwayTriggers[i].GetComponent<BoxCollider>(), midPoint);
         }
 
-        gatePlacement.SetColliderPosition(midwayCollider, midPoint);
 
         railing1 = GameObject.Find("generated_by_SplineMeshTiling");
         foreach (MeshCollider railing in railing1.transform.GetComponentsInChildren<MeshCollider>())
@@ -143,6 +177,14 @@ public class Trails : BaseTask
 
         innerTrackColliders.AddRange(GameObject.Find("innertrack").transform.GetComponentsInChildren<BaseTarget>());
 
+        if (ctrler.Session.currentTrialNum > 1)
+        {
+            trailGate1.GetComponentInChildren<ParticleSystem>().transform.position = trailGate1.transform.position;
+            trailGate1.GetComponentInChildren<ParticleSystem>().transform.rotation = trailGate1.transform.rotation;
+            trailGate1.GetComponentInChildren<ParticleSystem>().Play();
+            trailSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
+            trailSpace.GetComponent<AudioSource>().Play();
+        }
 
         // Use static camera for non-vr version of pinball
         if (ctrler.Session.settings.GetString("experiment_mode") == "trail")
@@ -162,17 +204,51 @@ public class Trails : BaseTask
         {
             case 0:
 
-                
-
                 break;
 
             case 1:
-                onTrack = true;
-                foreach (Transform t in raycastOrigins)
+
+                bool onTrack;
+                if (useRayCasts)
                 {
-                    if (!Physics.Raycast(t.position, t.TransformDirection(Vector3.down)))
-                        onTrack = false;
+                    onTrack = true;
+                    // Use raycasts to determine if car is on track
+                    foreach (Transform t in raycastOrigins)
+                    {
+                        // if any rays don't hit a collider, then the car is at least partially off the track 
+                        if (!Physics.Raycast(t.position, t.TransformDirection(Vector3.down)))
+                            onTrack = false;
+                    }
                 }
+                else
+                {
+                    onTrack = false;
+                    // Use inner track to determine if car (must be a cylinder with 0.5 scale) is on the track
+                    foreach (BaseTarget innerTrackSegment in innerTrackColliders)
+                    {
+                        // if the cylinder is at least slightly touching any inner track segment, then the car is still on the main track.
+                        if (innerTrackSegment.Collided)
+                        {
+                            onTrack = true;
+                        }
+                    }
+                }
+
+                if (isOnTrack && !onTrack)
+                {
+                    isOnTrack = onTrack;
+                    numImpacts++;
+                    car.GetComponent<MeshRenderer>().material.color = Color.red;
+                    score = numImpacts;
+                    ctrler.Score = score;
+                    trailSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+                    trailSpace.GetComponent<AudioSource>().Play();
+                }
+                else if (!isOnTrack && onTrack)
+                {
+                    isOnTrack = onTrack;
+                    car.GetComponent<MeshRenderer>().material.color = Color.white;
+                }    
 
                 break;
         }
@@ -203,23 +279,26 @@ public class Trails : BaseTask
                 break;
 
             case 1:
-/*                onTrack = false;
-                foreach (BaseTarget innerTrackSegment in innerTrackColliders)
+
+                foreach (BaseTarget t in midwayTriggers)
                 {
-                    if (innerTrackSegment.Collided)
-                    {
-                        onTrack = true;
-                    }
-                }*/
+                    // if the car hits the midway trigger, it is going the correct way
+                    if (t.Collided)
+                        carPastMidpoint = true;
+                }    
+                
 
-
-                if (midwayCollider.GetComponent<BaseTarget>().Collided)
-                    carPastMidpoint = true;
-
+                // if the car hits the start gate trigger, it is not going the right way 
                 if (startCollider.GetComponent<BaseTarget>().Collided)
                     carPastMidpoint = false;
 
+                // car position = mouse position
                 car.transform.position = ctrler.CursorController.MouseToPlanePoint(transform.up, car.transform.position, Camera.main);
+
+                if (isOnTrack)
+                    inTrackTime += Time.deltaTime;
+                else
+                    outTrackTime += Time.deltaTime;
 
                 break;
             case 2:
@@ -235,8 +314,12 @@ public class Trails : BaseTask
         switch (currentStep)
         {
             case 0:
+                // make the start trigger smaller after the car is picked up
                 startCollider.size = new Vector3(startCollider.size.z, startCollider.size.y, 0.1f);
 
+                ctrler.StartTimer();
+
+                ctrler.AddTrackedObject("car_path", car);
 
                 break;
             case 1:
@@ -258,7 +341,19 @@ public class Trails : BaseTask
 
     public override void LogParameters()
     {
-         ctrler.LogObjectPosition("car", car.transform.position);
+        ctrler.LogObjectPosition("car", car.transform.position);
+
+        ctrler.Session.CurrentTrial.result["time_in_track"] = inTrackTime;
+        ctrler.Session.CurrentTrial.result["time_out_track"] = outTrackTime;
+        ctrler.Session.CurrentTrial.result["percent_in_track"] = inTrackTime / (inTrackTime + outTrackTime);
+        ctrler.Session.CurrentTrial.result["lap_time"] = outTrackTime + inTrackTime;
+        ctrler.Session.CurrentTrial.result["num_impacts"] = numImpacts;
+
+        ctrler.Score = score;
+
+        ctrler.Session.CurrentTrial.result["start_gate_placement"] = startPoint;
+        ctrler.Session.CurrentTrial.result["start_gate_placement"] = endPoint;
+
     }
 
     public override void Disable()
@@ -275,6 +370,10 @@ public class Trails : BaseTask
 
     protected override void OnDestroy()
     {
+        foreach (BaseTarget t in midwayTriggers)
+        {
+            Destroy(t.gameObject);
+        }
         Destroy(trailSpace);
     }
 }
