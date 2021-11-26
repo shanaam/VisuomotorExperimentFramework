@@ -51,7 +51,7 @@ public class CurlingToolTask : ToolTask
                 {
                     IncrementStep();
                 }
-                if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), ballObjects.transform.position) <= 0.05f)
+                if (Vector3.Distance(ctrllerPoint, ballObjects.transform.position) <= 0.05f)
                 {
 
                     IncrementStep();

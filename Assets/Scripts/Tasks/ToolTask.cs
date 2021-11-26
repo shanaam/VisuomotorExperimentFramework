@@ -64,10 +64,12 @@ public class ToolTask : BilliardsTask
     private float distanceToTarget;
 
     protected const float FIRE_FORCE = 3f;
+    protected Vector3 ctrllerPoint;
 
     protected virtual void Update()
     {
         mousePoint = GetMousePoint(baseObject.transform);
+        ctrllerPoint = GetControllerPoint(baseObject.transform, ctrler.CursorController.GetHandPosition());
 
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
@@ -488,47 +490,48 @@ public class ToolTask : BilliardsTask
             dir /= Time.fixedDeltaTime;
             objFollower.GetComponent<Rigidbody>().velocity = dir;
 
-            switch (currentStep)
-            {
-                case 0:
-                    //objFollower.transform.position = mousePoint;
-                    //dir /= Time.fixedDeltaTime;
-                    //objFollower.GetComponent<Rigidbody>().velocity = dir;
-                    break;
+            //switch (currentStep)
+            //{
+            //    case 0:
+            //        //objFollower.transform.position = mousePoint;
+            //        //dir /= Time.fixedDeltaTime;
+            //        //objFollower.GetComponent<Rigidbody>().velocity = dir;
+            //        break;
 
-                case 1:
-                    Debug.Log("here");
-                    switch (selectedObject.name)
-                    {
-                        // the slingshot is placed at the home position and it rotates based on the direction the player is aiming at
-                        case "slingshot":
-                            objFollower.transform.position = Home.transform.position;
-                            Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
-                            objFollower.transform.localRotation = Quaternion.LookRotation(direc);
-                            break;
+            //    case 1:
+            //        Debug.Log("here");
+            //        switch (selectedObject.name)
+            //        {
+            //            // the slingshot is placed at the home position and it rotates based on the direction the player is aiming at
+            //            case "slingshot":
+            //                objFollower.transform.position = Home.transform.position;
+            //                Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
+            //                objFollower.transform.localRotation = Quaternion.LookRotation(direc);
+            //                break;
 
-                        // squeegee rotates based on the direction that the player is moving towards
-                        case "squeegee":
-                            objFollower.transform.position = mousePoint;
-                            dir = new Vector3(dir.x, 0, dir.z);
-                            dir.Normalize();
-                            objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
-                            break;
-                    }
-                    break;
-                case 2:
-                    objFollower.transform.position = mousePoint;
-                    break;
-                case 3:
-                    objFollower.transform.position = mousePoint;
-                    break;
-            }
+            //            // squeegee rotates based on the direction that the player is moving towards
+            //            case "squeegee":
+            //                objFollower.transform.position = mousePoint;
+            //                dir = new Vector3(dir.x, 0, dir.z);
+            //                dir.Normalize();
+            //                objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
+            //                break;
+            //        }
+            //        break;
+            //    case 2:
+            //        objFollower.transform.position = mousePoint;
+            //        break;
+            //    case 3:
+            //        objFollower.transform.position = mousePoint;
+            //        break;
+            //}
         }
         else
         {
-            //objFollower.transform.position = ctrler.CursorController.GetHandPosition();
-            Vector3 dir = ctrler.CursorController.GetHandPosition() - objFollower.transform.position;
+            //objFollower.transform.position = new Vector3(ctrler.CursorController.GetHandPosition().x, objFollower.transform.position.y, ctrler.CursorController.GetHandPosition().z);
+            Vector3 dir = ctrllerPoint - objFollower.transform.position;
             dir /= Time.fixedDeltaTime;
+            //objFollower.GetComponent<Rigidbody>().velocity = ctrler.CursorController.GetVelocity();
             objFollower.GetComponent<Rigidbody>().velocity = dir;
         }    
 
@@ -543,7 +546,7 @@ public class ToolTask : BilliardsTask
     protected virtual void ToolLookAtBall()
     {
         // Rotate the tool: always looking at the ball when close enough 
-        if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 0.2f)
+        if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 3f)
         {
             toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
         }

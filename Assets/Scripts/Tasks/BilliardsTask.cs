@@ -126,4 +126,12 @@ public abstract class BilliardsTask : BaseTask
                             ball.position,
                             Camera.main);
     }
+
+    protected virtual Vector3 GetControllerPoint(Transform ball, Vector3 ctrller)
+    {
+        return ctrler.CursorController.ControllerToPlanePoint(
+                            Surface.transform.up * ball.position.y,
+                            ball.position,
+                            ctrller);
+    }
 }

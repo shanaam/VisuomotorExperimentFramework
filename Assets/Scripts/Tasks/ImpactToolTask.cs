@@ -69,7 +69,7 @@ public class ImpactToolTask : ToolTask
 
                     IncrementStep();
                 }
-                if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), toolObjects.transform.position) <= 0.05f)
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.05f)
                 {
 
                     IncrementStep();

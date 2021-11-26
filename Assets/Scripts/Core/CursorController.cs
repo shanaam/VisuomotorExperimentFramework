@@ -380,6 +380,25 @@ public class CursorController : MonoBehaviour
         return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
     }
 
+    public Vector3 ControllerToPlanePoint(Vector3 planeNormal, Vector3 planePos, Vector3 ctrller)
+    {
+        Plane plane = new Plane(planeNormal.normalized, planePos);
+        Ray r;
+        if (ctrller.y <= planePos.y)
+        {        
+            r = new Ray(ctrller, Vector3.up);
+        }
+        else
+        {         
+            r = new Ray(ctrller, Vector3.down);
+        }
+
+
+        
+
+        return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
+    }
+
     /// <summary>
     /// Enable or disable the VR Camera. Required for experiments with a specific camera
     /// </summary>
