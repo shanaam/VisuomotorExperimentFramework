@@ -19,7 +19,7 @@ public abstract class BilliardsTask : BaseTask
 
     // Minimum distance to score any points. this is also the cutoff distance
     // for starting the miss timer
-    protected const float TARGET_DISTANCE = 1.0f; // Target distance from home
+    protected const float TARGET_DISTANCE = 0.85f; // Target distance from home
 
     public override void Setup()
     {

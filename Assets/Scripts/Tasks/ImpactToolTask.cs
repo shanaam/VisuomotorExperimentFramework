@@ -57,7 +57,7 @@ public class ImpactToolTask : ToolTask
     protected override void Update()
     {
         base.Update();
-
+        
         switch (currentStep)
         {
             // initlize the scene 
@@ -85,9 +85,19 @@ public class ImpactToolTask : ToolTask
 
                 ToolLookAtBall();
 
-                toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
+                // non vr and vr turning on the collider on the tool
+                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+                {
+                    toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
+                }
+                    
+                else
+                {
+                    toolObjects.GetComponentInChildren<Collider>().enabled = ctrllerPoint.z <= 0.05f;
+                }
+                    
 
-                
+
 
                 break;
 

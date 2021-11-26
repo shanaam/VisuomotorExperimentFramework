@@ -63,13 +63,17 @@ public class ToolTask : BilliardsTask
     // Used to store the current distance between the ball and target
     private float distanceToTarget;
 
-    protected const float FIRE_FORCE = 3f;
+    protected const float FIRE_FORCE = 4f;
     protected Vector3 ctrllerPoint;
 
     protected virtual void Update()
     {
+        //gets the mouse point relative to the surface
         mousePoint = GetMousePoint(baseObject.transform);
+        //gets the controller point relative to the surface
         ctrllerPoint = GetControllerPoint(baseObject.transform, ctrler.CursorController.GetHandPosition());
+        //sets the rotation on the x and z axis of the tools to be 0 so the tool doesn't rotate, the weird rotation behaviour only happens with imapact tool
+        toolObjects.transform.localEulerAngles = new Vector3(0, toolObjects.transform.localEulerAngles.y, 0);
 
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
@@ -403,8 +407,7 @@ public class ToolTask : BilliardsTask
         InitialDistanceToTarget += 0.15f;
 
 
-        // Set up camera for non VR and VR modes
-        // VR Mode needs to be added
+        // Set up camera for non VR and VR modes and controller for vr mode
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             ctrler.CursorController.SetVRCamera(false);
@@ -484,12 +487,14 @@ public class ToolTask : BilliardsTask
     // method used to move the tool around based on mouse position
     protected virtual void ObjectFollowMouse(GameObject objFollower)
     {
+        //non vr controll of the tool
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             Vector3 dir = mousePoint - objFollower.transform.position;
             dir /= Time.fixedDeltaTime;
             objFollower.GetComponent<Rigidbody>().velocity = dir;
 
+            // potential animations for tools, future work
             //switch (currentStep)
             //{
             //    case 0:
@@ -526,12 +531,11 @@ public class ToolTask : BilliardsTask
             //        break;
             //}
         }
+        // vr control of the tool
         else
         {
-            //objFollower.transform.position = new Vector3(ctrler.CursorController.GetHandPosition().x, objFollower.transform.position.y, ctrler.CursorController.GetHandPosition().z);
             Vector3 dir = ctrllerPoint - objFollower.transform.position;
             dir /= Time.fixedDeltaTime;
-            //objFollower.GetComponent<Rigidbody>().velocity = ctrler.CursorController.GetVelocity();
             objFollower.GetComponent<Rigidbody>().velocity = dir;
         }    
 
@@ -540,8 +544,19 @@ public class ToolTask : BilliardsTask
     // moves the ball based on mouse position
     protected virtual void BallFollowMouse(GameObject objFollower)
     {
-        objFollower.transform.position = mousePoint;
+        // non vr and vr control of the ball with slingshot tool
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+        {
+            objFollower.transform.position = mousePoint;
+        }
+        else
+        {
+            objFollower.transform.position = ctrllerPoint;
+        }
+            
     }
+
+    
 
     protected virtual void ToolLookAtBall()
     {

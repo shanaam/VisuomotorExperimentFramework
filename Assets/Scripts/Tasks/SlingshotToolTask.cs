@@ -35,6 +35,7 @@ public class SlingshotToolTask : ToolTask
 
         // Tool follows mouse
         ObjectFollowMouse(toolObjects);
+        
 
         switch (currentStep)
         {
@@ -65,30 +66,62 @@ public class SlingshotToolTask : ToolTask
 
                 float time = 0f;
 
-                // Line rendere representing the slingshot band is attached to home GameObject
-                Home.GetComponent<LineRenderer>().positionCount = 2;
-                Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
-                Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
+                // non vr and vr control of the slingshot
+                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+                {
+                    // Line rendere representing the slingshot band is attached to home GameObject
+                    Home.GetComponent<LineRenderer>().positionCount = 2;
+                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
+                    Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
+                    {
+                        time += Time.fixedDeltaTime;
+                    }
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
+                    {
+                        Vector3 shotDir = Home.transform.position - mousePoint;
+                        shotDir /= time;
+
+                        //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+
+                        baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
+                        Home.GetComponent<LineRenderer>().positionCount = 0;
+
+                        IncrementStep();
+                    }
+                }
+                else
+                {
+                    // Line rendere representing the slingshot band is attached to home GameObject
+                    Home.GetComponent<LineRenderer>().positionCount = 2;
+                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
+                    Home.GetComponent<LineRenderer>().SetPosition(1, ctrllerPoint);
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
+                    {
+                        time += Time.fixedDeltaTime;
+                    }
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
+                    {
+                        Vector3 shotDir = Home.transform.position - ctrllerPoint;
+                        shotDir /= time;
+
+                        //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+
+                        baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
+                        Home.GetComponent<LineRenderer>().positionCount = 0;
+
+                        IncrementStep();
+                    }
+                }
+                    
 
                 
 
-                if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
-                {
-                    time += Time.fixedDeltaTime;
-                }
-
-                if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
-                {
-                    Vector3 shotDir = Home.transform.position - mousePoint;
-                    shotDir /= time;
-
-                    //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
-
-                    baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
-                    Home.GetComponent<LineRenderer>().positionCount = 0;
-
-                    IncrementStep();
-                }
+                
                 break;
         }
     }

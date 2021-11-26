@@ -69,21 +69,44 @@ public class CurlingToolTask : ToolTask
                 Vector3 shotDir = new Vector3();
 
                 float time = 0f;
-
-                if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
+                //non vr and vr control of the curling
+                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
                 {
-                    time += Time.fixedDeltaTime;
-                    startPos = mousePoint;
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
+                    {
+                        time += Time.fixedDeltaTime;
+                        startPos = mousePoint;
+                    }
+
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.2f)
+                    {
+                        shotDir = startPos - mousePoint;
+                        shotDir /= time;
+                        baseObject.GetComponent<Rigidbody>().AddForce(-shotDir.normalized * FIRE_FORCE);
+
+                        IncrementStep();
+                    }
+                }
+                else
+                {
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
+                    {
+                        time += Time.fixedDeltaTime;
+                        startPos = ctrllerPoint;
+                    }
+
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.2f)
+                    {
+                        shotDir = startPos - ctrllerPoint;
+                        shotDir /= time;
+                        baseObject.GetComponent<Rigidbody>().AddForce(-shotDir.normalized * FIRE_FORCE);
+
+                        IncrementStep();
+                    }
                 }
 
-                if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.2f)
-                {
-                    shotDir = startPos - mousePoint;
-                    shotDir /= time;
-                    baseObject.GetComponent<Rigidbody>().AddForce(-shotDir.normalized * FIRE_FORCE);
 
-                    IncrementStep();
-                }
+                
 
                 break;
         }
