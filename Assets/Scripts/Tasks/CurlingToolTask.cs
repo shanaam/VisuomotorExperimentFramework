@@ -89,13 +89,13 @@ public class CurlingToolTask : ToolTask
                 }
                 else
                 {
-                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.08f)
                     {
                         time += Time.fixedDeltaTime;
                         startPos = ctrllerPoint;
                     }
 
-                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.2f)
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
                     {
                         shotDir = startPos - ctrllerPoint;
                         shotDir /= time;

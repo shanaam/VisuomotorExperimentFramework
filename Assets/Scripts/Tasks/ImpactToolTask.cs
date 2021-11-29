@@ -97,8 +97,6 @@ public class ImpactToolTask : ToolTask
                 }
                     
 
-
-
                 break;
 
             // After the user hits the object

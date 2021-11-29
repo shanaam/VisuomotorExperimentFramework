@@ -765,7 +765,8 @@ public class PinballTask : BilliardsTask
 
         SetTilt(pinballSpace, ball_pos, pinballSpace, surfaceTilt); //Tilt surface
 
-        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr") //Tilt VR Camera if needed
+        //Tilt VR Camera if needed
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr") 
         {
             //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
             //   cameraTilt + surfaceTilt);

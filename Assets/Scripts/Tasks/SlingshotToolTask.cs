@@ -99,12 +99,12 @@ public class SlingshotToolTask : ToolTask
                     Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
                     Home.GetComponent<LineRenderer>().SetPosition(1, ctrllerPoint);
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.08f)
                     {
                         time += Time.fixedDeltaTime;
                     }
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
                     {
                         Vector3 shotDir = Home.transform.position - ctrllerPoint;
                         shotDir /= time;

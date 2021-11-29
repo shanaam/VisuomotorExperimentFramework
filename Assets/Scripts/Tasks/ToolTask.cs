@@ -15,6 +15,8 @@ public class ToolTask : BilliardsTask
 
     private GameObject currentHand;
     private GameObject handL, handR;
+    private GameObject XRRig;
+    private GameObject XRPosLock;
 
     // Tools 
     protected GameObject toolBox;
@@ -330,7 +332,8 @@ public class ToolTask : BilliardsTask
         grid = GameObject.Find("Grid");
         handL = GameObject.Find("handL");
         handR = GameObject.Find("handR");
-
+        XRRig = GameObject.Find("XR Rig");
+        XRPosLock = GameObject.Find("XRPosLock");
 
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");
@@ -462,13 +465,30 @@ public class ToolTask : BilliardsTask
 
     private void SetTilt()
     {
-        SetTilt(toolCamera, toolSpace.transform.position, toolSpace, cameraTilt);
+        Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
 
-        SetTilt(toolSpace, toolSpace.transform.position, toolSpace, surfaceTilt);
+        SetTilt(toolCamera, ball_pos, toolSpace, cameraTilt);
+        //SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, cameraTilt);
+        //SetTilt(pinballWall, ball_pos, pinballSpace, cameraTilt);
+
+        SetTilt(toolSpace, ball_pos, toolSpace, surfaceTilt); //Tilt surface
+
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool_vr") //Tilt VR Camera if needed
+        {
+            SetTilt(XRRig, ball_pos, toolSpace, cameraTilt + surfaceTilt);
+            XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
+        }
     }
 
     public override void Disable()
     {
+        Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
+
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool_vr") //Tilt VR Camera if needed
+        {
+            SetTilt(XRRig, ball_pos, toolSpace, (cameraTilt + surfaceTilt) * -1);
+            XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
+        }
 
         toolSpace.SetActive(false);
 
