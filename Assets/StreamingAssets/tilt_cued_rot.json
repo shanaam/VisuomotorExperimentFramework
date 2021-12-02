@@ -4,7 +4,7 @@
 
   "per_block_type": [ "instruction", "aligned", "instruction", "aligned", "instruction", "aligned", "instruction", "aligned", "instruction", "aligned", "rotated", "aligned", "instruction", "rotated"],
   "per_block_n": [1, 20, 1, 20, 1, 80, 1, 80, 1, 8, 80, 40, 1, 40],
-  "per_block_rotation": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 30, 30],
+  "per_block_rotation": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -30, 0, -30, -30],
   "per_block_hand": [ "r", "r", "r", "l", "r", "r","r", "l","r", "r", "r", "r", "r", "l"],
   "per_block_targetListToUse": [ "tl1", "tl1", "tl1", "tl1","tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1", "tl1"],
   "per_block_indicator_type": [ "arc", "arc", "arc", "arc","arc", "arc", "arc", "arc", "spring", "arc", "spring", "arc", "arc", "spring"],
