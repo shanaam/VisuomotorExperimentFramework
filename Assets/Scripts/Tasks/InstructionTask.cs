@@ -22,7 +22,7 @@ public class InstructionTask : BaseTask
     private GameObject instruction;
     private GameObject timer;
     private GameObject done;
-    private float vrInstructionOffset = -184.55f;
+    private float vrInstructionOffset = -217.25f;
 
     private GameObject pinballDummy;
     
