@@ -554,9 +554,17 @@ public class ToolTask : BilliardsTask
         // vr control of the tool
         else
         {
-            Vector3 dir = ctrllerPoint - objFollower.transform.position;
-            dir /= Time.fixedDeltaTime;
-            objFollower.GetComponent<Rigidbody>().velocity = dir;
+            if(currentStep < 2)
+            {
+                Vector3 dir = ctrllerPoint - objFollower.transform.position;
+                dir /= Time.fixedDeltaTime;
+                objFollower.GetComponent<Rigidbody>().velocity = dir;
+            }
+            else
+            {
+                objFollower.transform.localPosition = new Vector3(0, 0.075f, 0);
+            }
+            
         }    
 
     }
