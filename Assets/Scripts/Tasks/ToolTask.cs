@@ -23,6 +23,9 @@ public class ToolTask : BilliardsTask
     protected GameObject toolSphere;
     protected GameObject toolCylinder;
 
+    protected GameObject ray;
+    protected GameObject barrier;
+
     protected GameObject toolObjects; //parent object of each tool type
 
     protected GameObject baseObject; //physics object controlling position of each ball type
@@ -73,7 +76,8 @@ public class ToolTask : BilliardsTask
         //gets the mouse point relative to the surface
         mousePoint = GetMousePoint(baseObject.transform);
         //gets the controller point relative to the surface
-        ctrllerPoint = GetControllerPoint(baseObject.transform, ctrler.CursorController.GetHandPosition());
+        ray.transform.position = new Vector3(ctrler.CursorController.GetHandPosition().x, 3, ctrler.CursorController.GetHandPosition().z);
+        ctrllerPoint = GetControllerPoint(baseObject.transform, ray.transform.position);
         //sets the rotation on the x and z axis of the tools to be 0 so the tool doesn't rotate, the weird rotation behaviour only happens with imapact tool
         toolObjects.transform.localEulerAngles = new Vector3(0, toolObjects.transform.localEulerAngles.y, 0);
 
@@ -339,6 +343,8 @@ public class ToolTask : BilliardsTask
         slingShotBall = GameObject.Find("slingShotBall");
         puckobj = GameObject.Find("impactPuck");
         ballobj = GameObject.Find("impactBall");
+        ray = GameObject.Find("ray");
+        //barrier = GameObject.Find("barrier");
 
         toolBox = GameObject.Find("paddle");
         toolCylinder = GameObject.Find("slingshot");
@@ -353,6 +359,7 @@ public class ToolTask : BilliardsTask
         // Set up home position
         Home = GameObject.Find("HomePosition");
         
+
         timerIndicator.transform.rotation = Quaternion.LookRotation(
             timerIndicator.transform.position - toolCamera.transform.position);
         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
@@ -380,12 +387,13 @@ public class ToolTask : BilliardsTask
 
                 break;
             case "squeegee":
+                Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
                 toolCylinder.SetActive(false);
                 toolBox.SetActive(false);
                 selectedObject = toolSphere;
 
                 break;
-            case "slingshot":
+            case "slingshot":          
                 toolSphere.SetActive(false);
                 toolBox.SetActive(false);
                 selectedObject = toolCylinder;
@@ -559,10 +567,6 @@ public class ToolTask : BilliardsTask
                 Vector3 dir = ctrllerPoint - objFollower.transform.position;
                 dir /= Time.fixedDeltaTime;
                 objFollower.GetComponent<Rigidbody>().velocity = dir;
-            }
-            else
-            {
-                objFollower.transform.localPosition = new Vector3(0, 0.075f, 0);
             }
             
         }    

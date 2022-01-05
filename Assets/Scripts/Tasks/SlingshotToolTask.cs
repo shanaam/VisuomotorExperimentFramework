@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class SlingshotToolTask : ToolTask
 {
+    List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
+    Vector3 pos = new Vector3();
+
     public override void Setup()
     {
         base.Setup();
+
+        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
 
         Cursor.visible = false;
 
@@ -34,8 +39,15 @@ public class SlingshotToolTask : ToolTask
         base.Update();
 
         // Tool follows mouse
-        ObjectFollowMouse(toolObjects);
-        
+        if (currentStep < 2)
+        {
+            ObjectFollowMouse(toolObjects);
+        }
+        else
+        {
+            toolObjects.transform.position = pos;
+        }
+
 
         switch (currentStep)
         {
@@ -99,17 +111,34 @@ public class SlingshotToolTask : ToolTask
                     Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
                     Home.GetComponent<LineRenderer>().SetPosition(1, ctrllerPoint);
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.08f)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
                     {
                         time += Time.fixedDeltaTime;
                     }
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
+                    foreach (var device in devices)
+                    {
+                        UnityEngine.XR.HapticCapabilities capabilities;
+                        if (device.TryGetHapticCapabilities(out capabilities))
+                        {
+                            if (capabilities.supportsImpulse)
+                            {
+                                uint channel = 0;
+                                float amplitude = 0.4f;
+                                float duration = Time.deltaTime;
+                                device.SendHapticImpulse(channel, amplitude, duration);
+                            }
+                        }
+                    }
+
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
                     {
                         Vector3 shotDir = Home.transform.position - ctrllerPoint;
                         shotDir /= time;
 
                         //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+
+                        pos = toolObjects.transform.position;
 
                         baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
                         Home.GetComponent<LineRenderer>().positionCount = 0;

@@ -6,9 +6,15 @@ using UnityEngine;
 public class ImpactToolTask : ToolTask
 {
 
+    List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
+    Vector3 pos = new Vector3();
+    bool hasHit = false;
+
     public override void Setup()
     {
         base.Setup();
+
+        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
 
         toolObjects.GetComponentInChildren<Collider>().material.bounciness = 1f;
         toolObjects.GetComponentInChildren<Collider>().enabled = false;
@@ -95,14 +101,34 @@ public class ImpactToolTask : ToolTask
                 {
                     toolObjects.GetComponentInChildren<Collider>().enabled = ctrllerPoint.z <= 0.05f;
                 }
-                    
 
+                pos = toolObjects.transform.position;
                 break;
 
             // After the user hits the object
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
-                ObjectFollowMouse(toolObjects);
+                if (!hasHit)
+                {
+                    foreach (var device in devices)
+                    {
+                        UnityEngine.XR.HapticCapabilities capabilities;
+                        if (device.TryGetHapticCapabilities(out capabilities))
+                        {
+                            if (capabilities.supportsImpulse)
+                            {
+                                uint channel = 0;
+                                float amplitude = 1f;
+                                float duration = 0.1f;
+                                device.SendHapticImpulse(channel, amplitude, duration);
+                            }
+                        }
+                    }
+                    hasHit = true;
+                }
+                
+
+                toolObjects.transform.position = pos;
 
                 break;
 

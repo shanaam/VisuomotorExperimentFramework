@@ -4,15 +4,23 @@ using UnityEngine;
 
 public class CurlingToolTask : ToolTask
 {
+    List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
+    Vector3 pos = new Vector3();
+
     public override void Setup()
     {
         base.Setup();
+
+        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
 
         Cursor.visible = false;
 
         baseObject.GetComponent<SphereCollider>().material.bounciness = 1f;
 
         curlingStone.SetActive(true);
+        //Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
+        //ballObjects.transform.position = new Vector3(ballObjects.transform.position.x, ballObjects.transform.position.y, -0.2f);
+        //curlingStone.transform.position = new Vector3(curlingStone.transform.position.x, curlingStone.transform.position.y, -0.2f);
 
 
         baseObject.GetComponent<ToolObjectScript>().enabled = false;
@@ -35,8 +43,15 @@ public class CurlingToolTask : ToolTask
     {
         base.Update();
 
-        // Tool follows mouse
-        ObjectFollowMouse(toolObjects);
+        if (currentStep < 2)
+        {
+            ObjectFollowMouse(toolObjects);
+        }
+        else
+        {
+            toolObjects.transform.position = pos;
+        }
+        
 
         switch (currentStep)
         {
@@ -51,7 +66,7 @@ public class CurlingToolTask : ToolTask
                 {
                     IncrementStep();
                 }
-                if (Vector3.Distance(ctrllerPoint, ballObjects.transform.position) <= 0.05f)
+                else if (Vector3.Distance(ctrllerPoint, ballObjects.transform.position) <= 0.05f)
                 {
 
                     IncrementStep();
@@ -89,25 +104,36 @@ public class CurlingToolTask : ToolTask
                 }
                 else
                 {
-                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.08f)
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
                     {
                         time += Time.fixedDeltaTime;
                         startPos = ctrllerPoint;
                     }
 
-                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
+                    foreach (var device in devices)
+                    {
+                        UnityEngine.XR.HapticCapabilities capabilities;
+                        if (device.TryGetHapticCapabilities(out capabilities))
+                        {
+                            if (capabilities.supportsImpulse)
+                            {
+                                uint channel = 0;
+                                float amplitude = 0.4f;
+                                float duration = Time.deltaTime;
+                                device.SendHapticImpulse(channel, amplitude, duration);
+                            }
+                        }
+                    }
+
+                    if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.2f)
                     {
                         shotDir = startPos - ctrllerPoint;
                         shotDir /= time;
                         baseObject.GetComponent<Rigidbody>().AddForce(-shotDir.normalized * FIRE_FORCE);
-
+                        pos = toolObjects.transform.position;
                         IncrementStep();
                     }
                 }
-
-
-                
-
                 break;
         }
     }
