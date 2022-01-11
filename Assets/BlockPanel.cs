@@ -42,7 +42,7 @@ public class BlockPanel : MonoBehaviour
         {
             if (kp.Key.StartsWith("per_block"))
             {
-                BlockInfoText.GetComponent<TextMeshProUGUI>().text += "<u><link=\"" + i + "\">" + kp.Key + " : " + (kp.Value as List<object>)[index] + "</link></u>\n";
+                BlockInfoText.GetComponent<TextMeshProUGUI>().text += "<u><link=\"" + i + "\">" + kp.Key + "</u> : " + (kp.Value as List<object>)[index] + "</link>\n";
                 options.Add(kp.Key);
                 i++;
             }
@@ -156,7 +156,7 @@ public class BlockPanel : MonoBehaviour
         {
             if (kp.Key.StartsWith("per_block"))
             {
-                BlockInfoText.GetComponent<TextMeshProUGUI>().text += "<u><link=\"" + i + "\">" + kp.Key + " : " + (kp.Value as List<object>)[index] + "</link></u>\n";
+                BlockInfoText.GetComponent<TextMeshProUGUI>().text += "<u><link=\"" + i + "\">" + kp.Key + "</u> : " + (kp.Value as List<object>)[index] + "</link>\n";
                 i++;
             }
         }

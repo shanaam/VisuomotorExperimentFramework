@@ -34,6 +34,8 @@ public class ConfigurationBlockManager : MonoBehaviour
 
     private float blockViewLeftSide, blockViewRightSide;
 
+    public GameObject anchorNotch;
+
     public void Start()
     {
         normalColourPalette.normalColor = Color.white;
@@ -54,6 +56,9 @@ public class ConfigurationBlockManager : MonoBehaviour
         GetComponent<RectTransform>().GetWorldCorners(corners);
         blockViewLeftSide = corners[0].x;
         blockViewRightSide = corners[2].x;
+
+        anchorNotch.GetComponent<Button>().onClick.AddListener(
+                () => { OnNotchPress(anchorNotch); });
     }
 
     public void InitializeBlockPrefabs(ConfigurationUIManager manager, ExperimentContainer expContainer)
@@ -193,6 +198,15 @@ public class ConfigurationBlockManager : MonoBehaviour
             {
                 notch.GetComponent<Button>().colors = normalColourPalette;
             }
+        }
+
+        if (SelectedNotches.Contains(anchorNotch))
+        {
+            anchorNotch.GetComponent<Button>().colors = selectedColourPalette;
+        }
+        else
+        {
+            anchorNotch.GetComponent<Button>().colors = normalColourPalette;
         }
     }
 
@@ -642,7 +656,6 @@ public class ConfigurationBlockManager : MonoBehaviour
             IEnumerable<GameObject> query = CopiedBlocks.OrderBy(pet => pet.name);
 
             GameObject notch = null;
-
             foreach (GameObject notches in SelectedNotches)
             {
                 notch = notches;
@@ -661,7 +674,16 @@ public class ConfigurationBlockManager : MonoBehaviour
 
                 blckCmp.BlockController = this;
 
-                int insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID + count;
+                int insertIndex = 0;
+
+                if (notch.name.Equals("AnchorNotch"))
+                {
+                    insertIndex = -1;
+                }
+                else
+                {
+                    insertIndex = notch.GetComponentInParent<BlockComponent>().BlockID + count;
+                }
                 g.transform.SetSiblingIndex(insertIndex + 2);
 
                 // Note: We set block ID before adding another block to the dictionary because
