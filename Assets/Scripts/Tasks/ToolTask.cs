@@ -387,7 +387,7 @@ public class ToolTask : BilliardsTask
 
                 break;
             case "squeegee":
-                Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
+                //Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
                 toolCylinder.SetActive(false);
                 toolBox.SetActive(false);
                 selectedObject = toolSphere;
@@ -576,16 +576,17 @@ public class ToolTask : BilliardsTask
     // moves the ball based on mouse position
     protected virtual void BallFollowMouse(GameObject objFollower)
     {
+
         // non vr and vr control of the ball with slingshot tool
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
             objFollower.transform.position = mousePoint;
         }
-        else
+        else if(ctrler.Session.settings.GetString("experiment_mode") == "tool_vr")
         {
             objFollower.transform.position = ctrllerPoint;
         }
-            
+ 
     }
 
     

@@ -97,6 +97,7 @@ public class SlingshotToolTask : ToolTask
                         shotDir /= time;
 
                         //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
+                        pos = toolObjects.transform.position;
 
                         baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
                         Home.GetComponent<LineRenderer>().positionCount = 0;
