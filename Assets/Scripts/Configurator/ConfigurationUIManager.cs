@@ -29,6 +29,8 @@ public class ConfigurationUIManager : MonoBehaviour
     // Reserved filename for JSON file that contains information for type checking
     public const string MASTER_JSON_FILENAME = "experiment_parameters.json";
 
+    public GameObject SwapModeButton;
+
     /// <summary>
     /// Public accessor for "dirty" variable. When the variable is modified
     /// We also let the user know via updating the UI
@@ -385,5 +387,14 @@ public class ConfigurationUIManager : MonoBehaviour
     {
         BlockTab.SetActive(!BlockTab.activeSelf);
         PropertyTab.SetActive(!PropertyTab.activeSelf);
+
+        if (SwapModeButton.GetComponentInChildren<Text>().text.Equals("Mode: Block"))
+        {
+            SwapModeButton.GetComponentInChildren<Text>().text = "Mode: Properties";
+        }
+        else
+        {
+            SwapModeButton.GetComponentInChildren<Text>().text = "Mode: Block";
+        }
     }
 }

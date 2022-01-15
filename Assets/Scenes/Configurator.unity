@@ -2350,6 +2350,7 @@ MonoBehaviour:
   BlockTab: {fileID: 2056819772}
   PropertyTab: {fileID: 770610000}
   ExperimentTab: {fileID: 0}
+  SwapModeButton: {fileID: 1120112022}
   CurrentSelectedBlock: 0
   PropertyNameText: {fileID: 0}
   PropertyValueText: {fileID: 0}
@@ -3658,7 +3659,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1015504757}
   m_HandleRect: {fileID: 1015504756}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -8339,7 +8340,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1672246266}
   m_HandleRect: {fileID: 1672246265}
   m_Direction: 0
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
