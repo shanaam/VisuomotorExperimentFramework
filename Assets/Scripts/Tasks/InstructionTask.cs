@@ -38,7 +38,7 @@ public class InstructionTask : BaseTask
         //pinballDummy.transform.localPosition = new Vector3(0, 0, 0);
 
         string per_block_ins = ctrler.Session.CurrentTrial.settings.GetString("per_block_instruction");
-        ins = ctrler.Session.CurrentTrial.settings.GetString(per_block_ins);
+        ins = ctrler.Session.CurrentTrial.settings.GetStringList(per_block_ins)[0];
 
         // Temporarily disable VR Camera
         // TODO: This needs to be changed when we implement instruction task for VR

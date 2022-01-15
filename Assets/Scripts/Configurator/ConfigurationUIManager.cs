@@ -20,7 +20,7 @@ public class ConfigurationUIManager : MonoBehaviour
     // GameObjects for the various UI components
     public GameObject ConfirmationPopup, FileDropdown, BlockView, DirtyText, FileSaveDialog;
 
-    public GameObject BlockTab, PropertyTab;
+    public GameObject BlockTab, PropertyTab, ExperimentTab;
 
     // When true, the user has made a modification to the JSON without saving.
     // We use this to let the user know in the UI they have unsaved changes.
@@ -379,5 +379,11 @@ public class ConfigurationUIManager : MonoBehaviour
             ExpContainer.Data[PropertyDropdown.options[PropertyDropdown.value].text];
 
         ExpContainer.Data.Remove(PropertyDropdown.options[PropertyDropdown.value].text);
+    }
+
+    public void SwapMode()
+    {
+        BlockTab.SetActive(!BlockTab.activeSelf);
+        PropertyTab.SetActive(!PropertyTab.activeSelf);
     }
 }

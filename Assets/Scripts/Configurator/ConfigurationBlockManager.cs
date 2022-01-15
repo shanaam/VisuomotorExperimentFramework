@@ -63,6 +63,8 @@ public class ConfigurationBlockManager : MonoBehaviour
 
     public void InitializeBlockPrefabs(ConfigurationUIManager manager, ExperimentContainer expContainer)
     {
+        anchorNotch.SetActive(true);
+
         this.expContainer = expContainer;
         this.uiManager = manager;
 

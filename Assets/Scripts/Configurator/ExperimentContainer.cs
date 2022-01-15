@@ -181,7 +181,6 @@ public class ExperimentContainer
         }
 
         Regex rx = new Regex(@"[+-]?([0-9]*[.])?[0-9]+");
-
         if (rx.IsMatch(input))
         {
             return float.Parse(input);
