@@ -1,6 +1,5 @@
 {
     "experiment_mode": "pinball",
-    "exp_record_score": true,
     "per_block_type": [
         "instruction",
         "instruction",
@@ -210,12 +209,6 @@
         0,
         0
     ],
-    "tl1": [
-        75,
-        85,
-        95,
-        105
-    ],
     "tl2": [
         90
     ],
@@ -223,7 +216,14 @@
         -3,
         -1,
         1,
-        3
+        3,
+        1,
+        2,
+        3,
+        3,
+        6,
+        " seven",
+        8
     ],
     "ct2": [
         0
@@ -240,9 +240,13 @@
     "mat2": [
         "brick"
     ],
-    "ins1": "Hello! Thank you for participating in the Pingolf task!\n\nYour goal is to get points by firing the ball so that it gets as close to the target as possible!\nBonus points for hitting the target!\n\nPull on the spring and let go to fire, but be quick!\nYou will not get any points if you take too long.\n\nThe next few trials are practice!\nTry pulling the string at different lengths and different angles to see how it behaves!",
-    "ins2": "Keep trying to hit the target!",
-    "ins3": "Keep trying to hit the target!",
-    "asd": "dsa",
-    "ins4": "aaaa"
+    "ins1": [
+        "Hello! Thank you for participating in the Pingolf task!\n\nYour goal is to get points by firing the ball so that it gets as close to the target as possible!\nBonus points for hitting the target!\n\nPull on the spring and let go to fire, but be quick!\nYou will not get any points if you take too long.\n\nThe next few trials are practice!\nTry pulling the string at different lengths and different angles to see how it behaves!"
+    ],
+    "ins2": [
+        "Keep trying to hit the target!"
+    ],
+    "ins3": [
+        "Keep trying to hit the target!"
+    ]
 }
