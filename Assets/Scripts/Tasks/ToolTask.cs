@@ -344,7 +344,7 @@ public class ToolTask : BilliardsTask
         puckobj = GameObject.Find("impactPuck");
         ballobj = GameObject.Find("impactBall");
         ray = GameObject.Find("ray");
-        //barrier = GameObject.Find("barrier");
+        barrier = GameObject.Find("barrier");
 
         toolBox = GameObject.Find("paddle");
         toolCylinder = GameObject.Find("slingshot");
@@ -387,7 +387,7 @@ public class ToolTask : BilliardsTask
 
                 break;
             case "squeegee":
-                //Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
+                Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
                 toolCylinder.SetActive(false);
                 toolBox.SetActive(false);
                 selectedObject = toolSphere;
