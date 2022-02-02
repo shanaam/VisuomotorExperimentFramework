@@ -50,6 +50,7 @@ public class ToolTask : BilliardsTask
     private bool enteredTarget;
 
     protected Vector3 mousePoint;
+    protected AudioSource sound;
 
     private Vector3 previousPosition;
 
@@ -384,20 +385,20 @@ public class ToolTask : BilliardsTask
                 toolCylinder.SetActive(false);
                 toolSphere.SetActive(false);
                 selectedObject = toolBox;
-
+                sound = toolBox.GetComponentInChildren<AudioSource>();
                 break;
             case "squeegee":
                 Home.transform.position = new Vector3(Home.transform.position.x, Home.transform.position.y, -0.2f);
                 toolCylinder.SetActive(false);
                 toolBox.SetActive(false);
                 selectedObject = toolSphere;
-
+                sound = toolSphere.GetComponentInChildren<AudioSource>();
                 break;
             case "slingshot":          
                 toolSphere.SetActive(false);
                 toolBox.SetActive(false);
                 selectedObject = toolCylinder;
-
+                sound = toolCylinder.GetComponentInChildren<AudioSource>();
                 break;
         }
 

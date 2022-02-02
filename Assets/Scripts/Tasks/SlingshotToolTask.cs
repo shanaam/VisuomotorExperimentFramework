@@ -39,7 +39,7 @@ public class SlingshotToolTask : ToolTask
         base.Update();
 
         // Tool follows mouse
-        if (currentStep < 2)
+        if (currentStep <  1)
         {
             ObjectFollowMouse(toolObjects);
         }
@@ -74,13 +74,15 @@ public class SlingshotToolTask : ToolTask
             case 1:
                 BallFollowMouse(baseObject);
 
-                
+                toolObjects.transform.position = new Vector3(Home.transform.position.x, 0.01f, Home.transform.position.z) ;
 
                 float time = 0f;
 
                 // non vr and vr control of the slingshot
                 if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
                 {
+                    Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
+                    toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
                     // Line rendere representing the slingshot band is attached to home GameObject
                     Home.GetComponent<LineRenderer>().positionCount = 2;
                     Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
@@ -101,12 +103,15 @@ public class SlingshotToolTask : ToolTask
 
                         baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
                         Home.GetComponent<LineRenderer>().positionCount = 0;
-
+                        sound.Play();
                         IncrementStep();
                     }
                 }
                 else
                 {
+
+                    Vector3 direc = new Vector3(Home.transform.position.x - ctrllerPoint.x, 0, Home.transform.position.z - ctrllerPoint.z);
+                    toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
                     // Line rendere representing the slingshot band is attached to home GameObject
                     Home.GetComponent<LineRenderer>().positionCount = 2;
                     Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
@@ -143,15 +148,10 @@ public class SlingshotToolTask : ToolTask
 
                         baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
                         Home.GetComponent<LineRenderer>().positionCount = 0;
-
+                        sound.Play();
                         IncrementStep();
                     }
-                }
-                    
-
-                
-
-                
+                } 
                 break;
         }
     }

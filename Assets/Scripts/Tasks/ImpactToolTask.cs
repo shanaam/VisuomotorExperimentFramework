@@ -108,8 +108,10 @@ public class ImpactToolTask : ToolTask
             // After the user hits the object
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
+                
                 if (!hasHit)
                 {
+                    sound.Play();
                     foreach (var device in devices)
                     {
                         UnityEngine.XR.HapticCapabilities capabilities;

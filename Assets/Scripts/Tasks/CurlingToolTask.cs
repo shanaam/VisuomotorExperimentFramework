@@ -6,10 +6,15 @@ public class CurlingToolTask : ToolTask
 {
     List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
     Vector3 pos = new Vector3();
+    Vector3 look = new Vector3();
+    private LTDescr d;
+    private int id;
 
     public override void Setup()
     {
         base.Setup();
+
+        look = new Vector3(Home.transform.position.x, Home.transform.position.y, 0);
 
         UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
 
@@ -40,7 +45,7 @@ public class CurlingToolTask : ToolTask
 
     protected void Animate()
     {
-        LeanTween.rotateY(toolObjects, 0, 0.5f);
+        id = LeanTween.rotateY(toolObjects, 0, 0.3f).id;
     }
 
     // Update is called once per frame
@@ -75,16 +80,25 @@ public class CurlingToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
+                
                 ObjectFollowMouse(toolObjects);
                 //Ball follows mouse
                 ObjectFollowMouse(baseObject);
 
-                    Vector3 startPos = new Vector3();
-                    Vector3 shotDir = new Vector3();
+                d = LeanTween.descr(id);
+                if(d == null)
+                {
+                    toolObjects.transform.LookAt(look, toolSpace.transform.up);
+                }
 
-                    float time = 0f;
-                    //non vr and vr control of the curling
-                    if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+                pos = toolObjects.transform.position;
+
+                Vector3 startPos = new Vector3();
+                Vector3 shotDir = new Vector3();
+
+               float time = 0f;
+                //non vr and vr control of the curling
+                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
                     {
                         if (Vector3.Distance(curlingStone.transform.position, Home.transform.position) > 0.12f)
                         {
@@ -111,7 +125,8 @@ public class CurlingToolTask : ToolTask
 
                         foreach (var device in devices)
                         {
-                            UnityEngine.XR.HapticCapabilities capabilities;
+                        
+                        UnityEngine.XR.HapticCapabilities capabilities;
                             if (device.TryGetHapticCapabilities(out capabilities))
                             {
                                 if (capabilities.supportsImpulse)
