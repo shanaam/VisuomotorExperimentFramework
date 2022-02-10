@@ -2513,7 +2513,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 509038857}
         m_TargetAssemblyTypeName: 
-        m_MethodName: NewFile
+        m_MethodName: NewFileParameters
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3213,10 +3213,12 @@ MonoBehaviour:
   BlockView: {fileID: 1769149184}
   DirtyText: {fileID: 1521449103}
   FileSaveDialog: {fileID: 1267167051}
+  ParametersDialog: {fileID: 1769893403}
   BlockTab: {fileID: 2056819772}
   PropertyTab: {fileID: 770610000}
   ExperimentTab: {fileID: 0}
   SwapModeButton: {fileID: 1120112022}
+  ParametersDropdown: {fileID: 1673683941}
   CurrentSelectedBlock: 0
   PropertyNameText: {fileID: 0}
   PropertyValueText: {fileID: 0}
@@ -8422,9 +8424,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1769893405}
+      - m_Target: {fileID: 509038857}
         m_TargetAssemblyTypeName: 
-        m_MethodName: AcceptDialog
+        m_MethodName: NewFile
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -10855,13 +10857,7 @@ MonoBehaviour:
   m_ItemImage: {fileID: 0}
   m_Value: 0
   m_Options:
-    m_Options:
-    - m_Text: Option A
-      m_Image: {fileID: 0}
-    - m_Text: Option B
-      m_Image: {fileID: 0}
-    - m_Text: Option C
-      m_Image: {fileID: 0}
+    m_Options: []
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -11721,14 +11717,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1769893404}
-  - component: {fileID: 1769893405}
   m_Layer: 5
   m_Name: NewFileParamatersDialog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1769893404
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11749,22 +11744,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1769893405
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1769893403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dfa039f1b286a7747af665636b8b9fc1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Container: {fileID: 214940317}
-  MessageContainer: {fileID: 170563862}
-  ConfirmButton: {fileID: 1271621800}
-  CancelButton: {fileID: 0}
 --- !u!1 &1775238618
 GameObject:
   m_ObjectHideFlags: 0

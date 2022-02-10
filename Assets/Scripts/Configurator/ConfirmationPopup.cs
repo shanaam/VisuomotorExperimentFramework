@@ -22,6 +22,8 @@ public class ConfirmationPopup : MonoBehaviour
 
     public void ShowPopup(string message, ConfirmationCallback callback)
     {
+        ConfirmCallback = null;
+
         if (!Container.activeSelf)
         {
             Container.SetActive(true);

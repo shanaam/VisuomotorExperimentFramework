@@ -20,7 +20,7 @@ public class BlockPanel : MonoBehaviour
 
     private ConfigurationUIManager uiManager;
 
-    void Start()
+    public void Start()
     {
         uiManager = UIManager.GetComponent<ConfigurationUIManager>();
 
@@ -106,7 +106,35 @@ public class BlockPanel : MonoBehaviour
 
         object obj = uiManager.ExpContainer.ConvertToCorrectType(text);
 
-        if (obj.GetType().IsInstanceOfType(uiManager.ExpContainer.GetDefaultValue(selectedParameter)))
+        bool isCorrectType = false;
+
+        switch(uiManager.ExpContainer.GetDefaultValue(selectedParameter))
+        {
+            case "":
+                isCorrectType = true;
+                break;
+
+            case 0:
+                if (obj.GetType().IsInstanceOfType(0))
+                    isCorrectType = true;
+                break;
+
+            case false:
+                if (obj.GetType().IsInstanceOfType(false))
+                    isCorrectType = true;
+                break;
+
+            case 0.0f:
+                if (obj.GetType().IsInstanceOfType(0) || obj.GetType().IsInstanceOfType(0.0f))
+                    isCorrectType = true;
+
+                break;
+            default:
+                break;
+        }
+
+
+        if (isCorrectType)
         {
             BlockParameterValue.GetComponent<Text>().text = "Value: " + text;
 

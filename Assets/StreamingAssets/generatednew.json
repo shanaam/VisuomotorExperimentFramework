@@ -1,7 +1,7 @@
 {
-    "experiment_mode": "pinball",
+    "experiment_mode": "trail",
     "per_block_type": [
-        "instruction",
+        "clamped",
         "instruction",
         "aligned",
         "instruction",
@@ -232,7 +232,10 @@
         -15,
         -15,
         -15,
-        -15
+        -15,
+        15,
+        7,
+        1
     ],
     "mat1": [
         "default"

@@ -181,7 +181,7 @@ public class ExperimentContainer
         }
 
         Regex rx = new Regex(@"[+-]?([0-9]*[.])?[0-9]+");
-        if (rx.IsMatch(input))
+        if (rx.IsMatch(input) && !input.Any(x => !char.IsLetter(x)))
         {
             return float.Parse(input);
         }

@@ -1,5 +1,5 @@
 {
-  "experiment_mode": [ "pinball", "pinball_vr", "tool", "tool_vr" ],
+  "experiment_mode": [ "pinball", "pinball_vr", "tool", "tool_vr", "trail", "target2d" ],
   "per_block_type": [ "instruction", "rotated", "aligned", "clamped" ],
   "per_block_rotation": [ "%integer%" ],
   "per_block_tilt": [ "%integer%" ],
@@ -18,5 +18,7 @@
   "per_block_obstacle": [ "%bool%" ],
   "per_block_surface_materials": [ "%string%" ],
   "per_block_track_score": [ "%bool%" ],
-  "per_block_timerTime": [ "%float%" ]
+  "per_block_timerTime": [ "%float%" ],
+  "per_block_startPoint": [ "%float%" ],
+  "per_block_endPoint": [ "%float%" ]
 }

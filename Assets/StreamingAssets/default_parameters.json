@@ -1,5 +1,8 @@
 {
-  "experiment_mode": [ "pinball", "pinball_vr", "tool", "tool_vr" ],
-  "tool": [ "per_block_type", "per_block_rotation", "per_block_n", "per_block_hand", "per_block_visual_feedback" ],
-  "pinball": []
+  "tool": [ "per_block_type", "per_block_rotation", "per_block_n", "per_block_hand", "per_block_targetListToUse", "per_block_visual_feedback", "per_block_surface_materials", "per_block_list_triggerType", "per_block_list_puck_type", "per_block_list_tool_type", "per_block_surface_dynamic_friction", "per_block_surface_static_friction", "per_block_tool_dynamic_friction", "per_block_tool_static_friction", "per_block_track_score", "per_block_timerTime", "per_block_tilt_after_fire", "per_block_list_camera_tilt", "per_block_list_surface_tilt" ],
+  "pinball": [ "per_block_type", "per_block_rotation", "per_block_n", "per_block_hand", "per_block_targetListToUse", "per_block_show_path", "per_block_indicator_type", "per_block_fire_mode", "per_block_tilt_after_fire", "per_block_list_camera_tilt", "per_block_list_surface_tilt", "per_block_obstacle", "per_block_instruction", "per_block_surface_materials", "per_block_track_score", "per_block_timerTime" ],
+  "pinball_vr": [ "per_block_type", "per_block_rotation", "per_block_n", "per_block_hand", "per_block_targetListToUse", "per_block_show_path", "per_block_indicator_type", "per_block_fire_mode", "per_block_tilt_after_fire", "per_block_list_camera_tilt", "per_block_list_surface_tilt", "per_block_obstacle", "per_block_instruction", "per_block_surface_materials", "per_block_track_score", "per_block_timerTime" ],
+  "trail": [ "per_block_type", "per_block_n", "per_block_hand", "per_block_instruction", "per_block_track_score", "per_block_timerTime", "per_block_startPoint", "per_block_endPoint" ],
+  "target2d": [ "per_block_type", "per_block_rotation", "per_block_distance", "per_block_n", "per_block_hand", "per_block_targetListToUse", "per_block_waterPresent", "per_block_track_score", "per_block_timerTime" ],
+  "target": [ "per_block_type", "per_block_rotation", "per_block_distance", "per_block_n", "per_block_hand", "per_block_targetListToUse", "per_block_waterPresent", "per_block_track_score", "per_block_timerTime" ]
 }

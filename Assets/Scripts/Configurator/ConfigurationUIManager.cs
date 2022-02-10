@@ -18,7 +18,7 @@ public class ConfigurationUIManager : MonoBehaviour
     private string currentFile;
 
     // GameObjects for the various UI components
-    public GameObject ConfirmationPopup, FileDropdown, BlockView, DirtyText, FileSaveDialog;
+    public GameObject ConfirmationPopup, FileDropdown, BlockView, DirtyText, FileSaveDialog, ParametersDialog;
 
     public GameObject BlockTab, PropertyTab, ExperimentTab;
 
@@ -29,7 +29,11 @@ public class ConfigurationUIManager : MonoBehaviour
     // Reserved filename for JSON file that contains information for type checking
     public const string MASTER_JSON_FILENAME = "experiment_parameters.json";
 
+    public const string EXPERIMENT_PARAMETERS = "default_parameters.json";
+
     public GameObject SwapModeButton;
+
+    public Dropdown ParametersDropdown;
 
     /// <summary>
     /// Public accessor for "dirty" variable. When the variable is modified
@@ -49,6 +53,10 @@ public class ConfigurationUIManager : MonoBehaviour
     // This can be modified via the UI or in the json file
     private Dictionary<string, object> masterParameters;
 
+    private Dictionary<string, object> defaultParameters;
+
+    private Dictionary<string, object> currentParameters = new Dictionary<string, object>();
+
     // The zero based index representing which block is currently selected by the user to modify
     public int CurrentSelectedBlock;
 
@@ -63,7 +71,7 @@ public class ConfigurationUIManager : MonoBehaviour
     public Dropdown PropertyDropdown;
 
     private int selectedProperty;
-    
+
     // Start is called before the first frame update
     void Start()
     {
@@ -82,6 +90,17 @@ public class ConfigurationUIManager : MonoBehaviour
         {
             Debug.LogWarning("Master JSON does not exist.");
         }
+
+        path = Application.dataPath + "/StreamingAssets/default_parameters.json";
+        if (File.Exists(path))
+        {
+            defaultParameters = (Dictionary<string, object>)MiniJSON.Json.Deserialize(File.ReadAllText(
+                path));
+        }
+        else
+        {
+            Debug.LogWarning("Default Parameters JSON does not exist.");
+        }
     }
 
     /// <summary>
@@ -91,7 +110,7 @@ public class ConfigurationUIManager : MonoBehaviour
     {
         DirectoryInfo d = new DirectoryInfo(Application.dataPath + "/StreamingAssets");
         files = d.GetFiles("*.json").Where(
-            file => file.Name != MASTER_JSON_FILENAME).ToArray();
+            file => (file.Name != MASTER_JSON_FILENAME && file.Name != EXPERIMENT_PARAMETERS)).ToArray();
 
         List<Dropdown.OptionData> fileOptions = new List<Dropdown.OptionData>();
         foreach (FileInfo f in files)
@@ -199,17 +218,25 @@ public class ConfigurationUIManager : MonoBehaviour
     private void OpenFile(string fileName)
     {
         // Attempt to open file
-        Dictionary<string, object> fileParameters = 
+        Dictionary<string, object> fileParameters =
             (Dictionary<string, object>)MiniJSON.Json.Deserialize(File.ReadAllText(fileName));
 
-        ExpContainer = new ExperimentContainer(fileParameters, masterParameters);
+        string exp_type = fileParameters["experiment_mode"].ToString();
+
+        Debug.Log(exp_type);
+
+        CreateParameterList(exp_type);
+
+        ExpContainer = new ExperimentContainer(fileParameters, currentParameters);
 
         // Default to show the block tab
         PropertyTab.SetActive(false);
         BlockTab.SetActive(true);
 
         BlockView.GetComponent<ConfigurationBlockManager>().InitializeBlockPrefabs(this, ExpContainer);
-        
+
+        BlockPanel.GetComponent<BlockPanel>().Start();
+
         // TODO: Set up property editor
         /*
         // Set up property editor
@@ -237,10 +264,7 @@ public class ConfigurationUIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Generates a new file with one block and all default values
-    /// </summary>
-    private void NewFile()
+    public void NewFileParameters()
     {
         if (dirty)
         {
@@ -249,17 +273,39 @@ public class ConfigurationUIManager : MonoBehaviour
         }
         else
         {
-            ExpContainer = new ExperimentContainer(new Dictionary<string, object>(), masterParameters);
+            ParametersDropdown.ClearOptions();
 
-            // Initialize dictionary with 1 block and default values
-            foreach (KeyValuePair<string, object> kp in masterParameters)
+            ParametersDropdown.AddOptions(defaultParameters.Keys.ToList());
+
+            ParametersDialog.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Generates a new file with one block and all default values
+    /// </summary>
+    private void NewFile()
+    {
+        CreateParameterList(ParametersDropdown.value);
+
+        ParametersDialog.SetActive(false);
+
+        Dictionary<string, object> temp = new Dictionary<string, object>();
+        temp.Add("experiment_mode", ParametersDropdown.options[ParametersDropdown.value].text);
+
+        ExpContainer = new ExperimentContainer(temp, currentParameters);
+
+        // Initialize dictionary with 1 block and default values
+        foreach (KeyValuePair<string, object> kp in currentParameters)
+        {
+            if (kp.Key.StartsWith("per_block"))
             {
                 List<object> list = kp.Value as List<object>;
                 ExpContainer.Data[kp.Key] = new List<object>();
                 List<object> newList = ExpContainer.Data[kp.Key] as List<object>;
                 if (list[0].GetType() == typeof(string))
                 {
-                    switch ((string) list[0])
+                    switch ((string)list[0])
                     {
                         case ExperimentContainer.STRING_PROPERTY_ID:
                             newList.Add("");
@@ -280,12 +326,14 @@ public class ConfigurationUIManager : MonoBehaviour
                     newList.Add(list[0]);
                 }
             }
-
-            Dirty = true;
-
-            BlockView.GetComponent<ConfigurationBlockManager>().InitializeBlockPrefabs(this, ExpContainer);
-            FileDropdown.GetComponent<Dropdown>().value = 0;
         }
+
+        Dirty = true;
+
+        BlockView.GetComponent<ConfigurationBlockManager>().InitializeBlockPrefabs(this, ExpContainer);
+        FileDropdown.GetComponent<Dropdown>().value = 0;
+
+        BlockPanel.GetComponent<BlockPanel>().Start();
     }
 
     /// <summary>
@@ -296,7 +344,7 @@ public class ConfigurationUIManager : MonoBehaviour
         if (accept)
         {
             Dirty = false;
-            NewFile();
+            NewFileParameters();
         }
     }
 
@@ -307,7 +355,7 @@ public class ConfigurationUIManager : MonoBehaviour
     /// </summary>
     public void OnClickBlock(GameObject btn)
     {
-        if (!BlockView.GetComponent<ConfigurationBlockManager>().Dragged && 
+        if (!BlockView.GetComponent<ConfigurationBlockManager>().Dragged &&
             !Input.GetKeyDown(KeyCode.LeftShift))
         {
             BlockPanel.GetComponent<BlockPanel>().Populate(btn.GetComponent<BlockComponent>().BlockID);
@@ -395,6 +443,28 @@ public class ConfigurationUIManager : MonoBehaviour
         else
         {
             SwapModeButton.GetComponentInChildren<Text>().text = "Mode: Block";
+        }
+    }
+
+    private void CreateParameterList(int dropdownNum)
+    {
+        CreateParameterList(ParametersDropdown.options[dropdownNum].text);
+    }
+
+    public void CreateParameterList(string experimentType)
+    {
+        currentParameters = new Dictionary<string, object>();
+
+        List<object> parameters = defaultParameters[experimentType] as List<object>;
+
+        
+
+        foreach (string parameter in parameters)
+        {
+            if (masterParameters.ContainsKey(parameter))
+            {
+                currentParameters.Add(parameter, masterParameters[parameter]);
+            }
         }
     }
 }
