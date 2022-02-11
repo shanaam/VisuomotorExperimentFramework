@@ -37,6 +37,9 @@ public class ToolTask : BilliardsTask
     protected GameObject curlingStone;
     protected GameObject slingShotBall;
 
+    protected LineRenderer elasticR;
+    protected LineRenderer elasticL;
+
     // lists for feedback points
     //protected List<Vector3> PuckPoints = new List<Vector3>();
     //private List<Vector3> CurlingStonePoints = new List<Vector3>();
@@ -61,7 +64,7 @@ public class ToolTask : BilliardsTask
 
     private float timer;
 
-    private GameObject selectedObject;
+    protected GameObject selectedObject;
 
     // Set to true if the user runs out of time 
     private bool missed;
@@ -399,6 +402,10 @@ public class ToolTask : BilliardsTask
                 toolBox.SetActive(false);
                 selectedObject = toolCylinder;
                 sound = toolCylinder.GetComponentInChildren<AudioSource>();
+                elasticL = toolCylinder.transform.GetChild(4).gameObject.GetComponent<LineRenderer>();
+                elasticR = toolCylinder.transform.GetChild(3).gameObject.GetComponent<LineRenderer>();
+                elasticL.SetPosition(0, barrier.transform.GetChild(1).GetChild(0).gameObject.transform.position);
+                elasticR.SetPosition(0, barrier.transform.GetChild(0).GetChild(0).gameObject.transform.position);
                 break;
         }
 
