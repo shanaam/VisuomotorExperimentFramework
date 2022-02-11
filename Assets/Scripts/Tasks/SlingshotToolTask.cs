@@ -6,6 +6,7 @@ public class SlingshotToolTask : ToolTask
 {
     List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
     Vector3 pos = new Vector3();
+    
 
     public override void Setup()
     {
@@ -38,23 +39,17 @@ public class SlingshotToolTask : ToolTask
     {
         base.Update();
 
-        // Tool follows mouse
-        if (currentStep <  1)
-        {
-            ObjectFollowMouse(toolObjects);
-        }
-        else
-        {
-            toolObjects.transform.position = pos;
-        }
+        elasticL.SetPosition(1, selectedObject.transform.GetChild(0).gameObject.transform.position);
+        elasticR.SetPosition(1, selectedObject.transform.GetChild(1).gameObject.transform.position);
 
 
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
-
+                ObjectFollowMouse(toolObjects);
                 ToolLookAtBall();
+
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
@@ -73,8 +68,7 @@ public class SlingshotToolTask : ToolTask
             // the user triggers the object 
             case 1:
                 BallFollowMouse(baseObject);
-
-                toolObjects.transform.position = new Vector3(Home.transform.position.x, 0.01f, Home.transform.position.z) ;
+                ObjectFollowMouse(toolObjects);
 
                 float time = 0f;
 
@@ -152,6 +146,22 @@ public class SlingshotToolTask : ToolTask
                         IncrementStep();
                     }
                 } 
+                break;
+            case 2:
+                if(toolObjects.transform.position.z > Home.transform.position.z)
+                {
+                    toolObjects.transform.position = ballObjects.transform.position;
+                }
+
+                else
+                {
+                    toolObjects.transform.position = Home.transform.position;
+                }
+
+
+                break;
+            case 3:
+                toolObjects.transform.position = Home.transform.position;
                 break;
         }
     }
