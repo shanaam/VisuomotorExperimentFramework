@@ -9,6 +9,7 @@ public class ImpactToolTask : ToolTask
     List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
     Vector3 pos = new Vector3();
     bool hasHit = false;
+    private Vector3 shotDir;
 
     public override void Setup()
     {
@@ -48,7 +49,21 @@ public class ImpactToolTask : ToolTask
                 break;
 
             case 1:
-                baseObject.GetComponent<Rigidbody>().velocity = Vector3.ClampMagnitude(toolObjects.GetComponent<Rigidbody>().velocity, FIRE_FORCE);
+                // set shotDir to the velocity of the tool
+                //shotDir = toolObjects.GetComponent<Rigidbody>().velocity;
+                shotDir = Vector3.ClampMagnitude(toolObjects.GetComponent<Rigidbody>().velocity, FIRE_FORCE);
+
+                // apply rotation if necessary
+                if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
+                {
+                    float angle = ctrler.Session.CurrentTrial.settings
+                        .GetFloat("per_block_rotation");
+
+                    shotDir = Quaternion.Euler(0f, -angle, 0f) * shotDir;
+                }
+
+                // apply shotDir
+                baseObject.GetComponent<Rigidbody>().velocity = shotDir;
 
                 toolObjects.transform.rotation = toolSpace.transform.rotation;
 

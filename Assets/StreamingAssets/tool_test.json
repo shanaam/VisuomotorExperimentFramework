@@ -3,9 +3,9 @@
 
     "exp_record_score": true,
 
-    "per_block_type": [ "aligned", "aligned", "rotated" ],
+    "per_block_type": [ "aligned", "rotated", "rotated" ],
 
-    "per_block_rotation": [ 0, 0, 30 ],
+    "per_block_rotation": [ 0, 30, 30 ],
 
     "per_block_n": [ 3, 3, 3 ],
 

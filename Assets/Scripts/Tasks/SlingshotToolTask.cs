@@ -2,13 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class SlingshotToolTask : ToolTask
 {
     List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
     Vector3 pos = new Vector3();
-    
+    private Vector3 ball_start_pos;
+    private Vector3 shotDir;
+    private bool fired;
 
-    public override void Setup()
+    public override void Setup()   
     {
         base.Setup();
 
@@ -18,20 +21,54 @@ public class SlingshotToolTask : ToolTask
 
         toolObjects.GetComponentInChildren<Collider>().enabled = false;
 
-
+        // activate the slingshot ball
         slingShotBall.SetActive(true);
+        
+        // store this starting position to move back to later
+        ball_start_pos = slingShotBall.transform.position;
 
         baseObject.GetComponent<ToolObjectScript>().enabled = false;
     }
 
+    // Increments step
     public override bool IncrementStep()
     {
         if (currentStep == 0)
         {
             toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
+        // sets fired to false at the start of every case 1
+        if (currentStep == 1)
+        {
+            fired = false;
+        }
 
         return base.IncrementStep();
+    }
+    
+    // Animate the ball back to start position then run the next function
+    // FIX: the time is arbritrary atm. Figure out what the velocity applied is.
+    protected void AnimateBallToHome()
+    {
+        LeanTween.move(baseObject, ball_start_pos, .10f).setOnComplete(FireAndIncrement);
+    }
+
+    // This applies force, then increments
+    protected void FireAndIncrement()
+    {
+        shotDir = shotDir.normalized ;
+        // Apply rotation if necessary
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
+        {
+            float angle = ctrler.Session.CurrentTrial.settings
+                .GetFloat("per_block_rotation");
+
+            shotDir = Quaternion.Euler(0f, -angle, 0f) * shotDir;
+        }
+
+        baseObject.GetComponent<Rigidbody>().velocity = shotDir * FIRE_FORCE;
+
+        IncrementStep();
     }
 
     // Update is called once per frame
@@ -67,9 +104,26 @@ public class SlingshotToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
-                BallFollowMouse(baseObject);
-                ObjectFollowMouse(toolObjects);
+                if (!fired)
+                {
+                    BallFollowMouse(baseObject);
+                    ObjectFollowMouse(toolObjects);
+                }
+                else
+                {
+                    // previously in case 2 (can take out of there maybe)
+                    if (ballObjects.transform.position.z < Home.transform.position.z)
+                    {
+                        toolObjects.transform.position = ballObjects.transform.position;
+                    }
 
+                    else
+                    {
+                        toolObjects.transform.position = Home.transform.position;
+                    }
+                }
+
+                // CHECK: what is this being used for?
                 float time = 0f;
 
                 // non vr and vr control of the slingshot
@@ -77,28 +131,25 @@ public class SlingshotToolTask : ToolTask
                 {
                     Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
                     toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
-                    // Line rendere representing the slingshot band is attached to home GameObject
-                    Home.GetComponent<LineRenderer>().positionCount = 2;
-                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
-                    Home.GetComponent<LineRenderer>().SetPosition(1, mousePoint);
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
                     {
                         time += Time.fixedDeltaTime;
                     }
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
+                    // fire condition (when we reach a threshold)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f && !fired)
                     {
-                        Vector3 shotDir = Home.transform.position - mousePoint;
+                        shotDir = Home.transform.position - mousePoint;
                         shotDir /= time;
 
                         //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
                         pos = toolObjects.transform.position;
 
-                        baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
-                        Home.GetComponent<LineRenderer>().positionCount = 0;
+                        // play sound and increment
                         sound.Play();
-                        IncrementStep();
+                        fired = true;
+                        AnimateBallToHome();
                     }
                 }
                 else
@@ -106,10 +157,6 @@ public class SlingshotToolTask : ToolTask
 
                     Vector3 direc = new Vector3(Home.transform.position.x - ctrllerPoint.x, 0, Home.transform.position.z - ctrllerPoint.z);
                     toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
-                    // Line rendere representing the slingshot band is attached to home GameObject
-                    Home.GetComponent<LineRenderer>().positionCount = 2;
-                    Home.GetComponent<LineRenderer>().SetPosition(0, Home.transform.position);
-                    Home.GetComponent<LineRenderer>().SetPosition(1, ctrllerPoint);
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
                     {
@@ -131,24 +178,25 @@ public class SlingshotToolTask : ToolTask
                         }
                     }
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f && !fired)
                     {
-                        Vector3 shotDir = Home.transform.position - ctrllerPoint;
+                        shotDir = Home.transform.position - ctrllerPoint;
                         shotDir /= time;
 
                         //baseObject.GetComponent<Rigidbody>().velocity = shotDir * 0.2f;
 
                         pos = toolObjects.transform.position;
 
-                        baseObject.GetComponent<Rigidbody>().velocity = shotDir.normalized * FIRE_FORCE;
-                        Home.GetComponent<LineRenderer>().positionCount = 0;
+                        // play sound and increment
                         sound.Play();
-                        IncrementStep();
+                        fired = true;
+                        AnimateBallToHome();
                     }
                 } 
                 break;
             case 2:
-                if(toolObjects.transform.position.z > Home.transform.position.z)
+
+                if (toolObjects.transform.position.z > Home.transform.position.z)
                 {
                     toolObjects.transform.position = ballObjects.transform.position;
                 }
