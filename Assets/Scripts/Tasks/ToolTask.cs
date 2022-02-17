@@ -72,6 +72,32 @@ public class ToolTask : BilliardsTask
     protected const float FIRE_FORCE = 4f;
     protected Vector3 ctrllerPoint;
 
+    // Ball rolling sfx:
+    private float pitchMin = 2;
+    private float pitchMax = 3; // Max unity allows is 3 
+    private float[] speed = new float[5];
+    private int currIndex = 0;
+
+    private void FixedUpdate()
+    {
+        // Populate speed array
+        speed[currIndex] = baseObject.GetComponent<Rigidbody>().velocity.magnitude;
+        currIndex++;
+        if (currIndex > speed.Length - 1)
+            currIndex = 0;
+
+        // Get average speed over the past /speed.Length/ physics updates
+        float avgSpeed = 0;
+        foreach (float s in speed)
+        {
+            avgSpeed += s;
+        }
+        avgSpeed /= speed.Length;
+
+        baseObject.GetComponent<AudioSource>().volume = avgSpeed / 3;
+        baseObject.GetComponent<AudioSource>().pitch = Mathf.Lerp(pitchMin, pitchMax, avgSpeed);
+    }
+
     protected virtual void Update()
     {
         //gets the mouse point relative to the surface
