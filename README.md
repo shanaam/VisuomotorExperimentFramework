@@ -4,5 +4,5 @@
 
 Please see our [wiki](https://github.com/shanaam/VisuomotorExperimentFramework/wiki) for guides and more information!
 
-Please contact Shanaa if interested!
+Please contact Shanaa if interested.
 s.modcha@gmail.com
