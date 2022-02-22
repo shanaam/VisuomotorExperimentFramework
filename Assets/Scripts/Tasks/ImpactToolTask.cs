@@ -6,7 +6,6 @@ using UnityEngine;
 public class ImpactToolTask : ToolTask
 {
 
-    List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
     Vector3 pos = new Vector3();
     bool hasHit = false;
     private Vector3 shotDir;
@@ -14,8 +13,6 @@ public class ImpactToolTask : ToolTask
     public override void Setup()
     {
         base.Setup();
-
-        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
 
         toolObjects.GetComponentInChildren<Collider>().material.bounciness = 1f;
         toolObjects.GetComponentInChildren<Collider>().enabled = false;
@@ -104,6 +101,9 @@ public class ImpactToolTask : ToolTask
                 // Tool follows mouse
                 ObjectFollowMouse(toolObjects);
 
+                if (toolObjects.GetComponent<Rigidbody>().velocity.magnitude > 0.5f) 
+                    VibrateController(0, Mathf.Lerp(0.1f, 0.2f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime, devices);
+
                 ToolLookAtBall();
 
                 // non vr and vr turning on the collider on the tool
@@ -127,20 +127,11 @@ public class ImpactToolTask : ToolTask
                 if (!hasHit)
                 {
                     sound.Play();
-                    foreach (var device in devices)
-                    {
-                        UnityEngine.XR.HapticCapabilities capabilities;
-                        if (device.TryGetHapticCapabilities(out capabilities))
-                        {
-                            if (capabilities.supportsImpulse)
-                            {
-                                uint channel = 0;
-                                float amplitude = 1f;
-                                float duration = 0.1f;
-                                device.SendHapticImpulse(channel, amplitude, duration);
-                            }
-                        }
-                    }
+
+
+                    VibrateController(0, Mathf.Lerp(0.5f, 1f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime * 3, devices);
+
+
                     hasHit = true;
                 }
                 
