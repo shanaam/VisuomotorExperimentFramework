@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class SlingshotToolTask : ToolTask
 {
-    List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
     Vector3 pos = new Vector3();
     private Vector3 ball_start_pos;
     private Vector3 shotDir;
@@ -14,8 +13,6 @@ public class SlingshotToolTask : ToolTask
     public override void Setup()   
     {
         base.Setup();
-
-        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
 
         Cursor.visible = false;
 
@@ -163,23 +160,12 @@ public class SlingshotToolTask : ToolTask
                         time += Time.fixedDeltaTime;
                     }
 
-                    foreach (var device in devices)
-                    {
-                        UnityEngine.XR.HapticCapabilities capabilities;
-                        if (device.TryGetHapticCapabilities(out capabilities))
-                        {
-                            if (capabilities.supportsImpulse)
-                            {
-                                uint channel = 0;
-                                float amplitude = 0.4f;
-                                float duration = Time.deltaTime;
-                                device.SendHapticImpulse(channel, amplitude, duration);
-                            }
-                        }
-                    }
+                    
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f && !fired)
                     {
+                        VibrateController(0, 1f, Time.deltaTime * 100, devices);
+
                         shotDir = Home.transform.position - ctrllerPoint;
                         shotDir /= time;
 
@@ -192,9 +178,15 @@ public class SlingshotToolTask : ToolTask
                         fired = true;
                         AnimateBallToHome();
                     }
+                    else
+                    {
+                        VibrateController(0, Mathf.Lerp(0.01f, 0.3f, Vector3.Distance(slingShotBall.transform.position, Home.transform.position) * 4f), Time.deltaTime / 10f, devices);
+                    }
                 } 
                 break;
             case 2:
+                
+
 
                 if (toolObjects.transform.position.z > Home.transform.position.z)
                 {

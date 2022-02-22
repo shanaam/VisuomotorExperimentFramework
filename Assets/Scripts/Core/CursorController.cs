@@ -75,25 +75,27 @@ public class CursorController : MonoBehaviour
         if (devices.Count > 0)
         {
             RightHandDevice = devices[0];
+            Debug.Log("Detecting devices...");
+            Debug.Log("Found Right Device: " + RightHandDevice);
         }
         else
         {
             Debug.Log("No devices detected.");
         }
-        Debug.Log("Detecting devices...");
-        Debug.Log("Found Right Device: " + RightHandDevice);
+
 
         InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Left, devices);
         if (devices.Count > 0)
         {
             LeftHandDevice = devices[0];
+            Debug.Log("Detecting devices...");
+            Debug.Log("Found Left Device: " + LeftHandDevice);
         }
         else
         {
             Debug.Log("No devices detected.");
         }
-        Debug.Log("Detecting devices...");
-        Debug.Log("Found Left Device: " + LeftHandDevice);
+
 
         vrCamera = GameObject.Find("Main Camera");
 

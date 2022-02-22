@@ -81,6 +81,8 @@ public class ToolTask : BilliardsTask
     private float[] speed = new float[5];
     private int currIndex = 0;
 
+    protected List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
+
     private void FixedUpdate()
     {
         // Populate speed array
@@ -99,10 +101,33 @@ public class ToolTask : BilliardsTask
 
         baseObject.GetComponent<AudioSource>().volume = avgSpeed / 3;
         baseObject.GetComponent<AudioSource>().pitch = Mathf.Lerp(pitchMin, pitchMax, avgSpeed);
+
+        //ball rolling vibrations
+
+        /*if (avgSpeed > .2f)
+        {
+            foreach (var device in devices)
+            {
+
+                UnityEngine.XR.HapticCapabilities capabilities;
+                if (device.TryGetHapticCapabilities(out capabilities))
+                {
+                    if (capabilities.supportsImpulse)
+                    {
+                        uint channel = 0;
+                        float amplitude = avgSpeed / 40f;
+                        float duration = Time.fixedDeltaTime;
+                        device.SendHapticImpulse(channel, amplitude, duration);
+                    }
+                }
+            }
+        }*/
     }
 
     protected virtual void Update()
     {
+        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
+
         //gets the mouse point relative to the surface
         mousePoint = GetMousePoint(baseObject.transform);
         //gets the controller point relative to the surface
@@ -353,6 +378,8 @@ public class ToolTask : BilliardsTask
 
     public override void Setup()
     {
+        
+
         maxSteps = 4;
 
         ctrler = ExperimentController.Instance();
@@ -436,6 +463,8 @@ public class ToolTask : BilliardsTask
         }
 
         currentHand = ctrler.CursorController.CurrentHand();
+        //currentHand.Equals("l") ? UnityEngine.XR.InputDeviceRole.LeftHanded : 
+        
 
         toolBox.GetComponent<Collider>().enabled = false;
         toolCylinder.GetComponent<Collider>().enabled = false;

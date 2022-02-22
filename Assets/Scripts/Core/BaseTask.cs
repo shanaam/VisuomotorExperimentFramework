@@ -77,4 +77,19 @@ public abstract class BaseTask : MonoBehaviour
     {
         ExperimentController.Instance().CenterExperiment();
     }
+
+    public void VibrateController(uint channel, float amplitude, float duration, List<UnityEngine.XR.InputDevice> devices)
+    {
+        foreach (var device in devices)
+        {
+            UnityEngine.XR.HapticCapabilities capabilities;
+            if (device.TryGetHapticCapabilities(out capabilities))
+            {
+                if (capabilities.supportsImpulse)
+                {
+                    device.SendHapticImpulse(channel, amplitude, duration);
+                }
+            }
+        }
+    }
 }
