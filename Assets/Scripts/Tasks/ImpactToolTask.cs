@@ -48,7 +48,17 @@ public class ImpactToolTask : ToolTask
             case 1:
                 // set shotDir to the velocity of the tool
                 //shotDir = toolObjects.GetComponent<Rigidbody>().velocity;
-                shotDir = Vector3.ClampMagnitude(toolObjects.GetComponent<Rigidbody>().velocity, FIRE_FORCE);
+                Vector3 dir = toolObjects.GetComponent<Rigidbody>().velocity;
+
+                if(dir.x < 0 || dir.z < 0)
+                {
+                    shotDir = (toolObjects.transform.rotation * Vector3.forward * FIRE_FORCE);
+                }
+
+                else
+                {
+                    shotDir = Vector3.ClampMagnitude(dir, FIRE_FORCE);
+                }
 
                 // apply rotation if necessary
                 if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
@@ -97,6 +107,7 @@ public class ImpactToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
+                Debug.Log(Quaternion.AngleAxis(45, Vector3.forward) * Vector3.right);
 
                 // Tool follows mouse
                 ObjectFollowMouse(toolObjects);
