@@ -18,6 +18,8 @@ public class SlingshotToolTask : ToolTask
 
         toolObjects.GetComponentInChildren<Collider>().enabled = false;
 
+        toolObjects.transform.position = baseObject.transform.position;
+
         // activate the slingshot ball
         slingShotBall.SetActive(true);
         
@@ -81,13 +83,27 @@ public class SlingshotToolTask : ToolTask
         {
             // initlize the scene 
             case 0:
-                ObjectFollowMouse(toolObjects);
-                ToolLookAtBall();
+                //ObjectFollowMouse(toolObjects, Vector3.zero);
+                //ToolLookAtBall();
+
+                toolObjects.GetComponent<Rigidbody>().velocity = Vector3.zero;
+
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.05f && Input.GetMouseButton(0))
+                {
+                    toolOffset = mousePoint - toolObjects.transform.position;
+                    IncrementStep();
+                }
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.1f && ctrler.CursorController.IsTriggerDown())
+                {
+                    VibrateController(0, 0.34f, Time.deltaTime, devices);
+                    toolOffset = ctrllerPoint - toolObjects.transform.position;
+                    IncrementStep();
+                }
 
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-                if (Vector3.Distance(mousePoint, ballObjects.transform.position) <= 0.05f)
+/*                if (Vector3.Distance(mousePoint, ballObjects.transform.position) <= 0.05f)
                 {
                     IncrementStep();
                 }
@@ -96,15 +112,15 @@ public class SlingshotToolTask : ToolTask
                 {
                     IncrementStep();
                 }
-
+*/
                 break;
 
             // the user triggers the object 
             case 1:
                 if (!fired)
                 {
-                    BallFollowMouse(baseObject);
-                    ObjectFollowMouse(toolObjects);
+                    BallFollowMouse(baseObject, toolOffset);
+                    ObjectFollowMouse(toolObjects, toolOffset);
                 }
                 else
                 {
@@ -126,7 +142,7 @@ public class SlingshotToolTask : ToolTask
                 // non vr and vr control of the slingshot
                 if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
                 {
-                    Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
+                    Vector3 direc = new Vector3(Home.transform.position.x - toolObjects.transform.position.x, 0, Home.transform.position.z - mousePoint.z);
                     toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
@@ -152,7 +168,7 @@ public class SlingshotToolTask : ToolTask
                 else
                 {
 
-                    Vector3 direc = new Vector3(Home.transform.position.x - ctrllerPoint.x, 0, Home.transform.position.z - ctrllerPoint.z);
+                    Vector3 direc = new Vector3(Home.transform.position.x - toolObjects.transform.position.x, 0, Home.transform.position.z - ctrllerPoint.z);
                     toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)
@@ -164,7 +180,7 @@ public class SlingshotToolTask : ToolTask
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f && !fired)
                     {
-                        VibrateController(0, 1f, Time.deltaTime * 100, devices);
+                        VibrateController(0, 1f, Time.deltaTime * 4, devices);
 
                         shotDir = Home.transform.position - ctrllerPoint;
                         shotDir /= time;
@@ -180,7 +196,7 @@ public class SlingshotToolTask : ToolTask
                     }
                     else
                     {
-                        VibrateController(0, Mathf.Lerp(0.01f, 0.3f, Vector3.Distance(slingShotBall.transform.position, Home.transform.position) * 4f), Time.deltaTime / 10f, devices);
+                        VibrateController(0, Mathf.Lerp(0.01f, 0.3f, Vector3.Distance(slingShotBall.transform.position, Home.transform.position) * 4f), Time.deltaTime, devices);
                     }
                 } 
                 break;

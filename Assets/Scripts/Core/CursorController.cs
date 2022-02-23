@@ -312,7 +312,7 @@ public class CursorController : MonoBehaviour
             Debug.LogWarning("make sure your camera is tagged as the Main camera");
         }
 
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.z));
         return new Vector3(mousePos.x, ExperimentController.Instance().transform.position.y, mousePos.z);
     }
   

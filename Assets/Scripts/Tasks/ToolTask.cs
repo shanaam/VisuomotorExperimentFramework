@@ -8,6 +8,7 @@ public class ToolTask : BilliardsTask
 {
 
     protected float InitialDistanceToTarget;
+    private Vector3 lastPositionNearTarget;
 
     protected GameObject toolSpace;
     protected GameObject toolCamera;
@@ -82,6 +83,8 @@ public class ToolTask : BilliardsTask
     private int currIndex = 0;
 
     protected List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
+
+    protected Vector3 toolOffset = new Vector3();
 
     private void FixedUpdate()
     {
@@ -179,6 +182,10 @@ public class ToolTask : BilliardsTask
                 // get the distance btween ball/puck and Target
                 distanceToTarget = Vector3.Distance(ballObjects.transform.position, Target.transform.position);
 
+                // Every frame, we track the closest position the pinball has ever been to the target
+                if (Vector3.Distance(lastPositionNearTarget, Target.transform.position) > distanceToTarget)
+                    lastPositionNearTarget = ballObjects.transform.position;
+
                 // Update score if pinball is within 20cm of the target
                 if (distanceToTarget < 0.20f)
                     tempScore = CalculateScore(distanceToTarget, 0.2f, MAX_POINTS);
@@ -214,7 +221,7 @@ public class ToolTask : BilliardsTask
                     // We are now going away from the target, end trial immediately
                     if (distanceToTarget > previousDistanceToTarget)
                     {
-                        //lastPositionInTarget = previousPosition;
+                        lastPositionNearTarget = previousPosition;
                         IncrementStep();
                         return;
                     }
@@ -525,6 +532,11 @@ public class ToolTask : BilliardsTask
         ctrler.LogObjectPosition("tool", ballObjects.transform.position);
         ctrler.LogObjectPosition("target", Target.transform.position);
 
+        // log the error
+        // Error is the distance between the pinball and the target (meters)
+        Vector3 dist = lastPositionNearTarget - Target.transform.position; //Fix: align these on the y-axis?
+        ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
+
     }
 
     //private void SetTilt()
@@ -575,13 +587,14 @@ public class ToolTask : BilliardsTask
             oldMainCamera.SetActive(true);
     }
 
+
     // method used to move the tool around based on mouse position
-    protected virtual void ObjectFollowMouse(GameObject objFollower)
+    protected virtual void ObjectFollowMouse(GameObject objFollower, Vector3 offset)
     {
         //non vr controll of the tool
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
-            Vector3 dir = mousePoint - objFollower.transform.position;
+            Vector3 dir = mousePoint - objFollower.transform.position - offset;
             dir /= Time.fixedDeltaTime;
             objFollower.GetComponent<Rigidbody>().velocity = dir;
 
@@ -627,7 +640,7 @@ public class ToolTask : BilliardsTask
         {
             if(currentStep < 2)
             {
-                Vector3 dir = ctrllerPoint - objFollower.transform.position;
+                Vector3 dir = ctrllerPoint - objFollower.transform.position - offset;
                 dir /= Time.fixedDeltaTime;
                 objFollower.GetComponent<Rigidbody>().velocity = dir;
             }
@@ -637,17 +650,17 @@ public class ToolTask : BilliardsTask
     }
 
     // moves the ball based on mouse position
-    protected virtual void BallFollowMouse(GameObject objFollower)
+    protected virtual void BallFollowMouse(GameObject objFollower, Vector3 offset)
     {
 
         // non vr and vr control of the ball with slingshot tool
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
-            objFollower.transform.position = mousePoint;
+            objFollower.transform.position = mousePoint - offset;
         }
         else if(ctrler.Session.settings.GetString("experiment_mode") == "tool_vr")
         {
-            objFollower.transform.position = ctrllerPoint;
+            objFollower.transform.position = ctrllerPoint - offset;
         }
  
     }
