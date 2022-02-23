@@ -86,13 +86,14 @@ public class SlingshotToolTask : ToolTask
 
                 toolObjects.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.05f && ctrler.CursorController.PauseTime > 0.5f)
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.05f && Input.GetMouseButton(0))
                 {
                     toolOffset = mousePoint - toolObjects.transform.position;
                     IncrementStep();
                 }
-                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.1f && ctrler.CursorController.PauseTime > 0.5f)
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.1f && ctrler.CursorController.IsTriggerDown())
                 {
+                    VibrateController(0, 0.34f, Time.deltaTime, devices);
                     toolOffset = ctrllerPoint - toolObjects.transform.position;
                     IncrementStep();
                 }
