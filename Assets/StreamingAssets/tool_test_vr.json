@@ -22,15 +22,15 @@
 
   "per_block_list_triggerType": [ "tt1", "tt1", "tt1" ],
 
-    "tt1": [ "curling", "impact", "slingshot" ],
+    "tt1": [ "slingshot" , "slingshot" , "slingshot" ],
 
   "per_block_list_puck_type": [ "pt1", "pt1", "pt1" ],
 
-    "pt1": [ "puck", "ball", "puck" ],
+    "pt1": [ "ball", "ball", "ball"],
 
   "per_block_list_tool_type": [ "tT", "tT", "tT" ],
 
-    "tT": [ "squeegee", "paddle", "slingshot" ],
+    "tT": [ "slingshot" , "slingshot" , "slingshot" ],
 
   "per_block_surface_dynamic_friction": [ 0.1, 0.1, 0.1 ],
   "per_block_surface_static_friction": [ 0.1, 0.1, 0.1 ],

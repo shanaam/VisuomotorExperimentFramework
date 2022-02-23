@@ -12,6 +12,8 @@ public class ImpactToolTask : ToolTask
     private Vector3 lastForward_toolDir;
     private Vector3 toolDir;
 
+    private const float MAX_MAGNITUDE = 6f;
+
     public override void Setup()
     {
         base.Setup();
@@ -50,17 +52,15 @@ public class ImpactToolTask : ToolTask
 
             case 1:
                 // set shotDir to the velocity of the tool
-                //shotDir = toolObjects.GetComponent<Rigidbody>().velocity;
-                //Vector3 dir = lastForward_toolDir;
-                // float impact_fireforce = FIRE_FORCE * 3;
-                //if(dir.x < 0 || dir.z < 0)
-                //{
-                //    shotDir = (toolObjects.transform.rotation * Vector3.forward * FIRE_FORCE);
-                //}
-                //else {
                 shotDir = lastForward_toolDir * (FIRE_FORCE * 0.5f);
-                //}
 
+                // if magnitude of shotDir > #, then cap it at max Magnitude     
+                if (shotDir.magnitude > MAX_MAGNITUDE)
+                {
+                    //normalizing the vector and then multiplying by the max_magnitude
+                    shotDir.Normalize();
+                    shotDir = shotDir * MAX_MAGNITUDE;
+                }
 
                 // apply rotation if necessary
                 if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
@@ -126,14 +126,13 @@ public class ImpactToolTask : ToolTask
                 float ball_tool_distance = Vector3.Magnitude(toolObjects.transform.position - ballObjects.transform.position);
 
                 // only update this if moving forward
-                if (toolDir.z > 0.1f && Vector3.Magnitude(toolDir) > Vector3.Magnitude(lastForward_toolDir) && ball_tool_distance < 0.25f)
+                if (toolDir.z > 0.1f && Vector3.Magnitude(toolDir) > Vector3.Magnitude(lastForward_toolDir) && ball_tool_distance < 0.10f)
                 {
                     lastForward_toolDir = toolDir;
                 }
 
-                Debug.Log(ball_tool_distance);
-
                 // non vr and vr turning on the collider on the tool
+                // CHECK IF THIS IS STILL NECESSARY
                 if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
                 {
                     toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;

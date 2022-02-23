@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UXF;
 using MovementType = CursorController.MovementType;
 
@@ -85,6 +86,9 @@ public class ToolTask : BilliardsTask
     protected List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
 
     protected Vector3 toolOffset = new Vector3();
+
+    // For score
+    private GameObject bonusText;
 
     private void FixedUpdate()
     {
@@ -263,7 +267,10 @@ public class ToolTask : BilliardsTask
 
                     //get Audio Component
                     toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["incorrect"];
+                    // change score colour to white
+                    bonusText.GetComponentInChildren<Text>().color = Color.white;
 
+                    // if ball is within the target radius
                     float CurrentDistanceToTarget = Vector3.Distance(previousPosition, Target.transform.position);
                     if (CurrentDistanceToTarget < 0.05f)
                     {
@@ -288,6 +295,9 @@ public class ToolTask : BilliardsTask
 
                     }
 
+                    bonusText.transform.position = ballObjects.transform.position + toolCamera.transform.up * 0.05f;
+                    LeanTween.move(bonusText, bonusText.transform.position + (toolCamera.transform.up * 0.05f), 1.5f);
+
                     // If the participant fired the pinball within the allowed time & score tracking is enabled in json
                     if (!missed && timerIndicator.GetComponent<TimerIndicator>().Timer >= 0.0f)
                     {
@@ -297,11 +307,23 @@ public class ToolTask : BilliardsTask
                         if (Target.GetComponent<BaseTarget>().Collided)
                         {
                             if (trackScore) ctrler.Score += MAX_POINTS + BONUS_POINTS;
+                            bonusText.GetComponentInChildren<Text>().color = Color.green;
+
+                            // Play bonus animation
+                            bonusText.GetComponentInChildren<Text>().text = MAX_POINTS + " + " +
+                                                                            BONUS_POINTS + "pts BONUS";
                         }
                         else
                         {
                             if (trackScore) ctrler.Score += score;
+                            bonusText.GetComponentInChildren<Text>().text = score + "pts";
+                            bonusText.GetComponentInChildren<Text>().color = score == 0 ? Color.red : Color.white;
                         }
+                    }
+                    else // missed
+                    {
+                        bonusText.GetComponentInChildren<Text>().text = "0pts";
+                        bonusText.GetComponentInChildren<Text>().color = Color.red;
                     }
 
                     if (trackScore)
@@ -402,6 +424,8 @@ public class ToolTask : BilliardsTask
         handR = GameObject.Find("handR");
         XRRig = GameObject.Find("XR Rig");
         XRPosLock = GameObject.Find("XRPosLock");
+
+        bonusText = GameObject.Find("BonusText");
 
         curlingStone = GameObject.Find("curlingStone");
         slingShotBall = GameObject.Find("slingShotBall");

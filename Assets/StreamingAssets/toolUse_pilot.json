@@ -1080,8 +1080,8 @@
 	0.3
     ],
     "per_block_track_score": [
-        true,
-        true,
+        false,
+        false,
         true,
         true,
         true,

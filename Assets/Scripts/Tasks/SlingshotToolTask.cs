@@ -151,7 +151,7 @@ public class SlingshotToolTask : ToolTask
                     }
 
                     // fire condition (when we reach a threshold)
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f && !fired)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.17f && !fired)
                     {
                         shotDir = Home.transform.position - mousePoint;
                         shotDir /= time;
@@ -178,7 +178,7 @@ public class SlingshotToolTask : ToolTask
 
                     
 
-                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.2f && !fired)
+                    if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.17f && !fired)
                     {
                         VibrateController(0, 1f, Time.deltaTime * 4, devices);
 
@@ -201,18 +201,18 @@ public class SlingshotToolTask : ToolTask
                 } 
                 break;
             case 2:
-                
 
+                toolObjects.transform.position = Home.transform.position;
 
-                if (toolObjects.transform.position.z > Home.transform.position.z)
-                {
-                    toolObjects.transform.position = ballObjects.transform.position;
-                }
+                //if (toolObjects.transform.position.z > Home.transform.position.z)
+                //{
+                //    toolObjects.transform.position = ballObjects.transform.position;
+                //}
 
-                else
-                {
-                    toolObjects.transform.position = Home.transform.position;
-                }
+                //else
+                //{
+                //    toolObjects.transform.position = Home.transform.position;
+                //}
 
 
                 break;
