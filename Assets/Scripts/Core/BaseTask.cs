@@ -78,7 +78,15 @@ public abstract class BaseTask : MonoBehaviour
         ExperimentController.Instance().CenterExperiment();
     }
 
-    public void VibrateController(uint channel, float amplitude, float duration, List<UnityEngine.XR.InputDevice> devices)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="channel">The channel to receive the impulse.</param>
+    /// <param name="amplitude">The normalized (0.0 to 1.0) amplitude value of the haptic impulse to play on the device.</param>
+    /// <param name="duration">The duration in seconds that the haptic impulse will play.</param>
+    /// <param name="devices">List of InputDevices</param>
+    /// <returns>  </returns>
+    public bool VibrateController(uint channel, float amplitude, float duration, List<UnityEngine.XR.InputDevice> devices)
     {
         foreach (var device in devices)
         {
@@ -87,9 +95,11 @@ public abstract class BaseTask : MonoBehaviour
             {
                 if (capabilities.supportsImpulse)
                 {
-                    device.SendHapticImpulse(channel, amplitude, duration);
+                    return device.SendHapticImpulse(channel, amplitude, duration);
                 }
             }
         }
+
+        return false;
     }
 }

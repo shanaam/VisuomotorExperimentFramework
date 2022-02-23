@@ -83,6 +83,8 @@ public class ToolTask : BilliardsTask
 
     protected List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
 
+    protected Vector3 toolOffset = new Vector3();
+
     private void FixedUpdate()
     {
         // Populate speed array
@@ -575,13 +577,14 @@ public class ToolTask : BilliardsTask
             oldMainCamera.SetActive(true);
     }
 
+
     // method used to move the tool around based on mouse position
-    protected virtual void ObjectFollowMouse(GameObject objFollower)
+    protected virtual void ObjectFollowMouse(GameObject objFollower, Vector3 offset)
     {
         //non vr controll of the tool
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
-            Vector3 dir = mousePoint - objFollower.transform.position;
+            Vector3 dir = mousePoint - objFollower.transform.position - offset;
             dir /= Time.fixedDeltaTime;
             objFollower.GetComponent<Rigidbody>().velocity = dir;
 
@@ -627,7 +630,7 @@ public class ToolTask : BilliardsTask
         {
             if(currentStep < 2)
             {
-                Vector3 dir = ctrllerPoint - objFollower.transform.position;
+                Vector3 dir = ctrllerPoint - objFollower.transform.position - offset;
                 dir /= Time.fixedDeltaTime;
                 objFollower.GetComponent<Rigidbody>().velocity = dir;
             }
@@ -637,17 +640,17 @@ public class ToolTask : BilliardsTask
     }
 
     // moves the ball based on mouse position
-    protected virtual void BallFollowMouse(GameObject objFollower)
+    protected virtual void BallFollowMouse(GameObject objFollower, Vector3 offset)
     {
 
         // non vr and vr control of the ball with slingshot tool
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
         {
-            objFollower.transform.position = mousePoint;
+            objFollower.transform.position = mousePoint - offset;
         }
         else if(ctrler.Session.settings.GetString("experiment_mode") == "tool_vr")
         {
-            objFollower.transform.position = ctrllerPoint;
+            objFollower.transform.position = ctrllerPoint - offset;
         }
  
     }

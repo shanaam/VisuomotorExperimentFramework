@@ -58,7 +58,7 @@ public class CurlingToolTask : ToolTask
         {
             // initlize the scene 
             case 0:
-                ObjectFollowMouse(toolObjects);
+                ObjectFollowMouse(toolObjects, Vector3.zero);
                 ToolLookAtBall();
 
                 baseObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
@@ -81,9 +81,9 @@ public class CurlingToolTask : ToolTask
             // the user triggers the object 
             case 1:
 
-                ObjectFollowMouse(toolObjects);
+                ObjectFollowMouse(toolObjects, Vector3.zero);
                 //Ball follows mouse
-                ObjectFollowMouse(baseObject);
+                ObjectFollowMouse(baseObject, Vector3.zero);
 
                 d = LeanTween.descr(id);
                 if (d == null)
