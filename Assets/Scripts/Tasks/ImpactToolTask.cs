@@ -9,6 +9,8 @@ public class ImpactToolTask : ToolTask
     Vector3 pos = new Vector3();
     bool hasHit = false;
     private Vector3 shotDir;
+    private Vector3 lastForward_toolDir;
+    private Vector3 toolDir;
 
     public override void Setup()
     {
@@ -49,17 +51,16 @@ public class ImpactToolTask : ToolTask
             case 1:
                 // set shotDir to the velocity of the tool
                 //shotDir = toolObjects.GetComponent<Rigidbody>().velocity;
-                Vector3 dir = toolObjects.GetComponent<Rigidbody>().velocity;
-                //float impact_fireforce = FIRE_FORCE * 3;
-                if(dir.x < 0)
-                {
-                    shotDir = (toolObjects.transform.rotation * Vector3.forward * FIRE_FORCE);
-                }
+                //Vector3 dir = lastForward_toolDir;
+                // float impact_fireforce = FIRE_FORCE * 3;
+                //if(dir.x < 0 || dir.z < 0)
+                //{
+                //    shotDir = (toolObjects.transform.rotation * Vector3.forward * FIRE_FORCE);
+                //}
+                //else {
+                shotDir = lastForward_toolDir * (FIRE_FORCE * 0.5f);
+                //}
 
-                else
-                {
-                    shotDir = Vector3.ClampMagnitude(dir, FIRE_FORCE);
-                }
 
                 // apply rotation if necessary
                 if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
@@ -109,7 +110,7 @@ public class ImpactToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
-                Debug.Log(Quaternion.AngleAxis(45, Vector3.forward) * Vector3.right);
+                // Debug.Log(Quaternion.AngleAxis(45, Vector3.forward) * Vector3.right);
 
                 // Tool follows mouse
                 ObjectFollowMouse(toolObjects, toolOffset);
@@ -118,6 +119,19 @@ public class ImpactToolTask : ToolTask
                     VibrateController(0, Mathf.Lerp(0.1f, 0.2f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime, devices);
 
                 ToolLookAtBall();
+
+                toolDir = toolObjects.GetComponent<Rigidbody>().velocity;
+
+                // also get distance
+                float ball_tool_distance = Vector3.Magnitude(toolObjects.transform.position - ballObjects.transform.position);
+
+                // only update this if moving forward
+                if (toolDir.z > 0.1f && Vector3.Magnitude(toolDir) > Vector3.Magnitude(lastForward_toolDir) && ball_tool_distance < 0.25f)
+                {
+                    lastForward_toolDir = toolDir;
+                }
+
+                Debug.Log(ball_tool_distance);
 
                 // non vr and vr turning on the collider on the tool
                 if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
