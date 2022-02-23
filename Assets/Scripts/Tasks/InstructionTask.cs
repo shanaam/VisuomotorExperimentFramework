@@ -63,7 +63,7 @@ public class InstructionTask : BaseTask
         done.GetComponent<Button>().onClick.AddListener(()=>End() );
     }
 
-    private void Update()
+    new private void Update()
     {
         if(timeRemaining > 0)
         {
