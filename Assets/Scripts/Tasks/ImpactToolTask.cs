@@ -50,8 +50,8 @@ public class ImpactToolTask : ToolTask
                 // set shotDir to the velocity of the tool
                 //shotDir = toolObjects.GetComponent<Rigidbody>().velocity;
                 Vector3 dir = toolObjects.GetComponent<Rigidbody>().velocity;
-
-                if(dir.x < 0 || dir.z < 0)
+                //float impact_fireforce = FIRE_FORCE * 3;
+                if(dir.x < 0)
                 {
                     shotDir = (toolObjects.transform.rotation * Vector3.forward * FIRE_FORCE);
                 }
