@@ -395,9 +395,6 @@ public class CursorController : MonoBehaviour
             r = new Ray(ctrller, Vector3.down);
         }
 
-
-        
-
         return plane.Raycast(r, out float enter) ? r.GetPoint(enter) : Vector3.zero;
     }
 
