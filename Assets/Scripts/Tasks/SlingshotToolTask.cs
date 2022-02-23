@@ -18,6 +18,8 @@ public class SlingshotToolTask : ToolTask
 
         toolObjects.GetComponentInChildren<Collider>().enabled = false;
 
+        toolObjects.transform.position = baseObject.transform.position;
+
         // activate the slingshot ball
         slingShotBall.SetActive(true);
         
@@ -166,7 +168,7 @@ public class SlingshotToolTask : ToolTask
                 else
                 {
 
-                    Vector3 direc = new Vector3(Home.transform.position.x - ctrllerPoint.x, 0, Home.transform.position.z - ctrllerPoint.z);
+                    Vector3 direc = new Vector3(Home.transform.position.x - toolObjects.transform.position.x, 0, Home.transform.position.z - ctrllerPoint.z);
                     toolObjects.transform.localRotation = Quaternion.LookRotation(direc);
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.12f)

@@ -95,8 +95,6 @@ public class ImpactToolTask : ToolTask
                     IncrementStep();
                 }
 
-                Debug.Log(ctrler.CursorController.IsTriggerDown());
-
                 break;
 
             // the user triggers the object 
