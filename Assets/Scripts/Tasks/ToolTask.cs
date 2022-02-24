@@ -155,13 +155,14 @@ public class ToolTask : BilliardsTask
             if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), ballObjects.transform.position) > 0.05f && currentStep == 0) return;
         }
 
+        // don't track score if practice
         if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
 
         switch (currentStep)
         {
             // initlize the scene 
             case 0:
-                
+
                 break;
 
             // the user triggers the object 
