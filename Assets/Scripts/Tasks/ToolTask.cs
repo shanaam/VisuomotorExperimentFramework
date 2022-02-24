@@ -162,7 +162,7 @@ public class ToolTask : BilliardsTask
         {
             // initlize the scene 
             case 0:
-
+           
                 break;
 
             // the user triggers the object 

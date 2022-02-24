@@ -100,7 +100,13 @@ public class ImpactToolTask : ToolTask
                     toolOffset = mousePoint - toolObjects.transform.position;
                     IncrementStep();
                 }
-                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.1f && ctrler.CursorController.IsTriggerDown())
+
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f)
+                {
+                    VibrateController(0, 0.2f, Time.deltaTime, devices);
+                }
+
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f && ctrler.CursorController.IsTriggerDown())
                 {
                     VibrateController(0, 0.34f, Time.deltaTime, devices);
                     toolOffset = ctrllerPoint - toolObjects.transform.position;
@@ -116,6 +122,7 @@ public class ImpactToolTask : ToolTask
                 // Tool follows mouse
                 ObjectFollowMouse(toolObjects, toolOffset);
 
+                // Vibrate controller scaled to velocity
                 if (toolObjects.GetComponent<Rigidbody>().velocity.magnitude > 0.5f) 
                     VibrateController(0, Mathf.Lerp(0.1f, 0.2f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime, devices);
 

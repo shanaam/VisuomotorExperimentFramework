@@ -95,7 +95,15 @@ public class SlingshotToolTask : ToolTask
                     toolOffset = mousePoint - toolObjects.transform.position;
                     IncrementStep();
                 }
-                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.1f && ctrler.CursorController.IsTriggerDown())
+                // conditions for grabbing the object in VR
+
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f)
+                {
+                    VibrateController(0, 0.2f, Time.deltaTime, devices);
+                }
+
+                // grab object
+                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f && ctrler.CursorController.IsTriggerDown())
                 {
                     VibrateController(0, 0.34f, Time.deltaTime, devices);
                     toolOffset = ctrllerPoint - toolObjects.transform.position;
@@ -182,6 +190,7 @@ public class SlingshotToolTask : ToolTask
 
                     if (Vector3.Distance(slingShotBall.transform.position, Home.transform.position) > 0.17f && !fired)
                     {
+                        // Vibrate controller before firing
                         VibrateController(0, 1f, Time.deltaTime * 4, devices);
 
                         shotDir = Home.transform.position - ctrllerPoint;
@@ -198,6 +207,7 @@ public class SlingshotToolTask : ToolTask
                     }
                     else
                     {
+                        // Vibrate controller (scaled to distance from home)
                         VibrateController(0, Mathf.Lerp(0.01f, 0.3f, Vector3.Distance(slingShotBall.transform.position, Home.transform.position) * 4f), Time.deltaTime, devices);
                     }
                 } 

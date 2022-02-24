@@ -123,6 +123,7 @@ public class CurlingToolTask : ToolTask
                         startPos = ctrllerPoint;
                     }
 
+                    // Vibrate controller (scaled to velocity)
                     if (toolObjects.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
                         VibrateController(0, Mathf.Lerp(0.1f, 0.3f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime, devices);
                     //VibrateController(0, 0.2f, Time.deltaTime, devices);
