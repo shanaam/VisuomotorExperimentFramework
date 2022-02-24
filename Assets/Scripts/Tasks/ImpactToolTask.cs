@@ -71,7 +71,8 @@ public class ImpactToolTask : ToolTask
                     shotDir = Quaternion.Euler(0f, -angle, 0f) * shotDir;
                 }
 
-                // apply shotDir
+                // record and apply shotDir
+                launchAngle = Vector2.SignedAngle(new Vector2(1f, 0f), new Vector2(shotDir.x, shotDir.z));
                 baseObject.GetComponent<Rigidbody>().velocity = shotDir;
 
                 toolObjects.transform.rotation = toolSpace.transform.rotation;

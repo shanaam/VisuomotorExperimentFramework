@@ -74,6 +74,9 @@ public class ToolTask : BilliardsTask
     // Used to store the current distance between the ball and target
     private float distanceToTarget;
 
+    // Used to store launch angle to log
+    protected float launchAngle;
+
     protected const float FIRE_FORCE = 4f;
     protected Vector3 ctrllerPoint;
 
@@ -560,6 +563,9 @@ public class ToolTask : BilliardsTask
         // Error is the distance between the pinball and the target (meters)
         Vector3 dist = lastPositionNearTarget - Target.transform.position; //Fix: align these on the y-axis?
         ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
+
+        // Log the angle
+        ctrler.Session.CurrentTrial.result["launch_angle"] = launchAngle;
 
     }
 

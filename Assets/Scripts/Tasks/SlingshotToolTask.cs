@@ -65,6 +65,8 @@ public class SlingshotToolTask : ToolTask
             shotDir = Quaternion.Euler(0f, -angle, 0f) * shotDir;
         }
 
+        // record and apply launch velocity
+        launchAngle = Vector2.SignedAngle(new Vector2(1f, 0f), new Vector2(shotDir.x, shotDir.z));
         baseObject.GetComponent<Rigidbody>().velocity = shotDir * FIRE_FORCE;
 
         IncrementStep();
