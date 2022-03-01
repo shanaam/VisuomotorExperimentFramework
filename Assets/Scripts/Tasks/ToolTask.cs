@@ -562,7 +562,12 @@ public class ToolTask : BilliardsTask
 
         // log the error
         // Error is the distance between the pinball and the target (meters)
-        Vector3 dist = lastPositionNearTarget - Target.transform.position; //Fix: align these on the y-axis?
+        Vector2 lastPos = new Vector2(lastPositionNearTarget.x, lastPositionNearTarget.z);
+        Vector2 targetPos = new Vector2(Target.transform.position.x, Target.transform.position.z);
+
+        Vector2 dist = lastPos - targetPos; //To Fix: Cast to plane here instead to accound for tilts
+        // Debug.Log("error: " + dist.magnitude.ToString("F5"));
+
         ctrler.Session.CurrentTrial.result["error_size"] = dist.magnitude;
 
         // Log the angle

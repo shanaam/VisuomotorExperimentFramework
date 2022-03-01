@@ -99,6 +99,7 @@ public class SlingshotToolTask : ToolTask
 
                 if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f)
                 {
+                    // To Fix: the above positions are casted to the plane, y doesn't matter
                     VibrateController(0, 0.2f, Time.deltaTime, devices);
                 }
 
