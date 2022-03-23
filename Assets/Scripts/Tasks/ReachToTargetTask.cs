@@ -120,11 +120,11 @@ public class ReachToTargetTask : BaseTask
 
         reachPrefab = Instantiate(ctrler.GetPrefab("ReachPrefab"));
         reachPrefab.transform.SetParent(ctrler.transform);
-        reachPrefab.transform.localPosition = Vector3.zero;
+        reachPrefab.transform.localPosition = new Vector3(0,-0.8f,0);
 
         reachCam = GameObject.Find("ReachCamera");
         reachSurface = GameObject.Find("Surface");
-        waterBowl = GameObject.Find("Bowl");
+        //waterBowl = GameObject.Find("Bowl");
         water = GameObject.Find("Water");
         timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
         scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
@@ -156,11 +156,11 @@ public class ReachToTargetTask : BaseTask
 
         // Set up the dock position
         targets[0] = GameObject.Find("Dock");
-        targets[0].transform.position = ctrler.TargetContainer.transform.position;
+        targets[0].transform.localPosition = ctrler.TargetContainer.transform.localPosition;
 
         // Set up the home position
         targets[1] = GameObject.Find("Home");
-        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
+        targets[1].transform.localPosition = ctrler.TargetContainer.transform.localPosition + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
         Home = targets[1];
 
@@ -173,7 +173,7 @@ public class ReachToTargetTask : BaseTask
         targets[2].transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
-        targets[2].transform.position = targets[1].transform.position +
+        targets[2].transform.localPosition = targets[1].transform.localPosition +
                                         targets[2].transform.forward.normalized *
                                         (trial.settings.GetFloat("per_block_distance") / 100f);
 
@@ -185,7 +185,7 @@ public class ReachToTargetTask : BaseTask
         Target = targets[2];
 
         // Use static camera for non-vr version
-        if (ctrler.Session.settings.GetString("experiment_mode") == "target")
+        if (ctrler.Session.settings.GetString("experiment_mode") == "target2d")
         {
             reachSurface.SetActive(false);
             reachCam.SetActive(false);
@@ -200,7 +200,7 @@ public class ReachToTargetTask : BaseTask
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_waterPresent") == "wp1")
         {
             float waterLevel = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_waterPresent"));
-            waterBowl.SetActive(true);
+            //waterBowl.SetActive(true);
             water.SetActive(true);
 
 
@@ -233,7 +233,7 @@ public class ReachToTargetTask : BaseTask
         }
         else
         {
-            waterBowl.SetActive(false);
+            //waterBowl.SetActive(false);
             water.SetActive(false);
         }
 

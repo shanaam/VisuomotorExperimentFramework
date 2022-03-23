@@ -122,17 +122,30 @@ public abstract class BilliardsTask : BaseTask
     protected virtual Vector3 GetMousePoint(Transform ball)
     {
         //ToFix: can the below two be one function called point to planepoint?
-        return ctrler.CursorController.MouseToPlanePoint(
+        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
+        {
+            return ctrler.CursorController.MouseToPlanePoint(
                             Surface.transform.up * ball.position.y,
                             ball.position,
                             Camera.main);
+        }           
+        else
+        {
+            Vector3 ctrl = new Vector3(ctrler.CursorController.GetHandPosition().x, 3, ctrler.CursorController.GetHandPosition().z);
+            return ctrler.CursorController.ControllerToPlanePoint(
+                                Surface.transform.up * ball.position.y,
+                                ball.position,
+                                ctrl);
+        }
+
     }
 
-    protected virtual Vector3 GetControllerPoint(Transform ball, Vector3 ctrller)
+    protected virtual Vector3 GetControllerPoint(Transform ball)
     {
+        Vector3 ctrl = new Vector3(ctrler.CursorController.GetHandPosition().x, 3, ctrler.CursorController.GetHandPosition().z);
         return ctrler.CursorController.ControllerToPlanePoint(
                             Surface.transform.up * ball.position.y,
                             ball.position,
-                            ctrller);
+                            ctrl);
     }
 }

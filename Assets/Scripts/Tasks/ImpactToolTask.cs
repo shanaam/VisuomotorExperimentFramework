@@ -47,7 +47,6 @@ public class ImpactToolTask : ToolTask
             case 0:
                 baseObject.SetActive(true);
                 Cursor.visible = false;
-
                 break;
 
             case 1:
@@ -65,10 +64,7 @@ public class ImpactToolTask : ToolTask
                 // apply rotation if necessary
                 if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
                 {
-                    float angle = ctrler.Session.CurrentTrial.settings
-                        .GetFloat("per_block_rotation");
-
-                    shotDir = Quaternion.Euler(0f, -angle, 0f) * shotDir;
+                    shotDir = RotateShot(shotDir);
                 }
 
                 // record and apply shotDir
@@ -95,21 +91,18 @@ public class ImpactToolTask : ToolTask
             case 0:
                 toolObjects.GetComponent<Rigidbody>().velocity = Vector3.zero;
 
-                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.05f && Input.GetMouseButton(0))
+                // when close to the tool the controller vibrates
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.07f)
                 {
-                    toolOffset = mousePoint - toolObjects.transform.position;
-                    IncrementStep();
-                }
-
-                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f)
-                {
+                    // To Fix: the above positions are casted to the plane, y doesn't matter
                     VibrateController(0, 0.2f, Time.deltaTime, devices);
                 }
 
-                if (Vector3.Distance(ctrllerPoint, toolObjects.transform.position) <= 0.07f && ctrler.CursorController.IsTriggerDown())
+                // grab object
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.07f && (Input.GetMouseButton(0)|| ctrler.CursorController.IsTriggerDown()))
                 {
                     VibrateController(0, 0.34f, Time.deltaTime, devices);
-                    toolOffset = ctrllerPoint - toolObjects.transform.position;
+                    toolOffset = mousePoint - toolObjects.transform.position;
                     IncrementStep();
                 }
 
@@ -117,8 +110,6 @@ public class ImpactToolTask : ToolTask
 
             // the user triggers the object 
             case 1:
-                // Debug.Log(Quaternion.AngleAxis(45, Vector3.forward) * Vector3.right);
-
                 // Tool follows mouse
                 ObjectFollowMouse(toolObjects, toolOffset);
 
@@ -141,15 +132,7 @@ public class ImpactToolTask : ToolTask
 
                 // non vr and vr turning on the collider on the tool
                 // CHECK IF THIS IS STILL NECESSARY
-                if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-                {
-                    toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
-                }
-                    
-                else
-                {
-                    toolObjects.GetComponentInChildren<Collider>().enabled = ctrllerPoint.z <= 0.05f;
-                }
+                toolObjects.GetComponentInChildren<Collider>().enabled = mousePoint.z <= 0.05f;
 
                 pos = toolObjects.transform.position;
                 break;
@@ -161,17 +144,9 @@ public class ImpactToolTask : ToolTask
                 if (!hasHit)
                 {
                     sound.Play();
-
-
-                    Debug.Log(VibrateController(0, Mathf.Lerp(0.5f, 1f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime * 3, devices));
-
-
                     hasHit = true;
                 }
-                
-
                 toolObjects.transform.position = pos;
-
                 break;
 
             // after we either hit the Target or passed by it

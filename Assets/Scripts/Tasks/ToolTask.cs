@@ -111,27 +111,6 @@ public class ToolTask : BilliardsTask
 
         baseObject.GetComponent<AudioSource>().volume = avgSpeed / 3;
         baseObject.GetComponent<AudioSource>().pitch = Mathf.Lerp(pitchMin, pitchMax, avgSpeed);
-
-        //ball rolling vibrations
-
-        /*if (avgSpeed > .2f)
-        {
-            foreach (var device in devices)
-            {
-
-                UnityEngine.XR.HapticCapabilities capabilities;
-                if (device.TryGetHapticCapabilities(out capabilities))
-                {
-                    if (capabilities.supportsImpulse)
-                    {
-                        uint channel = 0;
-                        float amplitude = avgSpeed / 40f;
-                        float duration = Time.fixedDeltaTime;
-                        device.SendHapticImpulse(channel, amplitude, duration);
-                    }
-                }
-            }
-        }*/
     }
 
     protected virtual void Update()
@@ -140,20 +119,11 @@ public class ToolTask : BilliardsTask
 
         //gets the mouse point relative to the surface
         mousePoint = GetMousePoint(baseObject.transform);
-        //gets the controller point relative to the surface
-        ray.transform.position = new Vector3(ctrler.CursorController.GetHandPosition().x, 3, ctrler.CursorController.GetHandPosition().z);
-        ctrllerPoint = GetControllerPoint(baseObject.transform, ray.transform.position);
+        ctrllerPoint = GetControllerPoint(baseObject.transform);
         //sets the rotation on the x and z axis of the tools to be 0 so the tool doesn't rotate, the weird rotation behaviour only happens with imapact tool
         toolObjects.transform.localEulerAngles = new Vector3(0, toolObjects.transform.localEulerAngles.y, 0);
 
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-        {
-            if (Vector3.Distance(mousePoint, ballObjects.transform.position) > 0.05f && currentStep == 0) return;
-        }
-        else if (ctrler.Session.settings.GetString("experiment_mode") == "tool_vr")
-        {
-            if (Vector3.Distance(ctrler.CursorController.GetHandPosition(), ballObjects.transform.position) > 0.05f && currentStep == 0) return;
-        }
+        if (Vector3.Distance(mousePoint, ballObjects.transform.position) > 0.05f && currentStep == 0) return;
 
         // don't track score if practice
         if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
@@ -162,7 +132,6 @@ public class ToolTask : BilliardsTask
         {
             // initlize the scene 
             case 0:
-           
                 break;
 
             // the user triggers the object 
@@ -490,6 +459,7 @@ public class ToolTask : BilliardsTask
                 toolBox.SetActive(false);
                 selectedObject = toolCylinder;
                 sound = toolCylinder.GetComponentInChildren<AudioSource>();
+                // sets the position of the elastics on the barrier
                 elasticL = toolCylinder.transform.GetChild(4).gameObject.GetComponent<LineRenderer>();
                 elasticR = toolCylinder.transform.GetChild(3).gameObject.GetComponent<LineRenderer>();
                 elasticL.SetPosition(0, barrier.transform.GetChild(1).GetChild(0).gameObject.transform.position);
@@ -537,7 +507,6 @@ public class ToolTask : BilliardsTask
             }
         }
 
-
         // set up surface materials for the plane
         switch (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials"))
         {
@@ -575,13 +544,9 @@ public class ToolTask : BilliardsTask
 
     }
 
-    //private void SetTilt()
-    //{
-    //    SetTilt(toolCamera, toolSpace, cameraTilt);
-
-    //    SetTilt(toolSpace, toolSpace, surfaceTilt);
-    //}
-
+    /// <summary>
+    /// Sets the tilt of the experiment
+    /// </summary>
     private void SetTilt()
     {
         Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
@@ -624,85 +589,33 @@ public class ToolTask : BilliardsTask
     }
 
 
-    // method used to move the tool around based on mouse position
+
+    /// <summary>
+    /// Method used to move the tool around based on mouse/vr controller position
+    /// </summary>
+    /// <param name="objFollower">the tool object that is going to follow the mouse/VR controller position</param>
+    /// <param name="offset">TBH filled in</param>
     protected virtual void ObjectFollowMouse(GameObject objFollower, Vector3 offset)
     {
-        //non vr controll of the tool
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-        {
-            Vector3 dir = mousePoint - objFollower.transform.position - offset;
-            dir /= Time.fixedDeltaTime;
-            objFollower.GetComponent<Rigidbody>().velocity = dir;
-
-            // potential animations for tools, future work
-            //switch (currentStep)
-            //{
-            //    case 0:
-            //        //objFollower.transform.position = mousePoint;
-            //        //dir /= Time.fixedDeltaTime;
-            //        //objFollower.GetComponent<Rigidbody>().velocity = dir;
-            //        break;
-
-            //    case 1:
-            //        Debug.Log("here");
-            //        switch (selectedObject.name)
-            //        {
-            //            // the slingshot is placed at the home position and it rotates based on the direction the player is aiming at
-            //            case "slingshot":
-            //                objFollower.transform.position = Home.transform.position;
-            //                Vector3 direc = new Vector3(Home.transform.position.x - mousePoint.x, 0, Home.transform.position.z - mousePoint.z);
-            //                objFollower.transform.localRotation = Quaternion.LookRotation(direc);
-            //                break;
-
-            //            // squeegee rotates based on the direction that the player is moving towards
-            //            case "squeegee":
-            //                objFollower.transform.position = mousePoint;
-            //                dir = new Vector3(dir.x, 0, dir.z);
-            //                dir.Normalize();
-            //                objFollower.transform.localRotation = Quaternion.Slerp(objFollower.transform.localRotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
-            //                break;
-            //        }
-            //        break;
-            //    case 2:
-            //        objFollower.transform.position = mousePoint;
-            //        break;
-            //    case 3:
-            //        objFollower.transform.position = mousePoint;
-            //        break;
-            //}
-        }
-        // vr control of the tool
-        else
-        {
-            if(currentStep < 2)
-            {
-                Vector3 dir = ctrllerPoint - objFollower.transform.position - offset;
-                dir /= Time.fixedDeltaTime;
-                objFollower.GetComponent<Rigidbody>().velocity = dir;
-            }
-            
-        }    
-
+        Vector3 dir = mousePoint - objFollower.transform.position - offset;
+        dir /= Time.fixedDeltaTime;
+        objFollower.GetComponent<Rigidbody>().velocity = dir;   
     }
 
-    // moves the ball based on mouse position
+    /// <summary>
+    /// Moves the ball based on mouse position
+    /// </summary>
+    /// <param name="objFollower">the ball object that is going to follow the mouse/VR controller position</param>
+    /// <param name="offset">TBH filled in</param>
     protected virtual void BallFollowMouse(GameObject objFollower, Vector3 offset)
     {
-
-        // non vr and vr control of the ball with slingshot tool
-        if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
-        {
-            objFollower.transform.position = mousePoint - offset;
-        }
-        else if(ctrler.Session.settings.GetString("experiment_mode") == "tool_vr")
-        {
-            objFollower.transform.position = ctrllerPoint - offset;
-        }
- 
+        objFollower.transform.position = mousePoint - offset;
     }
 
-    
 
+    /// <summary>
+    /// Makes the tool look at the direction of the ball no matter the position
+    /// </summary>
     protected virtual void ToolLookAtBall()
     {
         // Rotate the tool: always looking at the ball when close enough 
@@ -714,6 +627,19 @@ public class ToolTask : BilliardsTask
         {
             //toolObjects.transform.rotation = toolSpace.transform.rotation;
         }
+    }
+
+    /// <summary>
+    /// Rotates the ball if it is stated in the json file
+    /// </summary>
+    /// <param name="shotDir">the direction of the shot.</param>
+    protected virtual Vector3 RotateShot(Vector3 shotDir)
+    {
+        float angle = ctrler.Session.CurrentTrial.settings
+                        .GetFloat("per_block_rotation");
+        shotDir = Quaternion.Euler(0f, -angle, 0f) * shotDir;
+
+        return shotDir;
     }
 
 
