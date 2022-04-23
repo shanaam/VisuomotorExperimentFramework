@@ -69,7 +69,9 @@ public class ImpactToolTask : ToolTask
 
                 // record and apply shotDir
                 launchAngle = Vector2.SignedAngle(new Vector2(1f, 0f), new Vector2(shotDir.x, shotDir.z));
-                baseObject.GetComponent<Rigidbody>().velocity = shotDir;
+                // run the FireBilliardsBall function from the BilliardsBallBehaviour script
+                baseObject.GetComponent<BilliardsBallBehaviour>().FireBilliardsBall(shotDir);
+
 
                 toolObjects.transform.rotation = toolSpace.transform.rotation;
 
@@ -84,7 +86,7 @@ public class ImpactToolTask : ToolTask
     protected override void Update()
     {
         base.Update();
-        
+
         switch (currentStep)
         {
             // initlize the scene 
@@ -99,7 +101,7 @@ public class ImpactToolTask : ToolTask
                 }
 
                 // grab object
-                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.07f && (Input.GetMouseButton(0)|| ctrler.CursorController.IsTriggerDown()))
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.07f && (Input.GetMouseButton(0) || ctrler.CursorController.IsTriggerDown()))
                 {
                     VibrateController(0, 0.34f, Time.deltaTime, devices);
                     toolOffset = mousePoint - toolObjects.transform.position;
@@ -114,7 +116,7 @@ public class ImpactToolTask : ToolTask
                 ObjectFollowMouse(toolObjects, toolOffset);
 
                 // Vibrate controller scaled to velocity
-                if (toolObjects.GetComponent<Rigidbody>().velocity.magnitude > 0.5f) 
+                if (toolObjects.GetComponent<Rigidbody>().velocity.magnitude > 0.5f)
                     VibrateController(0, Mathf.Lerp(0.1f, 0.2f, toolObjects.GetComponent<Rigidbody>().velocity.magnitude / 10f), Time.deltaTime, devices);
 
                 ToolLookAtBall();
@@ -140,7 +142,7 @@ public class ImpactToolTask : ToolTask
             // After the user hits the object
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
-                
+
                 if (!hasHit)
                 {
                     sound.Play();

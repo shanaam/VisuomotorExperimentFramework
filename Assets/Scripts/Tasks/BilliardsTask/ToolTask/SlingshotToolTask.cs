@@ -10,7 +10,7 @@ public class SlingshotToolTask : ToolTask
     private Vector3 shotDir;
     private bool fired;
 
-    public override void Setup()   
+    public override void Setup()
     {
         base.Setup();
 
@@ -22,7 +22,7 @@ public class SlingshotToolTask : ToolTask
 
         // activate the slingshot ball
         slingShotBall.SetActive(true);
-        
+
         // store this starting position to move back to later
         ball_start_pos = slingShotBall.transform.position;
 
@@ -62,7 +62,7 @@ public class SlingshotToolTask : ToolTask
     /// </summary>
     protected void FireAndIncrement()
     {
-        shotDir = shotDir.normalized ;
+        shotDir = shotDir.normalized;
         // Apply rotation if necessary
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_type") == "rotated")
         {
@@ -71,15 +71,18 @@ public class SlingshotToolTask : ToolTask
 
         // record and apply launch velocity
         launchAngle = Vector2.SignedAngle(new Vector2(1f, 0f), new Vector2(shotDir.x, shotDir.z));
-        baseObject.GetComponent<Rigidbody>().velocity = shotDir * FIRE_FORCE;
+
+        // run the FireBilliadsBall function from the BilliardsBallBehaviour script
+        baseObject.GetComponent<BilliardsBallBehaviour>().FireBilliardsBall(shotDir, FIRE_FORCE);
 
         IncrementStep();
     }
-    
+
     /// <summary>
     /// sets the endpoints of the elastic to the sides of the slingshot tool
     /// </summary>
-    protected void SetElastic(){
+    protected void SetElastic()
+    {
         elasticL.SetPosition(1, selectedObject.transform.GetChild(0).gameObject.transform.position);
         elasticR.SetPosition(1, selectedObject.transform.GetChild(1).gameObject.transform.position);
     }
@@ -106,7 +109,7 @@ public class SlingshotToolTask : ToolTask
                 }
 
                 // grab object
-                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.07f && (Input.GetMouseButton(0)|| ctrler.CursorController.IsTriggerDown()))
+                if (Vector3.Distance(mousePoint, toolObjects.transform.position) <= 0.07f && (Input.GetMouseButton(0) || ctrler.CursorController.IsTriggerDown()))
                 {
                     VibrateController(0, 0.34f, Time.deltaTime, devices);
                     toolOffset = mousePoint - toolObjects.transform.position;
@@ -144,7 +147,7 @@ public class SlingshotToolTask : ToolTask
                 // non vr and vr control of the slingshot
                 if (ctrler.Session.settings.GetString("experiment_mode") == "tool")
                 {
-                   FireCondition(mousePoint, time);
+                    FireCondition(mousePoint, time);
                 }
                 else
                 {

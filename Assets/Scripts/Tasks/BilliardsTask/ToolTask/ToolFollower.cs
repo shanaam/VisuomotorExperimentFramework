@@ -27,13 +27,6 @@ public class ToolFollower : MonoBehaviour
     Vector3 lastContactNormal;
     Vector3 rotationAxis = new Vector3();
 
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -44,12 +37,12 @@ public class ToolFollower : MonoBehaviour
         prev = transform.position;
         //Debug.Log(vel);
         rotationAxis = Vector3.Cross(Vector3.up, vel).normalized;
-        if(dist > 0.001f)
+        if (dist > 0.001f)
         {
             ObjToFollow.localRotation = Quaternion.Euler(rotationAxis * angle) * ObjToFollow.localRotation;
-        } 
+        }
         transform.position = ObjToFollow.position;
-        
+
 
         if (RotateWithObject) transform.rotation = ObjToFollow.rotation;
     }
