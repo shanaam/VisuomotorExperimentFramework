@@ -10,6 +10,7 @@ public class ExperimentGenerator : MonoBehaviour
         List<int> perBlockN = session.settings.GetIntList("per_block_n");
         string experimentMode = session.settings.GetString("experiment_mode");
 
+        // create blocks, increment indexes of List<int> perBlockN
         for (int i = 0; i < perBlockN.Count; i++)
         {
             session.CreateBlock(perBlockN[i]);
@@ -19,7 +20,7 @@ public class ExperimentGenerator : MonoBehaviour
             {
                 if (key != "per_block_n" && key.StartsWith("per_"))
                 {
-                    session.blocks[i].settings.SetValue(key, session.settings.GetObjectList(key)[i]);        
+                    session.blocks[i].settings.SetValue(key, session.settings.GetObjectList(key)[i]);
                 }
             }
         }
