@@ -24,6 +24,7 @@ public class ReachToTargetTask : BaseTask
     private GameObject water;
     private TimerIndicator timerIndicator;
     private Scoreboard scoreboard;
+    private GameObject tint;
 
     private float speed = 1;
     private int id;
@@ -124,10 +125,47 @@ public class ReachToTargetTask : BaseTask
 
         reachCam = GameObject.Find("ReachCamera");
         reachSurface = GameObject.Find("Surface");
-        //waterBowl = GameObject.Find("Bowl");
         water = GameObject.Find("Water");
         timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
         scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+        tint = GameObject.Find("Tint");
+
+        
+
+         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_tintPresent") == "tc1"){
+
+             tint.SetActive(true);
+
+            tint.transform.parent = Camera.main.transform;
+            tint.transform.localPosition = new Vector3(0,0, 0.1f);
+            tint.transform.localRotation = Quaternion.Euler(-90,0,0);
+
+            float curTint = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_tintPresent"));
+
+            switch(curTint) 
+            {
+                case(0):
+                tint.gameObject.GetComponent<Renderer>().material.color = (new Color(1,0,0,0.20f));
+                break;
+
+                case(1):
+                tint.gameObject.GetComponent<Renderer>().material.color = (new Color(0,0,1,0.20f));
+                break;
+
+                case(2):
+                tint.gameObject.GetComponent<Renderer>().material.color = (new Color(0,1,0,0.20f));
+                break;
+                case(3):
+                tint.SetActive(false);
+                break;
+            }
+
+         }
+
+         else{
+             Debug.Log("null");
+             tint.SetActive(false);
+         }
 
         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
@@ -197,6 +235,9 @@ public class ReachToTargetTask : BaseTask
         }
 
         // sets up the water in the level
+        
+
+
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_waterPresent") == "wp1")
         {
             float waterLevel = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_waterPresent"));
@@ -210,9 +251,9 @@ public class ReachToTargetTask : BaseTask
                 if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
                 {
                     water.transform.localPosition =
-                        new Vector3(water.transform.localPosition.x,
+                        new Vector3(0,
                         Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) / 10,
-                        water.transform.localPosition.z);
+                        0);
 
                     id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
                     d = LeanTween.descr(id);
