@@ -222,6 +222,7 @@ public class ExperimentController : MonoBehaviour
         {
             case "target2d":
                 InitializePseudorandomList(trial, "per_block_waterPresent");
+                InitializePseudorandomList(trial, "per_block_tintPresent");
                 switch (per_block_type)
                 {
                     case "aligned":
