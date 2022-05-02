@@ -77,8 +77,8 @@ public class ExperimentController : MonoBehaviour
     /// Initializes all instances of the trials to be run in this experiment
     /// </summary>
     /// <param name="session"></param>
-    public void Init(Session session) 
-    { 
+    public void Init(Session session)
+    {
         Session = session;
         CursorController = GameObject.Find("Cursor").GetComponent<CursorController>();
 
@@ -170,7 +170,7 @@ public class ExperimentController : MonoBehaviour
 
     public void CenterExperiment()
     {
-        transform.position = new Vector3(Camera.main.transform.position.x, CursorController.GetHandPosition().y, CursorController.GetHandPosition().z) 
+        transform.position = new Vector3(Camera.main.transform.position.x, CursorController.GetHandPosition().y, CursorController.GetHandPosition().z)
             - Vector3.up * .075f
             + Vector3.left * 0f;
         StartCoroutine(TempDisableCursor());
@@ -181,8 +181,29 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     public void BeginTrialSteps(Trial trial)
     {
+        // "per_trial" in optional_params
+        foreach (string key in Session.settings.GetStringList("optional_params").Where(x => x.StartsWith("per_trial")))
+        {
+            try
+            {
+                Session.settings.GetIntList(key);
+            }
+            catch
+            {
+                Debug.LogError("Could not parse optional_params: " + key + ". It needs to be a list of integers.");
+            }
+
+            List<int> per_trial_x = Session.settings.GetIntList(key);
+
+            // replace "per_trial" with "per_block" in the key
+            string block_key = key.Replace("per_trial", "per_block");
+
+            // set block_key to value
+            trial.settings.SetValue(block_key, per_trial_x[trial.number - 1]);
+        }
+
         InitializePseudorandomList(trial, "per_block_targetListToUse");
-        
+
         string per_block_type = trial.settings.GetString("per_block_type");
         if (per_block_type == "instruction")
         {
@@ -201,6 +222,7 @@ public class ExperimentController : MonoBehaviour
         {
             case "target2d":
                 InitializePseudorandomList(trial, "per_block_waterPresent");
+                InitializePseudorandomList(trial, "per_block_tintPresent");
                 switch (per_block_type)
                 {
                     case "aligned":
@@ -218,7 +240,7 @@ public class ExperimentController : MonoBehaviour
                         break;
                 }
                 break;
-                
+
             case "target":
                 switch (per_block_type)
                 {
@@ -243,17 +265,17 @@ public class ExperimentController : MonoBehaviour
 
                 List<int> indices = InitializePseudorandomList(trial, "per_block_list_camera_tilt");
                 InitializePseudorandomList(trial, "per_block_list_surface_tilt", indices);
-                
+
                 //Currently does not use same index as the above as camera/surface tilt are lists of 4 elements, while surfacematerials currently has 1 element
                 InitializePseudorandomList(trial, "per_block_surface_materials");
 
                 break;
             case "tool_vr":
             case "tool":
-                
+
                 // Triger type option list shuffled
                 List<int> index = InitializePseudorandomList(trial, "per_block_list_triggerType");
-               
+
                 // puck type option list shuffled
                 InitializePseudorandomList(trial, "per_block_list_puck_type", index);
 
@@ -358,10 +380,10 @@ public class ExperimentController : MonoBehaviour
             // Then join all these numbers separated by a comma
             Session.CurrentTrial.result[key + "_x"] =
                 string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
-            
+
             Session.CurrentTrial.result[key + "_y"] =
-                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));    
-            
+                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));
+
             Session.CurrentTrial.result[key + "_z"] =
                 string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
         }

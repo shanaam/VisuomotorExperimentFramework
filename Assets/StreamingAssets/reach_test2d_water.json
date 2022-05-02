@@ -9,11 +9,14 @@
   "per_block_targetListToUse": [ "tl2", "tl2", "tl2", "tl1", "tl1", "tl2", "tl1", "tl2", "tl2" ],
   "per_block_waterPresent": [ "wp1", "wp1", "wp1", null, "wp1", null, "wp1", null, "wp1" ],
   "per_block_track_score": [ false, true, true, false, true, true, false, true, true, false ],
+  "per_block_tintPresent": [ "tc1", null, "tc1", null, "tc1", "tc1", null, "tc1", "tc1", null ],
+
   "per_block_timerTime": [ 5, 1, 1, 1, 1, 1, 1, 1, 1 ],
   "tl2": [ 60, 80, 100, 120 ],
   "tl1": [ 30, 45, 60, 75, 90 ],
   "ct1": [ 20, 10, 0 ],
   "ct2": [ 15, 0 ],
   "st1": [ 20, 10, 0 ],
-  "wp1": [ 0, 1, 2 ]
+  "wp1": [ 0, 1, 0.5 ],
+  "tc1": [0,1,0,1]
 }
