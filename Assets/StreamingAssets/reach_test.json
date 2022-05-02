@@ -1,5 +1,6 @@
 {
   "experiment_mode": "target",
+  "optional_params": [],
   "track_score": true,
   "per_block_type": [ "aligned", "aligned", "nocursor", "clamped", "rotated", "rotated", "rotated", "localization" ],
   "per_block_rotation": [ 0, 0, 0, 0, 30, 30, 30, 30 ],

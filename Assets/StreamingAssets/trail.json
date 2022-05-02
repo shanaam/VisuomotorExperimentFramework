@@ -1,4 +1,5 @@
 {
+  "optional_params": [],
   "experiment_mode": "trail",
   "exp_record_score": true,
   "per_block_n": [ 1, 1, 4 ],

@@ -1,6 +1,8 @@
 {
   "experiment_mode": "tool_vr",
 
+  "optional_params": [],
+
   "exp_record_score": true,
 
   "per_block_type": [ "aligned", "aligned", "rotated" ],

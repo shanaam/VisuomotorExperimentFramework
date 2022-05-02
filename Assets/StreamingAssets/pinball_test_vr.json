@@ -1,5 +1,6 @@
 {
   "experiment_mode": "pinball_vr",
+  "optional_params": [],
   "exp_record_score": true,
   "per_block_type": [ "rotated", "rotated", "rotated", "aligned", "instruction", "aligned", "aligned", "instruction", "aligned", "aligned" ],
   "per_block_rotation": [ 45, 45, 45, 0, 0, 0, 0, 0, 0, 0 ],
