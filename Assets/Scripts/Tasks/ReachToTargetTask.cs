@@ -250,10 +250,21 @@ public class ReachToTargetTask : BaseTask
             {
                 if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
                 {
+                    //Debug.Log("water before " + water.transform.position.y);
+                    
+                   // Debug.Log(water.transform.position.y > waterLevel);
+                    //if(Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) > waterLevel){
+                        //waterBowl.transform.GetChild(1).gameObject.GetComponent<Animator>().SetTrigger("open");
+                        //Debug.Log(waterBowl.transform.GetChild(1).gameObject);
+                    //}
+
+
                     water.transform.localPosition =
                         new Vector3(0,
                         Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) / 10,
                         0);
+                    //Debug.Log("water before " + water.transform.position.y);
+                    //Debug.Log("water now " + waterLevel);
 
                     id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
                     d = LeanTween.descr(id);

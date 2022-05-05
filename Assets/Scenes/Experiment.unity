@@ -3413,6 +3413,21 @@ PrefabInstance:
       propertyPath: m_BoundingSphereOverride.y
       value: NaN
       objectReference: {fileID: 0}
+    - target: {fileID: 7387544290799179305, guid: 2674676cf85be874a815c303fe819ea1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7387544290890798715, guid: 2674676cf85be874a815c303fe819ea1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7387544291869197396, guid: 2674676cf85be874a815c303fe819ea1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7387544291869197399, guid: 2674676cf85be874a815c303fe819ea1,
         type: 3}
       propertyPath: m_BoundingSphereOverride.y
