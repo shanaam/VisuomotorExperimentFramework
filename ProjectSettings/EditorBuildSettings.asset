@@ -8,6 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Experiment.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/UXF/Examples/3_MultiScene_FootballAndRT/OtherScenes/ShootingExample.unity
+    guid: 1d5a4e0513b6be0428267c45d923520b
+  - enabled: 1
+    path: Assets/UXF/Examples/3_MultiScene_FootballAndRT/OtherScenes/ReactionExample.unity
+    guid: 7a79c722962e7d74eb856ff31b309b87
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: ac1f80e11a6717a429fca9ee2ae79dba,
       type: 2}
