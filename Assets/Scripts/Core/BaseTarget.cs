@@ -35,7 +35,7 @@ public class BaseTarget : MonoBehaviour
             switch (collision.gameObject.tag)
             {
                 default:
-                    Debug.LogWarning("Tag not implemented");
+                    Debug.LogWarning("Tag not implemented, see BaseTarget.cs");
                     break;
             }
         }
@@ -59,7 +59,7 @@ public class BaseTarget : MonoBehaviour
                     AdvanceStep();
                     break;
                 default:
-                    Debug.LogWarning("Tag not implemented");
+                    Debug.LogWarning("Tag not implemented, see BaseTarget.cs");
                     break;
             }
         }
