@@ -8,6 +8,15 @@ public class ReachTrack : ReachToTargetTask
 {
     protected GameObject field;
     protected GameObject goal;
+    protected Vector3 mousePoint;
+    protected GameObject baseObject;
+
+    Vector3 vel = new Vector3();
+    Vector3 prev = new Vector3();
+    Vector3 cur = new Vector3();
+    decimal dist;
+    float angle;
+    Vector3 rotationAxis = new Vector3();
     // Start is called before the first frame update
     public override void Setup()
     {
@@ -28,11 +37,16 @@ public class ReachTrack : ReachToTargetTask
         tint = GameObject.Find("Tint");
         field = GameObject.Find("Field");
         goal = field.transform.GetChild(0).transform.GetChild(0).gameObject;
+        baseObject = GameObject.Find("BaseObject");
+
+        field.SetActive(false);
 
 
         SetSetup();
 
         field.transform.position = targets[1].transform.position;
+
+        ctrler.CursorController.Model.GetComponent<MeshRenderer>().enabled = false;
 
         field.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
@@ -54,6 +68,37 @@ public class ReachTrack : ReachToTargetTask
     // Update is called once per frame
     void Update()
     {
+        if(currentStep > 1){
+            field.SetActive(true);
+        }
+        mousePoint = GetMousePoint(baseObject.transform);
         base.Update();
+        ctrler.CursorController.Model.transform.position = new Vector3(ctrler.CursorController.Model.transform.position.x, mousePoint.y, ctrler.CursorController.Model.transform.position.z);
+        baseObject.transform.position = new Vector3(ctrler.CursorController.Model.transform.position.x, mousePoint.y, ctrler.CursorController.Model.transform.position.z);
+
+        cur = baseObject.transform.position;
+        vel = (cur - prev) / Time.deltaTime;
+        dist = (decimal)vel.magnitude;
+        angle = (float)dist * (180f / Mathf.PI) / 2.5f;
+        prev = baseObject.transform.position;
+        //Debug.Log(vel);
+        rotationAxis = Vector3.Cross(Vector3.up, vel).normalized;
+        if (dist > 0.0000000001m)
+        {
+            baseObject.transform.localRotation = Quaternion.Euler(rotationAxis * angle) * baseObject.transform.localRotation;
+        }
+    }
+
+    protected virtual Vector3 GetMousePoint(Transform ball)
+    {
+        //ToFix: can the below two be one function called point to planepoint?
+        
+            Vector3 ctrl = new Vector3(ctrler.CursorController.GetHandPosition().x, 3, ctrler.CursorController.GetHandPosition().z);
+            return ctrler.CursorController.ControllerToPlanePoint(
+                                reachSurface.transform.up * ball.position.y,
+                                ball.position,
+                                ctrl);
+        
+
     }
 }
