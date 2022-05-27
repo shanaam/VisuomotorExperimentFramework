@@ -23,8 +23,6 @@ public class ToolFollower : MonoBehaviour
     Vector3 cur = new Vector3();
     float dist;
     float angle;
-    Vector3 contactNormal;
-    Vector3 lastContactNormal;
     Vector3 rotationAxis = new Vector3();
 
     // Update is called once per frame

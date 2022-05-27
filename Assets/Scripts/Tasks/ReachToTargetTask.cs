@@ -13,22 +13,23 @@ public class ReachToTargetTask : BaseTask
     // 3. User moves to TARGET with reachType[1]
 
     MovementType[] reachType;  // Reach type for current step
-    private GameObject[] targets = new GameObject[3];
-    private ExperimentController ctrler;
-    private Trial trial;
+    protected List<GameObject> targets = new List<GameObject>();
+    protected ExperimentController ctrler;
+    protected Trial trial;
 
-    private GameObject reachPrefab;
-    private GameObject reachCam;
-    private GameObject reachSurface;
-    private GameObject waterBowl;
-    private GameObject water;
-    private TimerIndicator timerIndicator;
-    private Scoreboard scoreboard;
-    private GameObject tint;
+    protected GameObject reachPrefab;
+    protected GameObject reachCam;
+    protected GameObject reachSurface;
+    protected GameObject waterBowl;
+    protected GameObject water;
+    protected TimerIndicator timerIndicator;
+    protected Scoreboard scoreboard;
+    protected GameObject tint;
 
-    private float speed = 1;
-    private int id;
-    LTDescr d;
+    protected float speed = 1;
+    protected int id;
+    protected LTDescr d;
+    protected float targetAngle;
 
     private bool trackScore;
 
@@ -50,12 +51,15 @@ public class ReachToTargetTask : BaseTask
 
         // checks if there is a water animation in the scene
         if (d != null)
-        {
-            // after animation has comleted and the current step is the home step it sets the home ball to active
+        {           
+            // after animation has completed and the current step is the home step it sets the home ball to active
             if (!LeanTween.isTweening(id) && currentStep == 1)
             {
                 targets[1].SetActive(true);
             }
+        }
+        else if(currentStep == 1){
+            targets[1].SetActive(true);
         }
     }
 
@@ -111,28 +115,9 @@ public class ReachToTargetTask : BaseTask
         return finished;
     }
 
-    public override void Setup()
-    {
-        ctrler = ExperimentController.Instance();
-
-        trial = ctrler.Session.CurrentTrial;
-
-        Cursor.visible = false;
-
-        reachPrefab = Instantiate(ctrler.GetPrefab("ReachPrefab"));
-        reachPrefab.transform.SetParent(ctrler.transform);
-        reachPrefab.transform.localPosition = new Vector3(0,-0.8f,0);
-
-        reachCam = GameObject.Find("ReachCamera");
-        reachSurface = GameObject.Find("Surface");
-        water = GameObject.Find("Water");
-        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
-        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
-        tint = GameObject.Find("Tint");
-
-        
-
-         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_tintPresent") == "tc1"){
+    public void SetSetup(){
+        targetAngle = Convert.ToSingle(ctrler.PseudoRandom("per_block_targetListToUse"));
+        if (ctrler.Session.CurrentBlock.settings.GetString("per_block_tintPresent") == "tc1"){
 
              tint.SetActive(true);
 
@@ -140,7 +125,7 @@ public class ReachToTargetTask : BaseTask
             tint.transform.localPosition = new Vector3(0,0, 0.1f);
             tint.transform.localRotation = Quaternion.Euler(-90,0,0);
 
-            float curTint = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_tintPresent"));
+            float curTint = Convert.ToSingle(ctrler.PseudoRandom("per_block_tintPresent"));
 
             switch(curTint) 
             {
@@ -152,22 +137,17 @@ public class ReachToTargetTask : BaseTask
                 tint.gameObject.GetComponent<Renderer>().material.color = (new Color(0,0,1,0.20f));
                 break;
 
-                case(2):
-                tint.gameObject.GetComponent<Renderer>().material.color = (new Color(0,1,0,0.20f));
-                break;
                 case(3):
                 tint.SetActive(false);
                 break;
             }
 
          }
-
          else{
-             Debug.Log("null");
              tint.SetActive(false);
          }
 
-        timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
 
         // Whether or not this is a practice trial 
         // replaces scoreboard with 'Practice Round', doesn't record score
@@ -193,27 +173,31 @@ public class ReachToTargetTask : BaseTask
         ctrler.CursorController.SetCursorVisibility(true);
 
         // Set up the dock position
-        targets[0] = GameObject.Find("Dock");
+        targets.Add(GameObject.Find("Dock"));
         targets[0].transform.localPosition = ctrler.TargetContainer.transform.localPosition;
 
         // Set up the home position
-        targets[1] = GameObject.Find("Home");
+        targets.Add(GameObject.Find("Home"));
         targets[1].transform.localPosition = ctrler.TargetContainer.transform.localPosition + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
         Home = targets[1];
 
         // Set up the target
 
-        // Takes a target angle from the list and removes it
-        float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
         
-        targets[2] = GameObject.Find("Target");
+
+        // Takes a target angle from the list and removes it
+        
+        
+        targets.Add(GameObject.Find("Target"));
         targets[2].transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
         targets[2].transform.localPosition = targets[1].transform.localPosition +
                                         targets[2].transform.forward.normalized *
                                         (trial.settings.GetFloat("per_block_distance") / 100f);
+
+        
 
         // Disable collision detection for nocursor task
         if (trial.settings.GetString("per_block_type") == "nocursor")
@@ -223,7 +207,7 @@ public class ReachToTargetTask : BaseTask
         Target = targets[2];
 
         // Use static camera for non-vr version
-        if (ctrler.Session.settings.GetString("experiment_mode") == "target2d")
+        if (ctrler.Session.settings.GetString("camera") == "vr")
         {
             reachSurface.SetActive(false);
             reachCam.SetActive(false);
@@ -234,9 +218,31 @@ public class ReachToTargetTask : BaseTask
             ctrler.CursorController.SetVRCamera(false);
         }
 
-        // sets up the water in the level
+    }
+    public override void Setup()
+    {
+        ctrler = ExperimentController.Instance();
+
+        trial = ctrler.Session.CurrentTrial;
+
+        Cursor.visible = false;
+
+        reachPrefab = Instantiate(ctrler.GetPrefab("ReachPrefab"));
+        reachPrefab.transform.SetParent(ctrler.transform);
+        reachPrefab.transform.localPosition = new Vector3(0,-0.8f,0);
+
+        reachCam = GameObject.Find("ReachCamera");
+        reachSurface = GameObject.Find("Surface");
+        water = GameObject.Find("Water");
+        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
+        scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+        tint = GameObject.Find("Tint");
+      
+        SetSetup();
+
         
 
+        // sets up the water in the level
 
         if (ctrler.Session.CurrentBlock.settings.GetString("per_block_waterPresent") == "wp1")
         {
@@ -250,21 +256,10 @@ public class ReachToTargetTask : BaseTask
             {
                 if (ctrler.Session.PrevTrial.result.ContainsKey("per_block_waterPresent"))
                 {
-                    //Debug.Log("water before " + water.transform.position.y);
-                    
-                   // Debug.Log(water.transform.position.y > waterLevel);
-                    //if(Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) > waterLevel){
-                        //waterBowl.transform.GetChild(1).gameObject.GetComponent<Animator>().SetTrigger("open");
-                        //Debug.Log(waterBowl.transform.GetChild(1).gameObject);
-                    //}
-
-
                     water.transform.localPosition =
                         new Vector3(0,
                         Convert.ToSingle(ctrler.Session.PrevTrial.result["per_block_waterPresent"]) / 10,
                         0);
-                    //Debug.Log("water before " + water.transform.position.y);
-                    //Debug.Log("water now " + waterLevel);
 
                     id = LeanTween.moveLocalY(water, waterLevel / 10, speed).id;
                     d = LeanTween.descr(id);

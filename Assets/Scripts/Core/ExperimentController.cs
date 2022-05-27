@@ -60,6 +60,10 @@ public class ExperimentController : MonoBehaviour
     // Used to track when a step has been incremented
     public List<float> StepTimer = new List<float>();
 
+    protected int block = -1;
+    protected object prev;
+    protected Dictionary<string, List<object>> lists = new Dictionary<string, List<object>>();
+
     /// <summary>
     /// Gets the singleton instance of our experiment controller. Use it for
     /// Getting the state of the experiment (input, current trial, etc)
@@ -230,6 +234,25 @@ public class ExperimentController : MonoBehaviour
                     case "clamped":
                     case "nocursor":
                         CurrentTask = gameObject.AddComponent<ReachToTargetTask>();
+                        break;
+                    case "localization":
+                        CurrentTask = gameObject.AddComponent<LocalizationTask>();
+                        break;
+                    default:
+                        Debug.LogWarning("Task not implemented: " + per_block_type);
+                        trial.End();
+                        break;
+                }
+                break;
+
+            case "targetTrack":
+                switch (per_block_type)
+                {
+                    case "aligned":
+                    case "rotated":
+                    case "clamped":
+                    case "nocursor":
+                        CurrentTask = gameObject.AddComponent<ReachTrack>();
                         break;
                     case "localization":
                         CurrentTask = gameObject.AddComponent<LocalizationTask>();
@@ -538,6 +561,40 @@ public class ExperimentController : MonoBehaviour
         }
 
         return null;
+    }
+
+    public object PseudoRandom(string key){
+        int curBlock = Session.currentBlockNum;
+        String listk = Session.CurrentBlock.settings.GetString(key, "");
+
+        if(curBlock != block){
+            lists.Clear();
+            block = curBlock;
+        }
+
+        if(!lists.ContainsKey(listk)){
+            lists[listk] = new List<object>();    
+            List<object> list = Session.settings.GetObjectList(listk);
+            if(list.Count < 1) {
+                Debug.LogError(key +
+                             " contains less than 2 elements. Not possible to sort");
+            throw new NullReferenceException();
+            }
+            for(int i = 0; i < list.Count; i++){
+                lists[listk].Add(list[i]);
+            }
+        }
+        object ran = lists[listk][UnityEngine.Random.Range(0,lists[listk].Count)];
+
+        while(ran == prev) {
+            ran = lists[listk][UnityEngine.Random.Range(0,lists[listk].Count)];
+        }
+
+        lists[listk].Remove(ran);
+        prev = ran;
+        Debug.Log(ran);
+
+        return ran;
     }
 
 
