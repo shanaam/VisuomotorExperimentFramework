@@ -65,7 +65,10 @@ public class ReachToTargetTask : BaseTask
 
     public override bool IncrementStep()
     {
-        targets[currentStep].SetActive(false);
+        if(currentStep < 3){
+            targets[currentStep].SetActive(false);
+        }
+        
 
         switch (currentStep)
         {
@@ -94,7 +97,6 @@ public class ReachToTargetTask : BaseTask
                 {
                     ctrler.Score++;
                 }
-                
                 break;
         }
 
@@ -106,7 +108,7 @@ public class ReachToTargetTask : BaseTask
             {
                 targets[1].SetActive(false);
             }
-            else
+            else if(currentStep < 3)
             {
                 targets[currentStep].SetActive(true);
             }
@@ -166,7 +168,7 @@ public class ReachToTargetTask : BaseTask
 
         reachType = new MovementType[3];
         reachType[2] = rType;
-        maxSteps = 3;
+        
 
         // Set up hand and cursor
         ctrler.CursorController.SetHandVisibility(false);
@@ -221,6 +223,7 @@ public class ReachToTargetTask : BaseTask
     }
     public override void Setup()
     {
+        maxSteps = 3;
         ctrler = ExperimentController.Instance();
 
         trial = ctrler.Session.CurrentTrial;

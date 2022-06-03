@@ -11,11 +11,8 @@ public class ReachTrack : ReachToTargetTask
     protected GameObject goal;
     protected Vector3 mousePoint;
     protected GameObject baseObject;
-    protected GameObject upArrow;
-    protected GameObject downArrow;
-    protected GameObject doubleUpArrow;
-    protected GameObject doubleDownArrow;
-    protected GameObject thumbsUp;
+    protected GameObject symbols;
+    protected int velResult;
 
     Vector3 vel = new Vector3();
     Vector3 prev = new Vector3();
@@ -37,6 +34,7 @@ public class ReachTrack : ReachToTargetTask
     // Start is called before the first frame update
     public override void Setup()
     {
+        maxSteps = 4;
         ctrler = ExperimentController.Instance();
         trial = ctrler.Session.CurrentTrial;
         d = null;
@@ -57,17 +55,7 @@ public class ReachTrack : ReachToTargetTask
         baseObject = GameObject.Find("BaseObject");
         text = baseObject.transform.GetChild(0).GetComponent<TextMeshPro>();
         text.transform.parent = reachPrefab.transform;
-        doubleUpArrow = text.gameObject.transform.GetChild(0).gameObject;
-        upArrow = text.gameObject.transform.GetChild(1).gameObject;
-        doubleDownArrow = text.gameObject.transform.GetChild(2).gameObject;
-        downArrow = text.gameObject.transform.GetChild(3).gameObject;
-        thumbsUp = text.gameObject.transform.GetChild(4).gameObject;
-
-        doubleUpArrow.SetActive(false);
-        upArrow.SetActive(false);
-        doubleDownArrow.SetActive(false);
-        downArrow.SetActive(false);
-        thumbsUp.SetActive(false);
+        symbols = GameObject.Find("Symbols");    
 
         newPos = base.transform.position;
         prevPos = base.transform.position;
@@ -80,8 +68,11 @@ public class ReachTrack : ReachToTargetTask
 
         field.SetActive(false);
 
-
         SetSetup();
+
+        for(int i = 0; i < symbols.transform.childCount; i++){
+            symbols.transform.GetChild(i).gameObject.SetActive(false);
+        }
 
         field.transform.position = targets[1].transform.position;
 
@@ -90,16 +81,11 @@ public class ReachTrack : ReachToTargetTask
         field.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
-        Vector3 pos = new Vector3();
-
-        pos = targets[1].transform.localPosition +
-                                        targets[2].transform.forward.normalized *
-                                        (trial.settings.GetFloat("per_block_distance") / 100f);
-
         goal.transform.position =
         new Vector3(targets[2].transform.position.x,
         targets[2].transform.position.y - 0.005f, targets[2].transform.position.z);
         reachSurface.SetActive(true);
+
 
 
     }
@@ -128,6 +114,18 @@ public class ReachTrack : ReachToTargetTask
         baseObject.transform.localRotation = Quaternion.Euler(rotationAxis * angle) * baseObject.transform.localRotation;
         //}
         VelocityTrack();
+
+        if(currentStep > 2){
+            text.text = ("Max Vel: "+maxVel.ToString());
+            symbols.transform.position = goal.transform.position + new Vector3(0, 0.017f, 0);
+            symbols.transform.GetChild(velResult).gameObject.SetActive(true);
+            StartCoroutine(Wait());
+        }
+    }
+
+    IEnumerator Wait(){
+        yield return new WaitForSeconds(3f);
+        base.IncrementStep();
     }
 
     void VelocityTrack(){
@@ -135,57 +133,33 @@ public class ReachTrack : ReachToTargetTask
         curVel = ((newPos - prevPos) / Time.deltaTime).magnitude;
         prevPos = newPos;       
         text.gameObject.transform.position = baseObject.transform.position + new Vector3(0, 0.04f, 0);
-        Debug.Log(curVel);
-        if(currentStep>1){
+
+        if(currentStep==2){
             if(maxVel<curVel){
                 maxVel = curVel;
             }    
             if(idealReached){
-                doubleUpArrow.SetActive(false);
-                upArrow.SetActive(false);
-                doubleDownArrow.SetActive(false);
-                downArrow.SetActive(false);
-                thumbsUp.SetActive(true);
+                velResult = 4;
             }    
             else if(curVel > maxUpperVel){
-                doubleUpArrow.SetActive(false);
-                upArrow.SetActive(false);
-                doubleDownArrow.SetActive(true);
-                downArrow.SetActive(false);
-                thumbsUp.SetActive(false);
+                velResult = 2;
             }
             else if(curVel>idealUpperBound && curVel<maxUpperVel){
-                doubleUpArrow.SetActive(false);
-                upArrow.SetActive(false);
-                doubleDownArrow.SetActive(false);
-                downArrow.SetActive(true);
-                thumbsUp.SetActive(false);
+                velResult = 3;
             }
             else if (curVel < idealUpperBound && curVel > idealLowerBound){
-                doubleUpArrow.SetActive(false);
-                upArrow.SetActive(false);
-                doubleDownArrow.SetActive(false);
-                downArrow.SetActive(false);
-                thumbsUp.SetActive(true);
                 idealReached = true;
             }
             else if(curVel<idealLowerBound && curVel>minLowerVel){
-                doubleUpArrow.SetActive(false);
-                upArrow.SetActive(true);
-                doubleDownArrow.SetActive(false);
-                downArrow.SetActive(false);
-                thumbsUp.SetActive(false);
+                velResult = 1;
             }
             else if(curVel<minLowerVel){
-                doubleUpArrow.SetActive(true);
-                upArrow.SetActive(false);
-                doubleDownArrow.SetActive(false);
-                downArrow.SetActive(false);
-                thumbsUp.SetActive(false);
+                velResult = 0;
             }
             text.text = ("Current Vel: "+curVel.ToString() +"\nMax Vel: "+maxVel.ToString());
-        }
-        else{
+        }  
+        
+        else if(currentStep<2){
             text.text = ("Current Vel: "+curVel.ToString() +"\nMax Vel: to be calculated after home step");
         }
     }
