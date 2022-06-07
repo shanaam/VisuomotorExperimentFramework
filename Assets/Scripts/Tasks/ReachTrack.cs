@@ -13,6 +13,9 @@ public class ReachTrack : ReachToTargetTask
     protected GameObject baseObject;
     protected GameObject symbols;
     protected int velResult;
+    protected AudioSource sound;
+    protected GameObject ray;
+    protected List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
 
     Vector3 vel = new Vector3();
     Vector3 prev = new Vector3();
@@ -31,6 +34,7 @@ public class ReachTrack : ReachToTargetTask
     float maxUpperVel;
     float minLowerVel;
     bool idealReached = false;
+    bool hasPlayed = false;
     // Start is called before the first frame update
     public override void Setup()
     {
@@ -55,7 +59,9 @@ public class ReachTrack : ReachToTargetTask
         baseObject = GameObject.Find("BaseObject");
         text = baseObject.transform.GetChild(0).GetComponent<TextMeshPro>();
         text.transform.parent = reachPrefab.transform;
-        symbols = GameObject.Find("Symbols");    
+        symbols = GameObject.Find("Symbols");   
+        sound = baseObject.GetComponent<AudioSource>();
+        ray = GameObject.Find("Ray");
 
         newPos = base.transform.position;
         prevPos = base.transform.position;
@@ -93,6 +99,7 @@ public class ReachTrack : ReachToTargetTask
     // Update is called once per frame
     void Update()
     {
+        UnityEngine.XR.InputDevices.GetDevicesWithRole(UnityEngine.XR.InputDeviceRole.RightHanded, devices);
         if (currentStep > 1)
         {
             field.SetActive(true);
@@ -114,6 +121,22 @@ public class ReachTrack : ReachToTargetTask
         baseObject.transform.localRotation = Quaternion.Euler(rotationAxis * angle) * baseObject.transform.localRotation;
         //}
         VelocityTrack();
+
+        if(currentStep == 2){
+            ray.transform.position = baseObject.transform.position;
+            if(Physics.Raycast(ray.transform.position, -ray.transform.up, out RaycastHit hit, 0.1f)){
+                if(hit.collider.gameObject.name == "Surface" && !hasPlayed){
+                    baseObject.GetComponent<Renderer>().material.color = Color.gray;
+                    sound.Play();
+                    hasPlayed = true;
+                    VibrateController(0, 0.34f, 0.15f, devices);
+                }
+                else if(hit.collider.gameObject.name == "soccer"){
+                    baseObject.GetComponent<Renderer>().material.color = Color.white;
+                    hasPlayed = false;
+                }
+            }
+        }
 
         if(currentStep > 2){
             text.text = ("Max Vel: "+maxVel.ToString());
