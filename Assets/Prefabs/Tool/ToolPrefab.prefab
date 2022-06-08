@@ -3761,6 +3761,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3880917273283088886}
     m_Modifications:
+    - target: {fileID: 2088866273602323300, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4524095402295423735, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4524095402295423735, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5297315138817637915, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
         type: 3}
       propertyPath: m_IsActive
@@ -3826,6 +3841,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Surface
       objectReference: {fileID: 0}
+    - target: {fileID: 6031364340575690014, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
+        type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6031364340575690014, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
+        type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 31769b1f567a18541910024b0efbbd22, type: 2}
     - target: {fileID: 6641934453115902986, guid: 94b78f76b52b5cc4c8a819ae1e64b921,
         type: 3}
       propertyPath: m_IsActive
