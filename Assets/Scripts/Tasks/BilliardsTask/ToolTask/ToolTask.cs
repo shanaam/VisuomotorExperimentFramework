@@ -380,8 +380,6 @@ public class ToolTask : BilliardsTask
 
     public override void Setup()
     {
-        
-
         maxSteps = 4;
 
         ctrler = ExperimentController.Instance();

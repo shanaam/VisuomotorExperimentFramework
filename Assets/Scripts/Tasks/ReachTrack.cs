@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UXF;
 using MovementType = CursorController.MovementType;
+using TMPro;
 
 public class ReachTrack : ReachToTargetTask
 {
@@ -10,6 +11,8 @@ public class ReachTrack : ReachToTargetTask
     protected GameObject goal;
     protected Vector3 mousePoint;
     protected GameObject baseObject;
+    protected GameObject symbols;
+    protected int velResult;
 
     Vector3 vel = new Vector3();
     Vector3 prev = new Vector3();
@@ -17,9 +20,21 @@ public class ReachTrack : ReachToTargetTask
     float dist;
     float angle;
     Vector3 rotationAxis = new Vector3();
+    float maxVel = 0;
+    Vector3 newPos;
+    Vector3 prevPos;
+    float curVel;
+    TextMeshPro text;
+    float idealVel;
+    float idealUpperBound;
+    float idealLowerBound;
+    float maxUpperVel;
+    float minLowerVel;
+    bool idealReached = false;
     // Start is called before the first frame update
     public override void Setup()
     {
+        maxSteps = 4;
         ctrler = ExperimentController.Instance();
         trial = ctrler.Session.CurrentTrial;
         d = null;
@@ -38,11 +53,26 @@ public class ReachTrack : ReachToTargetTask
         field = GameObject.Find("Field");
         goal = field.transform.GetChild(0).transform.GetChild(0).gameObject;
         baseObject = GameObject.Find("BaseObject");
+        text = baseObject.transform.GetChild(0).GetComponent<TextMeshPro>();
+        text.transform.parent = reachPrefab.transform;
+        symbols = GameObject.Find("Symbols");    
+
+        newPos = base.transform.position;
+        prevPos = base.transform.position;
+
+        idealVel = 0.4f;
+        idealUpperBound = idealVel + 0.05f;
+        idealLowerBound = idealVel - 0.05f;
+        maxUpperVel = idealVel + 0.2f;
+        minLowerVel = idealVel - 0.2f;
 
         field.SetActive(false);
 
-
         SetSetup();
+
+        for(int i = 0; i < symbols.transform.childCount; i++){
+            symbols.transform.GetChild(i).gameObject.SetActive(false);
+        }
 
         field.transform.position = targets[1].transform.position;
 
@@ -51,16 +81,11 @@ public class ReachTrack : ReachToTargetTask
         field.transform.rotation = Quaternion.Euler(
             0f, -targetAngle + 90f, 0f);
 
-        Vector3 pos = new Vector3();
-
-        pos = targets[1].transform.localPosition +
-                                        targets[2].transform.forward.normalized *
-                                        (trial.settings.GetFloat("per_block_distance") / 100f);
-
         goal.transform.position =
         new Vector3(targets[2].transform.position.x,
         targets[2].transform.position.y - 0.005f, targets[2].transform.position.z);
         reachSurface.SetActive(true);
+
 
 
     }
@@ -71,6 +96,7 @@ public class ReachTrack : ReachToTargetTask
         if (currentStep > 1)
         {
             field.SetActive(true);
+            //VelocityTrack();
         }
         mousePoint = GetMousePoint(baseObject.transform);
         base.Update();
@@ -87,6 +113,55 @@ public class ReachTrack : ReachToTargetTask
         //{
         baseObject.transform.localRotation = Quaternion.Euler(rotationAxis * angle) * baseObject.transform.localRotation;
         //}
+        VelocityTrack();
+
+        if(currentStep > 2){
+            text.text = ("Max Vel: "+maxVel.ToString());
+            symbols.transform.position = goal.transform.position + new Vector3(0, 0.017f, 0);
+            symbols.transform.GetChild(velResult).gameObject.SetActive(true);
+            StartCoroutine(Wait());
+        }
+    }
+
+    IEnumerator Wait(){
+        yield return new WaitForSeconds(3f);
+        base.IncrementStep();
+    }
+
+    void VelocityTrack(){
+        newPos = baseObject.transform.position;
+        curVel = ((newPos - prevPos) / Time.deltaTime).magnitude;
+        prevPos = newPos;       
+        text.gameObject.transform.position = baseObject.transform.position + new Vector3(0, 0.04f, 0);
+
+        if(currentStep==2){
+            if(maxVel<curVel){
+                maxVel = curVel;
+            }    
+            if(idealReached){
+                velResult = 4;
+            }    
+            else if(curVel > maxUpperVel){
+                velResult = 2;
+            }
+            else if(curVel>idealUpperBound && curVel<maxUpperVel){
+                velResult = 3;
+            }
+            else if (curVel < idealUpperBound && curVel > idealLowerBound){
+                idealReached = true;
+            }
+            else if(curVel<idealLowerBound && curVel>minLowerVel){
+                velResult = 1;
+            }
+            else if(curVel<minLowerVel){
+                velResult = 0;
+            }
+            text.text = ("Current Vel: "+curVel.ToString() +"\nMax Vel: "+maxVel.ToString());
+        }  
+        
+        else if(currentStep<2){
+            text.text = ("Current Vel: "+curVel.ToString() +"\nMax Vel: to be calculated after home step");
+        }
     }
 
     protected virtual Vector3 GetMousePoint(Transform ball)
