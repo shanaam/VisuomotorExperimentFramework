@@ -34,6 +34,8 @@ public abstract class BilliardsTask : BaseTask
         surfaceTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
         cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
 
+        
+
         // Whether or not this is a practice trial 
         // replaces scoreboard with 'Practice Round', doesn't record score
         trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));

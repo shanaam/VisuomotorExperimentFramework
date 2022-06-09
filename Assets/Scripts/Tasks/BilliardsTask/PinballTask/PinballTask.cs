@@ -97,14 +97,21 @@ public class PinballTask : BilliardsTask
 
     private float timeBallTrackingStarts, timeHandTrackingStarts;
 
+    protected static float prevAngle = 0;
 
     void FixedUpdate()
     {
         // While the pinball is in motion
         if (currentStep == 1)
         {
+            if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
+                GetPinballAlignedPosition();
+
             // Current distance from pinball to the target
             distanceToTarget = Vector3.Distance(pinball.transform.position, pinballAlignedTargetPosition);
+
+            if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
+                DynamicTilt(distanceToTarget / TARGET_DISTANCE);
 
             // Every frame, we track the closest position the pinball has ever been to the target
             if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
@@ -525,7 +532,8 @@ public class PinballTask : BilliardsTask
         // Face firing direction and set velocity
         pinball.transform.LookAt(pinball.transform.position - direction.normalized);
 
-        if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+        if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire")
+            && !ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
             SetTilt();
 
         // Perturbation
@@ -557,16 +565,7 @@ public class PinballTask : BilliardsTask
 
         timerIndicator.GetComponent<TimerIndicator>().Cancel();
 
-        // Creates a plane parallel to the main surface
-        pPlane = new Plane(Surface.transform.up, Surface.transform.position);
-
-        // Gets the point along the surface of the plane by adding the thickness of the plane
-        Vector3 targetLocation = pPlane.ClosestPointOnPlane(Target.transform.position) +
-                                 (Surface.transform.localScale.y / 2f) * pPlane.normal;
-
-        // Adds the radius of the pinball such that the resulting point above the target is
-        // parallel to the pinball
-        pinballAlignedTargetPosition = targetLocation + (pinball.transform.localScale.x / 2f) * pPlane.normal;
+        GetPinballAlignedPosition();
 
         // Add Pinball to tracked objects
         ctrler.AddTrackedObject("pinball_path", pinball);
@@ -713,7 +712,8 @@ public class PinballTask : BilliardsTask
             pinballSpace.GetComponent<LineRenderer>().endWidth = 0.015f;
 
         // Should the tilt be shown to the participant before they release the pinball?
-        if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+        if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire")
+            && !ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
             SetTilt();
 
         if (ctrler.Session.settings.GetString("experiment_mode") != "pinball")
@@ -777,6 +777,42 @@ public class PinballTask : BilliardsTask
 
     }
 
+    private void DynamicTilt(float t)
+    {
+        //float tilt = Mathf.Lerp(-surfaceTilt, surfaceTilt, t);
+
+        float tilt = ctrler.curves.curves[5].Evaluate(t) * surfaceTilt * 2 - surfaceTilt;
+
+        Debug.Log(tilt);
+
+        Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
+        //Vector3 rot_axis = pinballSpace.transform.forward;
+
+        if (cameraTilt - surfaceTilt != 0) //If cameraTilt - surfaceTilt == 0, then per_block_list_camera_tilt is 0, and keep the camera still
+        {
+            SetTilt(pinballCam, ball_pos, pinballSpace, prevAngle);
+            SetTilt(pinballCam, ball_pos, pinballSpace, -tilt);
+        }
+        //SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, tilt);
+        //SetTilt(pinballWall, ball_pos, pinballSpace, tilt);
+
+        SetTilt(pinballSpace, ball_pos, pinballSpace, -prevAngle); //Tilt surface
+        SetTilt(pinballSpace, ball_pos, pinballSpace, tilt); //Tilt surface
+
+        prevAngle = tilt;
+
+        //Tilt VR Camera if needed
+        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+        {
+            //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
+            //   cameraTilt + surfaceTilt);
+            SetTilt(XRRig, ball_pos, pinballSpace, cameraTilt + surfaceTilt);
+            XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
+            //XRCamOffset.transform.position = new Vector3(0, -0.8f, -0.2f);
+        }
+
+    }
+
     public override void Disable()
     {
         Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
@@ -807,6 +843,22 @@ public class PinballTask : BilliardsTask
     }
 
     private Vector3 mousePoint;
+
+    // Sets pinballAlignedTargetPosition based on the target location and the normal of the surface plane.
+    public void GetPinballAlignedPosition()
+    {
+        // Creates a plane parallel to the main surface
+        pPlane = new Plane(Surface.transform.up, Surface.transform.position);
+
+        // Gets the point along the surface of the plane by adding the thickness of the plane
+        Vector3 targetLocation = pPlane.ClosestPointOnPlane(Target.transform.position) +
+                                 (Surface.transform.localScale.y / 2f) * pPlane.normal;
+
+        // Adds the radius of the pinball such that the resulting point above the target is
+        // parallel to the pinball
+        pinballAlignedTargetPosition = targetLocation + (pinball.transform.localScale.x / 2f) * pPlane.normal;
+    }
+
     void OnDrawGizmos()
     {
         /*

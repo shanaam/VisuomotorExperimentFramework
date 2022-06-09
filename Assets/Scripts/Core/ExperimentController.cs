@@ -64,6 +64,8 @@ public class ExperimentController : MonoBehaviour
     protected object prev;
     protected Dictionary<string, List<object>> lists = new Dictionary<string, List<object>>();
 
+    public CurveController curves;
+
     /// <summary>
     /// Gets the singleton instance of our experiment controller. Use it for
     /// Getting the state of the experiment (input, current trial, etc)
