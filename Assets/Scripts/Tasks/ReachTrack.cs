@@ -35,6 +35,9 @@ public class ReachTrack : ReachToTargetTask
     float minLowerVel;
     bool idealReached = false;
     bool hasPlayed = false;
+    float originalDist;
+    float curDist;
+    float fieldLength;
     // Start is called before the first frame update
     public override void Setup()
     {
@@ -54,8 +57,8 @@ public class ReachTrack : ReachToTargetTask
         timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
         scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         tint = GameObject.Find("Tint");
-        field = GameObject.Find("Field");
-        goal = field.transform.GetChild(0).transform.GetChild(0).gameObject;
+        field = GameObject.Find("soccer");
+        goal = field.transform.GetChild(0).gameObject;
         baseObject = GameObject.Find("BaseObject");
         text = baseObject.transform.GetChild(0).GetComponent<TextMeshPro>();
         text.transform.parent = reachPrefab.transform;
@@ -80,17 +83,31 @@ public class ReachTrack : ReachToTargetTask
             symbols.transform.GetChild(i).gameObject.SetActive(false);
         }
 
-        field.transform.position = targets[1].transform.position;
+        field.transform.position = new Vector3(targets[1].transform.position.x, field.transform.position.y, targets[1].transform.position.z) ;
 
         ctrler.CursorController.Model.GetComponent<MeshRenderer>().enabled = false;
 
         field.transform.rotation = Quaternion.Euler(
-            0f, -targetAngle + 90f, 0f);
+            0f, -targetAngle - 90f, 0f);
+
+        originalDist = goal.transform.position.magnitude - field.transform.position.magnitude;
 
         goal.transform.position =
         new Vector3(targets[2].transform.position.x,
         targets[2].transform.position.y - 0.005f, targets[2].transform.position.z);
         reachSurface.SetActive(true);
+
+        curDist = goal.transform.position.magnitude - field.transform.position.magnitude;
+        fieldLength = (((curDist*100)/originalDist)*0.01f)+0.2f;
+        goal.transform.parent = null;
+        field.transform.localScale = new Vector3(field.transform.localScale.x, field.transform.localScale.y, field.transform.localScale.z * fieldLength);
+
+        goal.transform.parent = field.transform;
+
+        float width = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_width");
+        field.transform.localScale = new Vector3(field.transform.localScale.x * width, field.transform.localScale.y, field.transform.localScale.z);
+        field.GetComponent<Renderer>().material.mainTextureScale = new Vector2(width * 4 , fieldLength * 18);
+
 
 
 
@@ -140,8 +157,9 @@ public class ReachTrack : ReachToTargetTask
 
         if(currentStep > 2){
             text.text = ("Max Vel: "+maxVel.ToString());
-            symbols.transform.position = goal.transform.position + new Vector3(0, 0.017f, 0);
+            symbols.transform.position = goal.transform.position + new Vector3(0, 0.07f, 0);
             symbols.transform.GetChild(velResult).gameObject.SetActive(true);
+            symbols.GetComponent<Animator>().SetTrigger("rot");
             StartCoroutine(Wait());
         }
     }
