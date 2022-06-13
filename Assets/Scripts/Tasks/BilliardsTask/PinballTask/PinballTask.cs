@@ -111,7 +111,7 @@ public class PinballTask : BilliardsTask
             distanceToTarget = Vector3.Distance(pinball.transform.position, pinballAlignedTargetPosition);
 
             if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
-                DynamicTilt(distanceToTarget / TARGET_DISTANCE);
+                DynamicTilt(1 - distanceToTarget / TARGET_DISTANCE);
 
             // Every frame, we track the closest position the pinball has ever been to the target
             if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
@@ -779,9 +779,32 @@ public class PinballTask : BilliardsTask
 
     private void DynamicTilt(float t)
     {
+        int curveType = 0;
+
+        // set up surface materials for the plane
+        switch (ctrler.Session.CurrentTrial.settings.GetString("per_block_dynamic_tilt_curve"))
+        {
+            case "default":
+                curveType = 2;
+                break;
+
+            case "sin":
+                curveType = 0;
+                break;
+
+            case "cos":
+                curveType = 1;
+                break;
+
+            case "linear":
+                curveType = 2;
+                break;
+        }
+
+
         //float tilt = Mathf.Lerp(-surfaceTilt, surfaceTilt, t);
 
-        float tilt = ctrler.curves.curves[5].Evaluate(t) * surfaceTilt * 2 - surfaceTilt;
+        float tilt = ctrler.curves.curves[curveType].Evaluate(t) * surfaceTilt * 2 - surfaceTilt;
 
         Debug.Log(tilt);
 

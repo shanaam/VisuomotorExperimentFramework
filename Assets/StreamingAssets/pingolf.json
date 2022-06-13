@@ -16,6 +16,7 @@
   "per_block_obstacle": [ null, null, null, null, null, null, null, null, null, null ],
   "per_block_instruction": [ null, null, null, null, "ins2", null, null, "ins2", null, null ],
   "per_block_surface_materials": [ null, "mat2", null, "mat1", null, "mat1", "mat2", null, "mat2", "mat1" ],
+  "per_block_dynamic_tilt_curve": [ "sin", "cos", "linear", "linear", "linear", "linear", "linear", "linear", "linear", "linear" ],
   "per_block_track_score": [ true, true, true, true, null, true, false, null, true, false ],
   "per_block_timerTime": [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
   "tl1": [ 75, 85, 95, 105 ],
