@@ -26,8 +26,8 @@
   "st1": [ -15, -15, -15, -15 ],
   "mat1": [ "default" ],
   "mat2": [ "brick" ],
-  "per_trial_dynamic_tilt": [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
-  "per_block_dynamic_tilt": [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
+  "per_trial_dynamic_tilt": [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
+
 
   "ins1": "Hello! Thank you for participating in the Pingolf task!\n\nYour goal is to get points by firing the ball so that it gets as close to the target as possible!\nBonus points for hitting the target!\n\nPull on the spring and let go to fire, but be quick!\nYou will not get any points if you take too long.\n\nThe next few trials are practice!\nTry pulling the string at different lengths and different angles to see how it behaves!",
   "ins2": "Keep trying to hit the target!",

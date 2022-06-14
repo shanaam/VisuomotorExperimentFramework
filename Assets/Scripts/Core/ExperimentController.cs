@@ -66,6 +66,8 @@ public class ExperimentController : MonoBehaviour
 
     public CurveController curves;
 
+    public GameObject room;
+
     /// <summary>
     /// Gets the singleton instance of our experiment controller. Use it for
     /// Getting the state of the experiment (input, current trial, etc)

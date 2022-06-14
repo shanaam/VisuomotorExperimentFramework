@@ -97,8 +97,6 @@ public class PinballTask : BilliardsTask
 
     private float timeBallTrackingStarts, timeHandTrackingStarts;
 
-    protected static float prevAngle = 0;
-
     void FixedUpdate()
     {
         // While the pinball is in motion
@@ -759,11 +757,13 @@ public class PinballTask : BilliardsTask
         Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
         //Vector3 rot_axis = pinballSpace.transform.forward;
 
-        SetTilt(pinballCam, ball_pos, pinballSpace, cameraTilt);
-        SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, cameraTilt);
-        SetTilt(pinballWall, ball_pos, pinballSpace, cameraTilt);
+        ctrler.room.transform.parent = pinballCam.transform.parent;
 
-        SetTilt(pinballSpace, ball_pos, pinballSpace, surfaceTilt); //Tilt surface
+        SetDynamicTilt(pinballCam.transform.parent.gameObject, cameraTilt);
+        //SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, cameraTilt);
+        //SetTilt(pinballWall, ball_pos, pinballSpace, cameraTilt);
+
+        SetDynamicTilt(Surface.transform.parent.gameObject, surfaceTilt); //Tilt surface
 
         //Tilt VR Camera if needed
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr") 
@@ -806,23 +806,24 @@ public class PinballTask : BilliardsTask
 
         float tilt = ctrler.curves.curves[curveType].Evaluate(t) * surfaceTilt * 2 - surfaceTilt;
 
+        float camtilt = ctrler.curves.curves[curveType].Evaluate(t) * cameraTilt * 2 - cameraTilt;
+
         Debug.Log(tilt);
 
         Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
         //Vector3 rot_axis = pinballSpace.transform.forward;
 
-        if (cameraTilt - surfaceTilt != 0) //If cameraTilt - surfaceTilt == 0, then per_block_list_camera_tilt is 0, and keep the camera still
-        {
-            SetTilt(pinballCam, ball_pos, pinballSpace, prevAngle);
-            SetTilt(pinballCam, ball_pos, pinballSpace, -tilt);
-        }
-        //SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, tilt);
-        //SetTilt(pinballWall, ball_pos, pinballSpace, tilt);
+        /*   if (cameraTilt - surfaceTilt == 0) //If cameraTilt - surfaceTilt == 0, then per_block_list_camera_tilt is 0, and keep the camera still
+           {
+               SetDynamicTilt(pinballCam.transform.parent.gameObject, tilt);
+           }*/
 
-        SetTilt(pinballSpace, ball_pos, pinballSpace, -prevAngle); //Tilt surface
-        SetTilt(pinballSpace, ball_pos, pinballSpace, tilt); //Tilt surface
+        ctrler.room.transform.parent = pinballCam.transform.parent;
 
-        prevAngle = tilt;
+        SetDynamicTilt(pinballCam.transform.parent.gameObject, camtilt);
+
+
+        SetDynamicTilt(Surface.transform.parent.gameObject, tilt); //Tilt surface
 
         //Tilt VR Camera if needed
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
@@ -846,6 +847,10 @@ public class PinballTask : BilliardsTask
             //    (cameraTilt + surfaceTilt) * -1);
             SetTilt(XRRig, ball_pos, pinballSpace, (cameraTilt + surfaceTilt) * -1);
         }
+
+        ctrler.room.transform.parent = null;
+        ctrler.room.transform.rotation = Quaternion.identity;
+        ctrler.room.transform.position = new Vector3(-0.13f, 0.16f, 0.21808f);
 
         pinballSpace.SetActive(false);
 
