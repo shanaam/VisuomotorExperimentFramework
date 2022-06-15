@@ -1,7 +1,7 @@
 {
   "experiment_mode": "targetTrack",
   "camera":"vr",
-  "optional_params": [],
+  "optional_params": ["vr"],
   "track_score": true,
   "per_block_type": [
     "aligned",
@@ -40,6 +40,9 @@
   ],
   "per_block_timerTime": [
     5,  1,  1,  1,  1,  1, 1, 1, 1
+  ],
+  "per_block_width": [
+    1, 0.5, 0.25, 0.75, 1, 0.1, 0.5, 0.25, 1
   ],
   "tl2": [
     60, 80,  100,  120
