@@ -38,6 +38,8 @@ public class ReachTrack : ReachToTargetTask
     float originalDist;
     float curDist;
     float fieldLength;
+    bool hasRotated = false;
+
     // Start is called before the first frame update
     public override void Setup()
     {
@@ -108,6 +110,7 @@ public class ReachTrack : ReachToTargetTask
         field.transform.localScale = new Vector3(field.transform.localScale.x * width, field.transform.localScale.y, field.transform.localScale.z);
         field.GetComponent<Renderer>().material.mainTextureScale = new Vector2(width * 4 , fieldLength * 18);
 
+        targets[2].GetComponent<BaseTarget>().CollisionModeOnly = true;
 
 
 
@@ -140,6 +143,7 @@ public class ReachTrack : ReachToTargetTask
         VelocityTrack();
 
         if(currentStep == 2){
+
             ray.transform.position = baseObject.transform.position;
             if(Physics.Raycast(ray.transform.position, -ray.transform.up, out RaycastHit hit, 0.1f)){
                 if(hit.collider.gameObject.name == "Surface" && !hasPlayed){
@@ -153,13 +157,23 @@ public class ReachTrack : ReachToTargetTask
                     hasPlayed = false;
                 }
             }
+            if (currentStep == 2 &&
+            ctrler.CursorController.PauseTime > 0.5f &&
+            Mathf.Abs(targets[2].transform.localPosition.magnitude - baseObject.transform.localPosition.magnitude) < 0.001f){
+                IncrementStep();
+            }
+                
         }
 
-        if(currentStep > 2){
+        if(currentStep > 2 && !hasRotated){
             text.text = ("Max Vel: "+maxVel.ToString());
-            symbols.transform.position = goal.transform.position + new Vector3(0, 0.07f, 0);
-            symbols.transform.GetChild(velResult).gameObject.SetActive(true);
-            symbols.GetComponent<Animator>().SetTrigger("rot");
+            symbols.transform.position = goal.transform.position + new Vector3(0, 0.02f, 0);
+            GameObject speedometer = symbols.transform.GetChild(0).gameObject;
+            speedometer.SetActive(true);
+            speedometer.transform.GetChild(0).transform.Rotate (0, velResult, 0);
+            hasRotated = true;
+            
+            //symbols.GetComponent<Animator>().SetTrigger("rot");
             StartCoroutine(Wait());
         }
     }
@@ -180,22 +194,24 @@ public class ReachTrack : ReachToTargetTask
                 maxVel = curVel;
             }    
             if(idealReached){
-                velResult = 4;
+                velResult = 0;
             }    
-            else if(curVel > maxUpperVel){
-                velResult = 2;
+            else if(maxVel > maxUpperVel){
+                velResult = 75;
             }
-            else if(curVel>idealUpperBound && curVel<maxUpperVel){
-                velResult = 3;
+            else if(maxVel>idealUpperBound && maxVel<maxUpperVel){
+                velResult = 35;
             }
-            else if (curVel < idealUpperBound && curVel > idealLowerBound){
+            else if (maxVel < idealUpperBound && maxVel > idealLowerBound){
                 idealReached = true;
             }
-            else if(curVel<idealLowerBound && curVel>minLowerVel){
-                velResult = 1;
+            else if(maxVel<idealLowerBound && maxVel>minLowerVel){
+                velResult = -35;
+                Debug.Log("attention"+velResult);
+                
             }
-            else if(curVel<minLowerVel){
-                velResult = 0;
+            else if(maxVel<minLowerVel){
+                velResult = -75;
             }
             text.text = ("Current Vel: "+curVel.ToString() +"\nMax Vel: "+maxVel.ToString());
         }  
