@@ -68,6 +68,7 @@ public class ReachTrack : ReachToTargetTask
         sound = baseObject.GetComponent<AudioSource>();
         ray = GameObject.Find("Ray");
 
+
         newPos = base.transform.position;
         prevPos = base.transform.position;
 

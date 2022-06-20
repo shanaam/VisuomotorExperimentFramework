@@ -35,7 +35,7 @@ public class ReachToTargetTask : BaseTask
 
     public void Update()
     {
-        if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
+        //'if (!trackScore) scoreboard.ManualScoreText = "Practice Round";
 
         if (Input.GetKeyDown(KeyCode.N))
             IncrementStep();
@@ -155,13 +155,13 @@ public class ReachToTargetTask : BaseTask
         // replaces scoreboard with 'Practice Round', doesn't record score
         trackScore = (ctrler.Session.CurrentBlock.settings.GetBool("per_block_track_score"));
 
-        if (!trackScore)
-        {
-            // Scoreboard is now updated by the reach class
-            scoreboard.AllowManualSet = true;
-            scoreboard.ScorePrefix = false;
-            scoreboard.ManualScoreText = "Practice Round";
-        }
+        // if (!trackScore)
+        // {
+        //     // Scoreboard is now updated by the reach class
+        //     scoreboard.AllowManualSet = true;
+        //     scoreboard.ScorePrefix = false;
+        //     scoreboard.ManualScoreText = "Practice Round";
+        // }
 
         Enum.TryParse(ctrler.Session.CurrentTrial.settings.GetString("per_block_type"), 
             out MovementType rType);
@@ -212,7 +212,7 @@ public class ReachToTargetTask : BaseTask
         if (ctrler.Session.settings.GetString("camera") == "vr")
         {
             reachSurface.SetActive(false);
-            reachCam.SetActive(false);
+            //reachCam.SetActive(false);
             ctrler.CursorController.UseVR = true;
         }
         else
