@@ -71,7 +71,7 @@ public class CursorController : MonoBehaviour
         List<InputDevice> devices = new List<InputDevice>();
         //InputDevices.GetDevices(devices);
 
-        InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right, devices);
+/*        InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right, devices);
         if (devices.Count > 0)
         {
             RightHandDevice = devices[0];
@@ -94,7 +94,7 @@ public class CursorController : MonoBehaviour
         else
         {
             Debug.Log("No devices detected.");
-        }
+        }*/
 
 
         vrCamera = GameObject.Find("Main Camera");
@@ -116,6 +116,40 @@ public class CursorController : MonoBehaviour
         //}
 
         MoveType = MovementType.aligned;
+    }
+
+    void Update()
+    {
+        if (true)
+        {
+
+            List<InputDevice> devices = new List<InputDevice>();
+
+            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right, devices);
+            if (devices.Count > 0)
+            {
+                RightHandDevice = devices[0];
+                Debug.Log("Detecting devices...");
+                Debug.Log("Found Right Device: " + RightHandDevice);
+            }
+            else
+            {
+                Debug.Log("No devices detected.");
+            }
+
+
+            InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Left, devices);
+            if (devices.Count > 0)
+            {
+                LeftHandDevice = devices[0];
+                Debug.Log("Detecting devices...");
+                Debug.Log("Found Left Device: " + LeftHandDevice);
+            }
+            else
+            {
+                Debug.Log("No devices detected.");
+            }
+        }
     }
 
     public bool IsTriggerDown()

@@ -31,7 +31,8 @@ public class ReachToTargetTask : BaseTask
     protected LTDescr d;
     protected float targetAngle;
 
-    private bool trackScore;
+    protected bool trackScore;
+    protected bool hasTimer;
 
     public void Update()
     {
@@ -78,7 +79,10 @@ public class ReachToTargetTask : BaseTask
                 ctrler.CursorController.SetMovementType(reachType[2]);
 
                 // Start green timer bar
-                timerIndicator.BeginTimer();
+                if(hasTimer){
+                    timerIndicator.BeginTimer();
+                }
+                
 
                 if (trial.settings.GetString("per_block_type") == "nocursor")
                     ctrler.CursorController.SetCursorVisibility(false);
@@ -93,7 +97,7 @@ public class ReachToTargetTask : BaseTask
 
                 break;
             case 2:
-                if (trackScore && timerIndicator.Timer > 0)
+                if (trackScore && ctrler.Session.settings.GetString("experiment_mode") != "targetTrack")
                 {
                     ctrler.Score++;
                 }
@@ -149,7 +153,11 @@ public class ReachToTargetTask : BaseTask
              tint.SetActive(false);
          }
 
-         timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+         if(hasTimer){
+            timerIndicator.Timer = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_timerTime");
+         }
+
+         
 
         // Whether or not this is a practice trial 
         // replaces scoreboard with 'Practice Round', doesn't record score
@@ -212,7 +220,7 @@ public class ReachToTargetTask : BaseTask
         if (ctrler.Session.settings.GetString("camera") == "vr")
         {
             reachSurface.SetActive(false);
-            reachCam.SetActive(false);
+            //reachCam.SetActive(false);
             ctrler.CursorController.UseVR = true;
         }
         else

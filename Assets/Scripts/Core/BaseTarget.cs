@@ -59,7 +59,7 @@ public class BaseTarget : MonoBehaviour
                     AdvanceStep();
                     break;
                 default:
-                    Debug.LogWarning("Tag not implemented, see BaseTarget.cs");
+                    //Debug.LogWarning("Tag not implemented, see BaseTarget.cs");
                     break;
             }
         }
