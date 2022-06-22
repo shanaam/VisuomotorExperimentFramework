@@ -16,6 +16,7 @@ public class ReachTrack : ReachToTargetTask
     protected AudioSource sound;
     protected GameObject ray;
     protected List<UnityEngine.XR.InputDevice> devices = new List<UnityEngine.XR.InputDevice>();
+    GameObject speedometer;
 
     Vector3 vel = new Vector3();
     Vector3 prev = new Vector3();
@@ -39,6 +40,7 @@ public class ReachTrack : ReachToTargetTask
     float curDist;
     float fieldLength;
     bool hasRotated = false;
+    int scoreTrack;
 
     // Start is called before the first frame update
     public override void Setup()
@@ -56,7 +58,6 @@ public class ReachTrack : ReachToTargetTask
 
         reachCam = GameObject.Find("ReachCamera");
         reachSurface = GameObject.Find("Surface");
-        timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
         scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         tint = GameObject.Find("Tint");
         field = GameObject.Find("soccer");
@@ -64,9 +65,10 @@ public class ReachTrack : ReachToTargetTask
         baseObject = GameObject.Find("BaseObject");
         text = baseObject.transform.GetChild(0).GetComponent<TextMeshPro>();
         text.transform.parent = reachPrefab.transform;
-        symbols = GameObject.Find("Symbols");   
         sound = baseObject.GetComponent<AudioSource>();
         ray = GameObject.Find("Ray");
+        speedometer = GameObject.Find("speedometer");
+        speedometer.transform.parent = field.transform;
 
 
         newPos = base.transform.position;
@@ -82,16 +84,20 @@ public class ReachTrack : ReachToTargetTask
 
         SetSetup();
 
-        for(int i = 0; i < symbols.transform.childCount; i++){
-            symbols.transform.GetChild(i).gameObject.SetActive(false);
-        }
-
         field.transform.position = new Vector3(targets[1].transform.position.x, field.transform.position.y, targets[1].transform.position.z) ;
 
         ctrler.CursorController.Model.GetComponent<MeshRenderer>().enabled = false;
 
         field.transform.rotation = Quaternion.Euler(
             0f, -targetAngle - 90f, 0f);
+
+        
+         if (ctrler.Session.settings.GetString("camera") != "vr"){
+            speedometer.transform.rotation = Quaternion.Euler(90, 0, 0);
+         }
+        speedometer.transform.parent = reachPrefab.transform;
+        speedometer.transform.localScale = new Vector3(0.04f, 0.04f, 0.04f);
+        speedometer.SetActive(false);
 
         originalDist = goal.transform.position.magnitude - field.transform.position.magnitude;
 
@@ -112,6 +118,10 @@ public class ReachTrack : ReachToTargetTask
         field.GetComponent<Renderer>().material.mainTextureScale = new Vector2(width * 4 , fieldLength * 18);
 
         targets[2].GetComponent<BaseTarget>().CollisionModeOnly = true;
+
+        
+        
+        //speedometer.SetActive(false);
 
 
 
@@ -149,6 +159,7 @@ public class ReachTrack : ReachToTargetTask
             if(Physics.Raycast(ray.transform.position, -ray.transform.up, out RaycastHit hit, 0.1f)){
                 if(hit.collider.gameObject.name == "Surface" && !hasPlayed){
                     baseObject.GetComponent<Renderer>().material.color = Color.gray;
+                    sound.clip = ctrler.AudioClips["incorrect"];
                     sound.Play();
                     hasPlayed = true;
                     VibrateController(0, 0.34f, 0.15f, devices);
@@ -159,8 +170,13 @@ public class ReachTrack : ReachToTargetTask
                 }
             }
             if (currentStep == 2 &&
-            ctrler.CursorController.PauseTime > 0.5f &&
+            ctrler.CursorController.PauseTime > 0.3f &&
             Mathf.Abs(targets[2].transform.localPosition.magnitude - baseObject.transform.localPosition.magnitude) < 0.001f){
+                sound.clip = ctrler.AudioClips["correct"];
+                sound.Play();
+                if(trackScore){
+                    ctrler.Score += scoreTrack;
+                }
                 IncrementStep();
             }
                 
@@ -168,11 +184,17 @@ public class ReachTrack : ReachToTargetTask
 
         if(currentStep > 2 && !hasRotated){
             text.text = ("Max Vel: "+maxVel.ToString());
-            symbols.transform.position = goal.transform.position + new Vector3(0, 0.02f, 0);
-            GameObject speedometer = symbols.transform.GetChild(0).gameObject;
+            speedometer.transform.position = goal.transform.position + new Vector3(0, 0.02f, 0);           
             speedometer.SetActive(true);
             speedometer.transform.GetChild(0).transform.Rotate (0, velResult, 0);
             hasRotated = true;
+
+            if(trackScore){
+                speedometer.GetComponentInChildren<TextMeshPro>().text = "+" + scoreTrack.ToString();
+            }
+            else {
+                speedometer.GetComponentInChildren<TextMeshPro>().text = "";
+            }
             
             //symbols.GetComponent<Animator>().SetTrigger("rot");
             StartCoroutine(Wait());
@@ -192,27 +214,30 @@ public class ReachTrack : ReachToTargetTask
 
         if(currentStep==2){
             if(maxVel<curVel){
-                maxVel = curVel;
+                maxVel = curVel;               
             }    
             if(idealReached){
-                velResult = 0;
+                velResult = 0;               
             }    
             else if(maxVel > maxUpperVel){
                 velResult = 75;
+                scoreTrack = 1;
             }
             else if(maxVel>idealUpperBound && maxVel<maxUpperVel){
                 velResult = 35;
+                scoreTrack = 2;
             }
             else if (maxVel < idealUpperBound && maxVel > idealLowerBound){
                 idealReached = true;
+                scoreTrack = 5;
             }
             else if(maxVel<idealLowerBound && maxVel>minLowerVel){
                 velResult = -35;
-                Debug.Log("attention"+velResult);
-                
+                scoreTrack = 2;            
             }
             else if(maxVel<minLowerVel){
                 velResult = -75;
+                scoreTrack = 1;
             }
             text.text = ("Current Vel: "+curVel.ToString() +"\nMax Vel: "+maxVel.ToString());
         }  
