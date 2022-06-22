@@ -1,6 +1,6 @@
 {
   "experiment_mode": "targetTrack",
-  "camera":"non vr",
+  "camera":"vr",
   "optional_params": ["vr"],
   "track_score": true,
   "per_block_type": [

@@ -1438,8 +1438,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Model: {fileID: 2095615159}
   triggerUp: 0
-  LeftHand: {fileID: 734581677}
-  RightHand: {fileID: 1116743203}
+  LeftHand: {fileID: 641553106}
+  RightHand: {fileID: 1214970203}
   prevVelocity: {x: 0, y: 0, z: 0}
   UseVR: 0
 --- !u!1 &705507993
