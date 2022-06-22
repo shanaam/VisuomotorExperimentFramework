@@ -32,7 +32,7 @@ public abstract class BilliardsTask : BaseTask
 
         cameraTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
         surfaceTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
-        cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
+        //cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
 
         // Whether or not this is a practice trial 
         // replaces scoreboard with 'Practice Round', doesn't record score
@@ -69,13 +69,27 @@ public abstract class BilliardsTask : BaseTask
     protected static void SetTilt(GameObject obj, Vector3 point, GameObject axis, float angle)
     {
         // Decouple object from parent
-        Transform parent = obj.transform.parent;
-        obj.transform.SetParent(null);
+                Transform parent = obj.transform.parent;
+                obj.transform.SetParent(null);
 
-        obj.transform.RotateAround(point, axis.transform.forward, angle);
-        
-        // Reparent obj
-        obj.transform.SetParent(parent);
+                obj.transform.RotateAround(point, axis.transform.forward, angle);
+
+                // Reparent obj
+                obj.transform.SetParent(parent);
+    }
+
+    protected static void SetDynamicTilt(GameObject obj, float angle)
+    {
+        // Decouple object from parent
+        /*        Transform parent = obj.transform.parent;
+                obj.transform.SetParent(null);
+
+                obj.transform.RotateAround(point, axis.transform.forward, angle);
+
+                // Reparent obj
+                obj.transform.SetParent(parent);*/
+
+        obj.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     protected virtual void SetSurfaceMaterial(Material material)
