@@ -823,15 +823,15 @@ public class PinballTask : BilliardsTask
 
         SetDynamicTilt(Surface.transform.parent.gameObject, tilt); //Tilt surface
 
-        /*//Tilt VR Camera if needed
+        //Tilt VR Camera if needed
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
         {
             //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
             //   cameraTilt + surfaceTilt);
-            SetTilt(XRRig, ball_pos, pinballSpace, cameraTilt + surfaceTilt);
+            SetDynamicTilt(XRRig, camtilt);
             XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
             //XRCamOffset.transform.position = new Vector3(0, -0.8f, -0.2f);
-        }*/
+        }
 
     }
 
@@ -843,7 +843,7 @@ public class PinballTask : BilliardsTask
         {
             //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
             //    (cameraTilt + surfaceTilt) * -1);
-            SetTilt(XRRig, ball_pos, pinballSpace, (cameraTilt + surfaceTilt) * -1);
+            SetTilt(XRRig, ball_pos, pinballSpace, cameraTilt * -1);
         }
 
         ctrler.room.transform.parent = null;
