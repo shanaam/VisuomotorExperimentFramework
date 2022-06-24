@@ -99,7 +99,7 @@ public class CursorController : MonoBehaviour
 
         vrCamera = GameObject.Find("Main Camera");
 
-        
+        Debug.Log(vrCamera);
         //foreach (InputDevice device in devices)
         //{
         //    switch (device.characteristics)
