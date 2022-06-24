@@ -367,7 +367,7 @@ public class PinballTask : BilliardsTask
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path"))
                 {
                     pinballPoints.Add(pinball.transform.position);
-                    dynamicTiltRotations.Add(Surface.transform.parent.transform.rotation.eulerAngles.z);
+                    dynamicTiltRotations.Add(Surface.transform.parent.rotation.eulerAngles.z);
                 }
 
                 break;
@@ -461,7 +461,7 @@ public class PinballTask : BilliardsTask
                             }
                             pinball.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
                             pinball.GetComponent<LineRenderer>().SetPositions(pinballPointsRelative.ToArray());
-                            DynamicTilt(0);
+                            DynamicTilt(0); //tilt surface back to initial position - flat
                         }
 
                         
@@ -879,7 +879,7 @@ public class PinballTask : BilliardsTask
         //camtilt = tilt * cameraTilt;
         tilt *= surfaceTilt;
 
-        dynamicTiltRotations.Add(tilt);
+        //dynamicTiltRotations.Add(tilt);
 
         // Evaluate where on the curve t is, then multiply with tilt
         //float tilt = ctrler.curves.curves[curveType].Evaluate(t) * surfaceTilt * 2 - surfaceTilt;
