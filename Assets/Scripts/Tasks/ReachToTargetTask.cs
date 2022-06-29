@@ -217,10 +217,10 @@ public class ReachToTargetTask : BaseTask
         Target = targets[2];
 
         // Use static camera for non-vr version
-        if (ctrler.Session.settings.GetString("camera") == "vr")
+        if (ctrler.Session.settings.GetObjectList("optional_params").Contains("vr"))
         {
             reachSurface.SetActive(false);
-            //reachCam.SetActive(false);
+            reachCam.SetActive(false);
             ctrler.CursorController.UseVR = true;
         }
         else
@@ -242,7 +242,7 @@ public class ReachToTargetTask : BaseTask
         reachPrefab.transform.SetParent(ctrler.transform);
         reachPrefab.transform.localPosition = new Vector3(0,-0.8f,0);
 
-        reachCam = GameObject.Find("ReachCamera");
+        reachCam = GameObject.Find("ReachCam");
         reachSurface = GameObject.Find("Surface");
         water = GameObject.Find("Water");
         timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
@@ -315,7 +315,7 @@ public class ReachToTargetTask : BaseTask
     {
         reachPrefab.SetActive(false);
 
-        ctrler.CursorController.SetVRCamera(true);
+        //ctrler.CursorController.SetVRCamera(true);
     }
 
     protected override void OnDestroy()
