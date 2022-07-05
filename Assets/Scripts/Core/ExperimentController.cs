@@ -726,4 +726,20 @@ public class ExperimentController : MonoBehaviour
         Session.CurrentTrial.result[key + "_y"] = position.y;
         Session.CurrentTrial.result[key + "_z"] = position.z;
     }
+
+    public void LogVector3List(string key, List<Vector3> positions)
+    {
+        var list = positions;
+
+        // For each element (Select), remove scientific notation and round to 6 decimal places.
+        // Then join all these numbers separated by a comma
+        Session.CurrentTrial.result[key + "_x"] =
+            string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
+
+        Session.CurrentTrial.result[key + "_y"] =
+            string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));
+
+        Session.CurrentTrial.result[key + "_z"] =
+            string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
+    }
 }

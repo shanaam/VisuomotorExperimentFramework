@@ -654,7 +654,9 @@ public class PinballTask : BilliardsTask
         ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeBallTrackingStarts;
         ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeHandTrackingStarts;
 
-        ctrler.Session.CurrentTrial.result["dynamic_tilt_rotations"] = dynamicTiltRotations.ToString();
+        Vector3[] list = new Vector3[line.positionCount];
+        line.GetPositions(list);
+        ctrler.LogVector3List("relative_pinball_path", new List<Vector3>(list));
     }
 
     public override void Setup()
