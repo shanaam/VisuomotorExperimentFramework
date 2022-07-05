@@ -88,12 +88,12 @@ public class ReachToTargetTask : BaseTask
                     ctrler.CursorController.SetCursorVisibility(false);
 
                 // Add trackers: current hand position, cursor position
-                ctrler.AddTrackedObject("hand_path",
+                ctrler.AddTrackedPosition("hand_path",
                     ctrler.Session.CurrentTrial.settings.GetString("per_block_hand") == "l"
                         ? ctrler.CursorController.LeftHand
                         : ctrler.CursorController.RightHand);
 
-                ctrler.AddTrackedObject("cursor_path", ctrler.CursorController.gameObject);
+                ctrler.AddTrackedPosition("cursor_path", ctrler.CursorController.gameObject);
 
                 break;
             case 2:

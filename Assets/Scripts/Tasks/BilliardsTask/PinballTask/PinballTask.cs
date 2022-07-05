@@ -457,7 +457,6 @@ public class PinballTask : BilliardsTask
                             for (int i = 0; i < pinballPoints.Count; i++)
                             {
                                 pinballPointsRelative.Add(RotatePointAroundPivot(pinballPoints[i], Surface.transform.parent.position, -dynamicTiltRotations[i]));
-                                //pinballPointsRelative.Add(new Vector3(pinballPoints[i].x, 0.075f + 0.5606004f, pinballPoints[i].z));
                             }
                             pinball.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
                             pinball.GetComponent<LineRenderer>().SetPositions(pinballPointsRelative.ToArray());
@@ -606,7 +605,8 @@ public class PinballTask : BilliardsTask
         GetPinballTargetAlignedPosition();
 
         // Add Pinball to tracked objects
-        ctrler.AddTrackedObject("pinball_path", pinball);
+        ctrler.AddTrackedPosition("pinball_path", pinball);
+        ctrler.AddTrackedRotation("surface_tilt", Surface.transform.parent.gameObject);
         timeBallTrackingStarts = Time.time;
 
         IncrementStep();
@@ -784,7 +784,7 @@ public class PinballTask : BilliardsTask
         }
 
         // Start tracking hand pos
-        ctrler.AddTrackedObject("hand", ctrler.CursorController.CurrentHand());
+        ctrler.AddTrackedPosition("hand", ctrler.CursorController.CurrentHand());
         timeHandTrackingStarts = Time.time;
 
         // set up surface materials for the plane
