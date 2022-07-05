@@ -103,6 +103,8 @@ public class PinballTask : BilliardsTask
 
     private float timeBallTrackingStarts, timeHandTrackingStarts;
 
+    public LineRenderer line;
+
     void FixedUpdate()
     {
         // While the pinball is in motion
@@ -384,9 +386,7 @@ public class PinballTask : BilliardsTask
                     {
                         if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path"))
                         {
-                            pinballSpace.GetComponent<LineRenderer>().startColor =
-                                pinballSpace.GetComponent<LineRenderer>().endColor =
-                                    Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
+                            line.startColor = line.endColor = Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
 
                             if (!missed)
                             {
@@ -449,8 +449,8 @@ public class PinballTask : BilliardsTask
                         pinball.GetComponent<Rigidbody>().isKinematic = true;
 
                         // Set pinball trail
-                        pinballSpace.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
-                        pinballSpace.GetComponent<LineRenderer>().SetPositions(pinballPoints.ToArray());
+                        line.positionCount = pinballPoints.Count;
+                        line.SetPositions(pinballPoints.ToArray());
 
                         if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
                         {
@@ -458,8 +458,7 @@ public class PinballTask : BilliardsTask
                             {
                                 pinballPointsRelative.Add(RotatePointAroundPivot(pinballPoints[i], Surface.transform.parent.position, -dynamicTiltRotations[i]));
                             }
-                            pinball.GetComponent<LineRenderer>().positionCount = pinballPoints.Count;
-                            pinball.GetComponent<LineRenderer>().SetPositions(pinballPointsRelative.ToArray());
+                            line.SetPositions(pinballPointsRelative.ToArray());
                             DynamicTilt(0); //tilt surface back to initial position - flat
                         }
 
@@ -472,8 +471,7 @@ public class PinballTask : BilliardsTask
                         }
                         else
                         {
-                            pinball.transform.position = pinballSpace.GetComponent<LineRenderer>().GetPosition(
-                                pinballSpace.GetComponent<LineRenderer>().positionCount - 1);
+                            pinball.transform.position = line.GetPosition(line.positionCount - 1);
                         }
                     }
                     else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path") &&
@@ -747,16 +745,10 @@ public class PinballTask : BilliardsTask
         pinballSpace.transform.SetParent(ctrler.transform);
         pinballSpace.transform.localPosition = Vector3.zero;
 
+        line = GameObject.Find("DefaultLine").GetComponent<LineRenderer>();
+
         // Setup line renderer for pinball path
-        pinballSpace.GetComponent<LineRenderer>().startWidth =
-            pinballSpace.GetComponent<LineRenderer>().endWidth = 0.015f;
-
-        pinball.GetComponent<LineRenderer>().startWidth =
-    pinball.GetComponent<LineRenderer>().endWidth = 0.015f;
-
-        pinball.GetComponent<LineRenderer>().startColor =
-                                pinball.GetComponent<LineRenderer>().endColor = Color.blue;
-
+        line.startWidth = line.endWidth = 0.015f;
 
         // Should the tilt be shown to the participant before they release the pinball?
         if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire")
