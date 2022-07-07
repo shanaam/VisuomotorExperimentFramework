@@ -474,8 +474,7 @@ public class PinballTask : BilliardsTask
                             pinball.transform.position = line.GetPosition(line.positionCount - 1);
                         }
                     }
-                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path") &&
-                             !enteredTarget)
+                    else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_show_path") && !enteredTarget)
                     {
                         // Add points to show feedback past the target only if they missed
                         // Points along the path are not added if they hit the target
@@ -494,20 +493,10 @@ public class PinballTask : BilliardsTask
         if (Finished) ctrler.EndAndPrepare();
     }
 
-   /* public Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, float angle)
-    {
-        return Quaternion.Euler(new Vector3(0, 0, angle)) * (point - pivot) + pivot;
-    }*/
-
     public Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, float angle)
     {
-        Vector3 dir = point - pivot; // get point direction relative to pivot
-        dir = Quaternion.Euler(new Vector3(0, 0, angle)) * dir; // rotate it
-        point = dir + pivot; // calculate rotated point
-        return point; // return it
+        return Quaternion.Euler(new Vector3(0, 0, angle)) * (point - pivot) + pivot;
     }
-
-
     private void FlickPinball()
     {
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
@@ -654,9 +643,30 @@ public class PinballTask : BilliardsTask
         ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeBallTrackingStarts;
         ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeHandTrackingStarts;
 
-        Vector3[] list = new Vector3[line.positionCount];
+        /*Vector3[] list = new Vector3[line.positionCount];
         line.GetPositions(list);
-        ctrler.LogVector3List("relative_pinball_path", new List<Vector3>(list));
+        ctrler.LogVector3List("relative_pinball_path", new List<Vector3>(list));*/
+
+        pinballPointsRelative.Clear();
+        for (int i = 0; i < ctrler.trackedPositionPath["pinball_path"].Count; i++)
+        {
+            float tilt = 0;
+            float surfaceTiltZ = ctrler.trackedRotationPath["surface_tilt"][i].z;
+
+
+            if (surfaceTiltZ > 180)
+            {
+                tilt = 360 - surfaceTiltZ;
+            }
+            else
+            {
+                tilt = surfaceTiltZ;
+            }
+            
+            pinballPointsRelative.Add(RotatePointAroundPivot(ctrler.trackedPositionPath["pinball_path"][i], Surface.transform.parent.position, -tilt));
+        }
+
+        ctrler.LogVector3List("relative_pinball_path", pinballPointsRelative);
     }
 
     public override void Setup()

@@ -53,10 +53,10 @@ public class ExperimentController : MonoBehaviour
 
     // Used for object tracking
     public bool IsTracking = true;
-    private Dictionary<string, GameObject> trackedPositions = new Dictionary<string, GameObject>();
-    private Dictionary<string, List<Vector3>> trackedPositionPath = new Dictionary<string, List<Vector3>>();
-    private Dictionary<string, GameObject> trackedRotations = new Dictionary<string, GameObject>();
-    private Dictionary<string, List<Vector3>> trackedRotationPath = new Dictionary<string, List<Vector3>>();
+    public Dictionary<string, GameObject> trackedPositions = new Dictionary<string, GameObject>();
+    public Dictionary<string, List<Vector3>> trackedPositionPath = new Dictionary<string, List<Vector3>>();
+    public Dictionary<string, GameObject> trackedRotations = new Dictionary<string, GameObject>();
+    public Dictionary<string, List<Vector3>> trackedRotationPath = new Dictionary<string, List<Vector3>>();
     private List<float> trackingTimestamps = new List<float>();
 
     // Used to track when a step has been incremented
@@ -407,19 +407,7 @@ public class ExperimentController : MonoBehaviour
         {
             if (trackedPositionPath[key].Count == 0) continue;
 
-            // Add each vector and its components separated by commas
-            var list = trackedPositionPath[key];
-
-            // For each element (Select), remove scientific notation and round to 6 decimal places.
-            // Then join all these numbers separated by a comma
-            Session.CurrentTrial.result[key + "_x"] =
-                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
-
-            Session.CurrentTrial.result[key + "_y"] =
-                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));
-
-            Session.CurrentTrial.result[key + "_z"] =
-                string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
+            LogVector3List(key, trackedPositionPath[key]);
         }
 
         // Tracked Rotation logging
@@ -427,19 +415,7 @@ public class ExperimentController : MonoBehaviour
         {
             if (trackedRotationPath[key].Count == 0) continue;
 
-            // Add each vector and its components separated by commas
-            var list = trackedRotationPath[key];
-
-            // For each element (Select), remove scientific notation and round to 6 decimal places.
-            // Then join all these numbers separated by a comma
-            Session.CurrentTrial.result[key + "_x"] =
-                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
-
-            Session.CurrentTrial.result[key + "_y"] =
-                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));
-
-            Session.CurrentTrial.result[key + "_z"] =
-                string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
+            LogVector3List(key, trackedRotationPath[key]);
         }
 
         // Timestamps for tracked objects
