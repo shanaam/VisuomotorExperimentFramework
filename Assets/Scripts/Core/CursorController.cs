@@ -445,7 +445,8 @@ public class CursorController : MonoBehaviour
         }
         else
         {
-            vrCamera.GetComponent<TrackedPoseDriver>().enabled = false;
+            //Debug.Log(vrCamera.name);
+            //vrCamera.GetComponent<TrackedPoseDriver>().enabled = false;
             vrCamera.SetActive(false);
         }
     }
