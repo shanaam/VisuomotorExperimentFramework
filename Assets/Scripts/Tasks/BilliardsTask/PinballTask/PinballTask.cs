@@ -119,7 +119,16 @@ public class PinballTask : BilliardsTask
 
             // if dynamic, update tilt each frame
             if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
-                DynamicTilt(1 - distanceToTarget / TARGET_DISTANCE);
+            {
+                // Dynamic tilt based on distance
+                //DynamicTilt(1 - distanceToTarget / TARGET_DISTANCE); 
+
+                // Dynamic tilt based on speed (max speed of 3 in non vr)
+                //DynamicTilt(1 - pinball.GetComponent<Rigidbody>().velocity.magnitude / 3);
+
+                // Dynamic tilt based on time 
+                DynamicTilt(trialTimer / MAX_TRIAL_TIME);
+            }
 
             // Every frame, we track the closest position the pinball has ever been to the target
             if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
@@ -467,7 +476,10 @@ public class PinballTask : BilliardsTask
                         // Set transform
                         if (enteredTarget)
                         {
-                            pinball.transform.position = lastPositionInTarget;
+                            if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
+                                pinball.transform.position = RotatePointAroundPivot(lastPositionInTarget, Surface.transform.parent.position, -dynamicTiltRotations[dynamicTiltRotations.Count-1]);
+                            else
+                                pinball.transform.position = lastPositionInTarget;
                         }
                         else
                         {
