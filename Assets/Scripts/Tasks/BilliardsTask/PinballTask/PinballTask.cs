@@ -643,30 +643,29 @@ public class PinballTask : BilliardsTask
         ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeBallTrackingStarts;
         ctrler.Session.CurrentTrial.result["tracking_start_time"] = timeHandTrackingStarts;
 
-        /*Vector3[] list = new Vector3[line.positionCount];
-        line.GetPositions(list);
-        ctrler.LogVector3List("relative_pinball_path", new List<Vector3>(list));*/
 
-        pinballPointsRelative.Clear();
-        for (int i = 0; i < ctrler.trackedPositionPath["pinball_path"].Count; i++)
+        if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
         {
-            float tilt = 0;
-            float surfaceTiltZ = ctrler.trackedRotationPath["surface_tilt"][i].z;
 
+            pinballPointsRelative.Clear();
+            for (int i = 0; i < ctrler.trackedPositionPath["pinball_path"].Count; i++)
+            {
+                float tilt;
+                float surfaceTiltZ = ctrler.trackedRotationPath["surface_tilt"][i].z;
 
-            if (surfaceTiltZ > 180)
-            {
-                tilt = 360 - surfaceTiltZ;
+                if (surfaceTiltZ > 180)
+                {
+                    tilt = 360 - surfaceTiltZ;
+                }
+                else
+                {
+                    tilt = surfaceTiltZ;
+                }
+
+                pinballPointsRelative.Add(RotatePointAroundPivot(ctrler.trackedPositionPath["pinball_path"][i], Surface.transform.parent.position, -tilt));
             }
-            else
-            {
-                tilt = surfaceTiltZ;
-            }
-            
-            pinballPointsRelative.Add(RotatePointAroundPivot(ctrler.trackedPositionPath["pinball_path"][i], Surface.transform.parent.position, -tilt));
+            ctrler.LogVector3List("relative_pinball_path", pinballPointsRelative);
         }
-
-        ctrler.LogVector3List("relative_pinball_path", pinballPointsRelative);
     }
 
     public override void Setup()
@@ -727,7 +726,7 @@ public class PinballTask : BilliardsTask
             pinballCam.transform.position = pinballCamOffset;
             pinballCam.transform.rotation = Quaternion.Euler(pinballAngle, 0f, 0f);
 
-            //ctrler.CursorController.SetVRCamera(false);
+            ctrler.CursorController.SetVRCamera(false);
         }
         else
         {

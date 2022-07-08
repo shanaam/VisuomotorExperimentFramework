@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SpatialTracking;
+//using UnityEngine.SpatialTracking;
 using UnityEngine.XR;
 using UXF;
 using CommonUsages = UnityEngine.XR.CommonUsages;
 using InputDevice = UnityEngine.XR.InputDevice;
+using UnityEngine.InputSystem.XR;
 
 public class CursorController : MonoBehaviour
 {
