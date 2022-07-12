@@ -20,7 +20,7 @@
 
     "per_block_visual_feedback": [ true, true, true ],
 
-    "per_block_surface_materials": [ "fabric", "ice", "fabric" ],
+    "per_block_surface_materials": [ "fabric", "default", "ice" ],
 
     "per_block_list_triggerType": [ "tt1", "tt1", "tt1" ],
 

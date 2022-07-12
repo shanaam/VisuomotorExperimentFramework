@@ -13,7 +13,6 @@ public class ToolTask : BilliardsTask
 
     protected GameObject toolSpace;
     protected GameObject toolCamera;
-    protected GameObject grid;
 
     private GameObject currentHand;
     private GameObject handL, handR;
@@ -390,7 +389,6 @@ public class ToolTask : BilliardsTask
 
         Target = GameObject.Find("Target");
         toolCamera = GameObject.Find("ToolCamera");
-        grid = GameObject.Find("Grid");
         handL = GameObject.Find("handL");
         handR = GameObject.Find("handR");
         XRRig = GameObject.Find("XR Rig");
@@ -509,13 +507,18 @@ public class ToolTask : BilliardsTask
         switch (ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials"))
         {
             case "fabric":
-                grid.SetActive(false);
+
                 base.SetSurfaceMaterial(ctrler.Materials["GrassMaterial"]);
+                base.ToggleGrid();
                 break;
 
             case "ice":
-                grid.SetActive(false);
+                
                 base.SetSurfaceMaterial(ctrler.Materials["Ice"]);
+                base.ToggleGrid();
+                break;
+
+            default:
                 break;
         }
     }
@@ -549,15 +552,19 @@ public class ToolTask : BilliardsTask
     {
         Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
 
-        SetTilt(toolCamera, ball_pos, toolSpace, cameraTilt);
+        ctrler.room.transform.parent = toolCamera.transform.parent;
+
         //SetTilt(bonusText.transform.parent.gameObject, ball_pos, pinballSpace, cameraTilt);
         //SetTilt(pinballWall, ball_pos, pinballSpace, cameraTilt);
 
-        SetTilt(toolSpace, ball_pos, toolSpace, surfaceTilt); //Tilt surface
+        SetDynamicTilt(toolCamera.transform.parent.gameObject, cameraTilt); //Tilt Camera
+
+        SetDynamicTilt(Surface.transform.parent.gameObject, surfaceTilt); //Tilt surface
 
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool_vr") //Tilt VR Camera if needed
         {
-            SetTilt(XRRig, ball_pos, toolSpace, cameraTilt + surfaceTilt);
+            //SetTilt(XRRig, ball_pos, toolSpace, cameraTilt + surfaceTilt);
+            SetDynamicTilt(XRRig, cameraTilt);
             XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
         }
     }
@@ -568,9 +575,14 @@ public class ToolTask : BilliardsTask
 
         if (ctrler.Session.settings.GetString("experiment_mode") == "tool_vr") //Tilt VR Camera if needed
         {
-            SetTilt(XRRig, ball_pos, toolSpace, (cameraTilt + surfaceTilt) * -1);
+            //SetDynamicTilt(XRRig, -cameraTilt);
+            XRRig.transform.rotation = Quaternion.identity;
             XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
         }
+
+        ctrler.room.transform.parent = null;
+        ctrler.room.transform.rotation = Quaternion.identity;
+        ctrler.room.transform.position = new Vector3(-0.13f, 0.16f, 0.21808f);
 
         toolSpace.SetActive(false);
 

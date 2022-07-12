@@ -931,7 +931,8 @@ public class PinballTask : BilliardsTask
         {
             //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
             //    (cameraTilt + surfaceTilt) * -1);
-            SetDynamicTilt(XRRig, -cameraTilt);
+            //SetDynamicTilt(XRRig, -cameraTilt);
+            XRRig.transform.rotation = Quaternion.identity;
         }
 
         ctrler.room.transform.parent = null;

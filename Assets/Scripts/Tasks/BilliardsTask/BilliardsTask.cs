@@ -162,4 +162,10 @@ public abstract class BilliardsTask : BaseTask
                             ball.position,
                             ctrl);
     }
+
+    // Turns grid materials on surface invisible until the next round
+    protected void ToggleGrid()
+    {
+        Surface.GetComponent<MeshRenderer>().materials[1].color = new Color(0, 0, 0, 0);
+    }
 }
