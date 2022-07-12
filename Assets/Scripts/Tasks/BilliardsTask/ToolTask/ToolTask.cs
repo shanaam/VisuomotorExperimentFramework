@@ -92,6 +92,10 @@ public class ToolTask : BilliardsTask
     // For score
     private GameObject bonusText;
 
+    public LineRenderer line;
+    // Used to keep track of the rotation of the surface, when using dynamic tilt
+    private List<float> dynamicTiltRotations = new List<float>();
+
     private void FixedUpdate()
     {
         // Populate speed array
@@ -148,15 +152,29 @@ public class ToolTask : BilliardsTask
             // After the user hits the object
             // Used to determine if the triggerd object is heading away from the target or not
             case 2:
-
                 // Track a points for feedback trail 
                 if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                 {
                     ballPoints.Add(ballObjects.transform.position);
+                    dynamicTiltRotations.Add(Surface.transform.parent.rotation.eulerAngles.z);
                 }
 
                 // get the distance btween ball/puck and Target
                 distanceToTarget = Vector3.Distance(ballObjects.transform.position, Target.transform.position);
+
+                // if dynamic, update tilt each frame
+                if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
+                {
+                    // Dynamic tilt based on distance
+                    DynamicTilt(1 - distanceToTarget / TARGET_DISTANCE);
+
+                    // Dynamic tilt based on speed (max speed of 3 in non vr)
+                    //DynamicTilt(1 - baseObject.GetComponent<Rigidbody>().velocity.magnitude / 3);
+
+                    // Dynamic tilt based on time 
+                    //DynamicTilt(trialTimer / MAX_TRIAL_TIME);
+                }
+
 
                 // Every frame, we track the closest position the pinball has ever been to the target
                 if (Vector3.Distance(lastPositionNearTarget, Target.transform.position) > distanceToTarget)
@@ -248,8 +266,8 @@ public class ToolTask : BilliardsTask
                     {
                         if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                         {
-                            toolSpace.GetComponent<LineRenderer>().startColor =
-                                toolSpace.GetComponent<LineRenderer>().endColor =
+                            line.startColor =
+                                line.endColor =
                                     Target.GetComponent<BaseTarget>().Collided ? Color.green : Color.yellow;
 
                             if (!missed) Target.transform.GetChild(0).GetComponent<ParticleSystem>().Play();
@@ -258,8 +276,19 @@ public class ToolTask : BilliardsTask
                         toolSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["correct"];
 
                         // set pinball trail
-                        toolSpace.GetComponent<LineRenderer>().positionCount = ballPoints.Count;
-                        toolSpace.GetComponent<LineRenderer>().SetPositions(ballPoints.ToArray());
+                        line.positionCount = ballPoints.Count;
+                        line.SetPositions(ballPoints.ToArray());
+
+                        List<Vector3> ballPointsRelative = new List<Vector3>();
+                        if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
+                        {
+                            for (int i = 0; i < ballPoints.Count; i++)
+                            {
+                                ballPointsRelative.Add(RotatePointAroundPivot(ballPoints[i], Surface.transform.parent.position, -dynamicTiltRotations[i]));
+                            }
+                            line.SetPositions(ballPointsRelative.ToArray());
+                            DynamicTilt(0); //tilt surface back to initial position - flat
+                        }
 
                         //Freeze puck
                         baseObject.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.Discrete;
@@ -314,8 +343,19 @@ public class ToolTask : BilliardsTask
                         baseObject.GetComponent<Rigidbody>().isKinematic = true;
 
                         // set curling stone trail
-                        toolSpace.GetComponent<LineRenderer>().positionCount = ballPoints.Count;
-                        toolSpace.GetComponent<LineRenderer>().SetPositions(ballPoints.ToArray());
+                        line.positionCount = ballPoints.Count;
+                        line.SetPositions(ballPoints.ToArray());
+
+                        List<Vector3> ballPointsRelative = new List<Vector3>();
+                        if (ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
+                        {
+                            for (int i = 0; i < ballPoints.Count; i++)
+                            {
+                                ballPointsRelative.Add(RotatePointAroundPivot(ballPoints[i], Surface.transform.parent.position, -dynamicTiltRotations[i]));
+                            }
+                            line.SetPositions(ballPointsRelative.ToArray());
+                            DynamicTilt(0); //tilt surface back to initial position - flat
+                        }
 
                         if (enteredTarget)
                         {
@@ -323,14 +363,15 @@ public class ToolTask : BilliardsTask
                         }
                         else
                         {
-                            ballObjects.transform.position = toolSpace.GetComponent<LineRenderer>().GetPosition(
-                                toolSpace.GetComponent<LineRenderer>().positionCount - 1);
+                            ballObjects.transform.position = line.GetPosition(
+                                line.positionCount - 1);
                         }
 
                     }
                     else if (ctrler.Session.CurrentTrial.settings.GetBool("per_block_visual_feedback"))
                     {
                         ballPoints.Add(ballObjects.transform.position);
+                        dynamicTiltRotations.Add(Surface.transform.parent.rotation.eulerAngles.z);
                     }
 
 
@@ -360,7 +401,8 @@ public class ToolTask : BilliardsTask
                 break;
             // User launched the ball/puck
             case 1:
-                if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+                if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire") 
+                    && !ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
                     SetTilt();
 
                 timerIndicator.Cancel();
@@ -375,6 +417,11 @@ public class ToolTask : BilliardsTask
 
                 Debug.Log("current step: " + currentStep);
         return base.IncrementStep();
+    }
+
+    private void DynamicTilt(float t)
+    {
+        base.DynamicTilt(t, toolCamera, XRRig, XRPosLock);
     }
 
     public override void Setup()
@@ -415,7 +462,8 @@ public class ToolTask : BilliardsTask
 
         // Set up home position
         Home = GameObject.Find("HomePosition");
-        
+
+        line = GameObject.Find("DefaultLine").GetComponent<LineRenderer>();
 
         timerIndicator.transform.rotation = Quaternion.LookRotation(
             timerIndicator.transform.position - toolCamera.transform.position);
@@ -426,7 +474,8 @@ public class ToolTask : BilliardsTask
         SetTargetPosition(targetAngle);
 
         // Should the tilt be shown to the participant before they release the pinball?
-        if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire"))
+        if (!ctrler.Session.CurrentBlock.settings.GetBool("per_block_tilt_after_fire")
+            && !ctrler.Session.settings.GetStringList("optional_params").Contains("per_trial_dynamic_tilt"))
             SetTilt();
 
         // Disable all balls/puck (to be enabled in child classes)
@@ -631,7 +680,7 @@ public class ToolTask : BilliardsTask
         // Rotate the tool: always looking at the ball when close enough 
         if (Vector3.Distance(toolObjects.transform.position, baseObject.transform.position) < 3f)
         {
-            toolObjects.transform.LookAt(baseObject.transform, toolSpace.transform.up);
+            toolObjects.transform.LookAt(baseObject.transform, Surface.transform.up);
         }
         else
         {

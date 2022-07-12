@@ -505,10 +505,6 @@ public class PinballTask : BilliardsTask
         if (Finished) ctrler.EndAndPrepare();
     }
 
-    public Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, float angle)
-    {
-        return Quaternion.Euler(new Vector3(0, 0, angle)) * (point - pivot) + pivot;
-    }
     private void FlickPinball()
     {
         if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
@@ -843,84 +839,7 @@ public class PinballTask : BilliardsTask
 
     private void DynamicTilt(float t)
     {
-        float tilt = 0;
-        float camtilt = 0;
-
-        // set up curve type for tilt to follow
-        switch (ctrler.Session.CurrentTrial.settings.GetString("per_block_dynamic_tilt_curve"))
-        {
-            case "default":
-                tilt = t;
-                break;
-
-            case "sin": //Starts at 0, goes to surface tilt, goes to -surface tilt, goes to 0
-                tilt = Mathf.Sin(t * Mathf.PI * 2);
-                break;
-                
-            case "cos": //Starts at 0, goes to surface tilt, goes to 0
-                tilt = Mathf.Sin(t * Mathf.PI);
-                break;
-
-            case "linear":
-                tilt = t;
-                break;
-
-            case "quad":
-                tilt = t*t;
-                break;
-
-            case "easeInElastic":
-                float c4 = (float)(2f * Math.PI / 3f);
-
-                if (t == 0 || t == 1)
-                    tilt = t;
-                else
-                    tilt = -Mathf.Pow(2, 10 * t - 10) * Mathf.Sin((t * 10f - 10.75f) * c4);
-
-                break;
-
-            case "easeInOutBack":
-                float c1 = 1.70158f;
-                float c2 = c1 * 1.525f;
-
-                if (t < 0.5f)
-                    tilt = Mathf.Pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2) / 2;
-                else
-                    tilt = Mathf.Pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2 / 2;
-
-                break;
-        }
-
-        //camtilt = tilt * cameraTilt;
-        tilt *= surfaceTilt;
-
-        //dynamicTiltRotations.Add(tilt);
-
-        // Evaluate where on the curve t is, then multiply with tilt
-        //float tilt = ctrler.curves.curves[curveType].Evaluate(t) * surfaceTilt * 2 - surfaceTilt;
-        //float camtilt = ctrler.curves.curves[curveType].Evaluate(t) * cameraTilt * 2 - cameraTilt;
-
-
-        Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
-
-
-        ctrler.room.transform.parent = pinballCam.transform.parent;
-
-        SetDynamicTilt(pinballCam.transform.parent.gameObject, camtilt);
-
-
-        SetDynamicTilt(Surface.transform.parent.gameObject, tilt); //Tilt surface
-
-        //Tilt VR Camera if needed
-        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
-        {
-            //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
-            //   cameraTilt + surfaceTilt);
-            SetDynamicTilt(XRRig, camtilt);
-            XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
-            //XRCamOffset.transform.position = new Vector3(0, -0.8f, -0.2f);
-        }
-
+        base.DynamicTilt(t, pinballCam, XRRig, XRPosLock);
     }
 
     public override void Disable()
