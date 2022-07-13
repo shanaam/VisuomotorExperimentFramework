@@ -53,8 +53,10 @@ public class ExperimentController : MonoBehaviour
 
     // Used for object tracking
     public bool IsTracking = true;
-    private Dictionary<string, GameObject> trackedObjects = new Dictionary<string, GameObject>();
-    private Dictionary<string, List<Vector3>> trackedObjectPath = new Dictionary<string, List<Vector3>>();
+    public Dictionary<string, GameObject> trackedPositions = new Dictionary<string, GameObject>();
+    public Dictionary<string, List<Vector3>> trackedPositionPath = new Dictionary<string, List<Vector3>>();
+    public Dictionary<string, GameObject> trackedRotations = new Dictionary<string, GameObject>();
+    public Dictionary<string, List<Vector3>> trackedRotationPath = new Dictionary<string, List<Vector3>>();
     private List<float> trackingTimestamps = new List<float>();
 
     // Used to track when a step has been incremented
@@ -145,12 +147,17 @@ public class ExperimentController : MonoBehaviour
     {
         if (IsTracking)
         {
-            foreach (string key in trackedObjectPath.Keys)
+            foreach (string key in trackedPositionPath.Keys)
             {
-                trackedObjectPath[key].Add(trackedObjects[key].transform.position);
+                trackedPositionPath[key].Add(trackedPositions[key].transform.position);
             }
 
-            if (trackedObjectPath.Count > 0)
+            foreach (string key in trackedRotationPath.Keys)
+            {
+                trackedRotationPath[key].Add(trackedRotations[key].transform.rotation.eulerAngles);
+            }
+
+            if (trackedPositionPath.Count > 0 || trackedRotationPath.Count > 0)
             {
                 trackingTimestamps.Add(Time.time);
             }
@@ -395,24 +402,20 @@ public class ExperimentController : MonoBehaviour
 
         CursorController.UseVR = false;
 
-        // Tracked Object logging
-        foreach (string key in trackedObjects.Keys)
+        // Tracked Position logging
+        foreach (string key in trackedPositions.Keys)
         {
-            if (trackedObjectPath[key].Count == 0) continue;
+            if (trackedPositionPath[key].Count == 0) continue;
 
-            // Add each vector and its components separated by commas
-            var list = trackedObjectPath[key];
+            LogVector3List(key, trackedPositionPath[key]);
+        }
 
-            // For each element (Select), remove scientific notation and round to 6 decimal places.
-            // Then join all these numbers separated by a comma
-            Session.CurrentTrial.result[key + "_x"] =
-                string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
+        // Tracked Rotation logging
+        foreach (string key in trackedRotations.Keys)
+        {
+            if (trackedRotationPath[key].Count == 0) continue;
 
-            Session.CurrentTrial.result[key + "_y"] =
-                string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));
-
-            Session.CurrentTrial.result[key + "_z"] =
-                string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
+            LogVector3List(key, trackedRotationPath[key]);
         }
 
         // Timestamps for tracked objects
@@ -637,16 +640,30 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     /// <param name="key">The key representing the location the column in the CSV</param>
     /// <param name="obj">The object to be tracked</param>
-    public void AddTrackedObject(string key, GameObject obj)
+    public void AddTrackedPosition(string key, GameObject obj)
     {
-        if (trackedObjects.ContainsKey(key))
+        if (trackedPositions.ContainsKey(key))
         {
             Debug.LogWarning("You are trying to add a tracker that has already been added");
         }
         else
         {
-            trackedObjects[key] = obj;
-            trackedObjectPath[key] = new List<Vector3>();
+            trackedPositions[key] = obj;
+            trackedPositionPath[key] = new List<Vector3>();
+        }
+    }
+
+
+    public void AddTrackedRotation(string key, GameObject obj)
+    {
+        if (trackedRotations.ContainsKey(key))
+        {
+            Debug.LogWarning("You are trying to add a tracker that has already been added");
+        }
+        else
+        {
+            trackedRotations[key] = obj;
+            trackedRotationPath[key] = new List<Vector3>();
         }
     }
 
@@ -655,13 +672,24 @@ public class ExperimentController : MonoBehaviour
     /// </summary>
     private void ClearTrackedObjects()
     {
-        string[] keys = new string[trackedObjects.Keys.Count];
-        trackedObjects.Keys.CopyTo(keys, 0);
+        //clear tracked positions
+        string[] posKeys = new string[trackedPositions.Keys.Count];
+        trackedPositions.Keys.CopyTo(posKeys, 0);
 
-        foreach (string key in keys)
+        foreach (string key in posKeys)
         {
-            trackedObjects.Remove(key);
-            trackedObjectPath.Remove(key);
+            trackedPositions.Remove(key);
+            trackedPositionPath.Remove(key);
+        }
+
+        //clear tracked rotations
+        string[] rotKeys = new string[trackedRotations.Keys.Count];
+        trackedRotations.Keys.CopyTo(rotKeys, 0);
+
+        foreach (string key in rotKeys)
+        {
+            trackedRotations.Remove(key);
+            trackedRotationPath.Remove(key);
         }
 
         trackingTimestamps.Clear();
@@ -676,5 +704,21 @@ public class ExperimentController : MonoBehaviour
         Session.CurrentTrial.result[key + "_x"] = position.x;
         Session.CurrentTrial.result[key + "_y"] = position.y;
         Session.CurrentTrial.result[key + "_z"] = position.z;
+    }
+
+    public void LogVector3List(string key, List<Vector3> positions)
+    {
+        var list = positions;
+
+        // For each element (Select), remove scientific notation and round to 6 decimal places.
+        // Then join all these numbers separated by a comma
+        Session.CurrentTrial.result[key + "_x"] =
+            string.Join(",", list.Select(i => string.Format($"{i.x:F6}")));
+
+        Session.CurrentTrial.result[key + "_y"] =
+            string.Join(",", list.Select(i => string.Format($"{i.y:F6}")));
+
+        Session.CurrentTrial.result[key + "_z"] =
+            string.Join(",", list.Select(i => string.Format($"{i.z:F6}")));
     }
 }

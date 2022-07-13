@@ -319,7 +319,7 @@ public class Trails : BaseTask
 
                 ctrler.StartTimer();
 
-                ctrler.AddTrackedObject("car_path", car);
+                ctrler.AddTrackedPosition("car_path", car);
 
                 break;
             case 1:
