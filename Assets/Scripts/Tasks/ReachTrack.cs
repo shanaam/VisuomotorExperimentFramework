@@ -56,7 +56,7 @@ public class ReachTrack : ReachToTargetTask
         reachPrefab.transform.SetParent(ctrler.transform);
         reachPrefab.transform.localPosition = new Vector3(0, -0.8f, 0);
 
-        reachCam = GameObject.Find("ReachCamera");
+        reachCam = GameObject.Find("ReachCam");
         reachSurface = GameObject.Find("Surface");
         scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         tint = GameObject.Find("Tint");
@@ -91,8 +91,7 @@ public class ReachTrack : ReachToTargetTask
         field.transform.rotation = Quaternion.Euler(
             0f, -targetAngle - 90f, 0f);
 
-        
-         if (ctrler.Session.settings.GetString("camera") != "vr"){
+         if (!ctrler.Session.settings.GetObjectList("optional_params").Contains("vr")){           
             speedometer.transform.rotation = Quaternion.Euler(90, 0, 0);
          }
         speedometer.transform.parent = reachPrefab.transform;
@@ -115,11 +114,27 @@ public class ReachTrack : ReachToTargetTask
 
         float width = ctrler.Session.CurrentBlock.settings.GetFloat("per_block_width");
         field.transform.localScale = new Vector3(field.transform.localScale.x * width, field.transform.localScale.y, field.transform.localScale.z);
-        field.GetComponent<Renderer>().material.mainTextureScale = new Vector2(width * 4 , fieldLength * 18);
 
         targets[2].GetComponent<BaseTarget>().CollisionModeOnly = true;
 
-        
+        switch(ctrler.Session.CurrentBlock.settings.GetString("per_block_surface_materials")) {
+            
+            case"Glass":
+                reachSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["Glass"];
+                break;
+            case"Ice":
+                reachSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["Ice"];
+                break;
+            case"Pavement":
+                reachSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["Pavement"];
+                break;
+            case"Marble":
+                reachSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["Marble"];
+                break;
+            case"BrickMat":
+                reachSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["BrickMat"];
+                break;
+        }
         
         //speedometer.SetActive(false);
 
@@ -186,14 +201,32 @@ public class ReachTrack : ReachToTargetTask
             text.text = ("Max Vel: "+maxVel.ToString());
             speedometer.transform.position = goal.transform.position + new Vector3(0, 0.02f, 0);           
             speedometer.SetActive(true);
-            speedometer.transform.GetChild(0).transform.Rotate (0, velResult, 0);
+            //speedometer.transform.GetChild(0).transform.Rotate (0, velResult, 0);
             hasRotated = true;
 
+            switch(velResult) {
+                case 75:
+                speedometer.transform.GetChild(4).GetComponent<TextMeshPro>().text = "Too Fast";
+                    break;
+                case 35:
+                speedometer.transform.GetChild(4).GetComponent<TextMeshPro>().text = "Slow down a bit.";
+                    break;
+                case 0:
+                speedometer.transform.GetChild(4).GetComponent<TextMeshPro>().text = "Perfect speed!";
+                    break;
+                case -35:
+                speedometer.transform.GetChild(4).GetComponent<TextMeshPro>().text = "speed up a bit.";
+                    break;
+                case -75:
+                speedometer.transform.GetChild(4).GetComponent<TextMeshPro>().text = "Too Slow";
+                    break;
+            }
+
             if(trackScore){
-                speedometer.GetComponentInChildren<TextMeshPro>().text = "+" + scoreTrack.ToString();
+                speedometer.transform.GetChild(3).GetComponent<TextMeshPro>().text = "+" + scoreTrack.ToString();
             }
             else {
-                speedometer.GetComponentInChildren<TextMeshPro>().text = "";
+                speedometer.transform.GetChild(3).GetComponent<TextMeshPro>().text = "";
             }
             
             //symbols.GetComponent<Animator>().SetTrigger("rot");
@@ -202,7 +235,7 @@ public class ReachTrack : ReachToTargetTask
     }
 
     IEnumerator Wait(){
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
         base.IncrementStep();
     }
 

@@ -582,9 +582,13 @@ public class ExperimentController : MonoBehaviour
         if(!lists.ContainsKey(listk)){
             lists[listk] = new List<object>();    
             List<object> list = Session.settings.GetObjectList(listk);
-            if(list.Count < 1) {
+            if(list.Count == 1) {
+                return lists[listk][0];
+                
+            }
+            else if (list.Count == 0){
                 Debug.LogError(key +
-                             " contains less than 2 elements. Not possible to sort");
+                             " contains no elements. Not possible to sort");
             throw new NullReferenceException();
             }
             for(int i = 0; i < list.Count; i++){
@@ -599,7 +603,6 @@ public class ExperimentController : MonoBehaviour
 
         lists[listk].Remove(ran);
         prev = ran;
-        Debug.Log(ran);
 
         return ran;
     }
