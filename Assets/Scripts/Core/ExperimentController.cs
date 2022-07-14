@@ -233,6 +233,14 @@ public class ExperimentController : MonoBehaviour
             return;
         }
 
+        if (per_block_type == "localization")
+        { 
+            CurrentTask = gameObject.AddComponent<LocalizationTask>();
+            CurrentTask.Setup();
+        
+            return;
+        }
+
         switch (Session.settings.GetString("experiment_mode"))
         {
             case "target2d":
