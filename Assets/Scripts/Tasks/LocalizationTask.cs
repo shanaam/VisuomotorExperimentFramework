@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UXF;
@@ -18,6 +18,8 @@ public class LocalizationTask : BaseTask
     public float LocalizerAngle2D = 0;
     private float localizerSpeed2D = 0.25f;
 
+    ExperimentController ctrler;
+
     public void LateUpdate()
     {
         ExperimentController ctrler = ExperimentController.Instance();
@@ -33,7 +35,7 @@ public class LocalizationTask : BaseTask
                 // VR: User uses their head to localize their hand
                 // Non-VR: User uses horizontal axis to localize their mouse
 
-                if (ctrler.Session.settings.GetString("experiment_mode") == "target") // if in vr
+                if (ctrler.Session.settings.GetObjectList("optional_params").Contains("vr")) // if in vr
                 {
                     // raycasts from camera to set localizer position
                     Plane plane = new Plane(Vector3.down, ctrler.transform.position.y);
@@ -146,13 +148,15 @@ public class LocalizationTask : BaseTask
         localizationCam = GameObject.Find("LocalizationCamera");
         localizationSurface = GameObject.Find("Surface");
 
+    
+
         // Set up the dock position
         targets[0] = GameObject.Find("Dock");
-        targets[0].transform.position = ctrler.TargetContainer.transform.position;
+        targets[0].transform.position = new Vector3(ctrler.TargetContainer.transform.position.x, -0.450f, ctrler.TargetContainer.transform.position.z);
 
         // Set up the home position
         targets[1] = GameObject.Find("Home");
-        targets[1].transform.position = ctrler.TargetContainer.transform.position + ctrler.transform.forward * 0.05f;
+        targets[1].transform.position = new Vector3(ctrler.TargetContainer.transform.position.x, -0.450f, ctrler.TargetContainer.transform.position.z) + ctrler.transform.forward * 0.05f;
         targets[1].SetActive(false);
         Home = targets[1];
 
@@ -186,7 +190,7 @@ public class LocalizationTask : BaseTask
 
 
         // Use static camera for non-vr version of pinball
-        if (ctrler.Session.settings.GetString("experiment_mode") == "target")
+        if (ctrler.Session.settings.GetObjectList("optional_params").Contains("vr"))
         {
             localizationSurface.SetActive(false);
             localizationCam.SetActive(false);
