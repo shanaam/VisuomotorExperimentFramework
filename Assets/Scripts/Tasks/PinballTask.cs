@@ -13,60 +13,45 @@ public class PinballTask : BilliardsTask
   private GameObject directionIndicator;
   private ArcScript arcIndicator;
   private GameObject XRRig;
-  private GameObject pinballWall;
-  private GameObject pinballSurface;
+  private GameObject pinballSurface, pinballWall;
+  // private GameObject lights;
   private GameObject XRPosLock;
-  private GameObject XRCamOffset;
-
   private GameObject obstacle;
-
   private GameObject handL, handR;
-
   // Used for pinball aiming
   private Vector3 direction;
-
   private float cutoffDistance;
 
   // True when the participant is holding the trigger down to aim the pinball
   private bool aiming;
-
   private GameObject currentHand;
-
   // Used to draw the path of the pinball for feedback mode
   private List<Vector3> pinballPoints = new List<Vector3>();
 
   // Used to determine if the ball moved away from the target for too long
   private float missTimer;
-
   private Vector3 pinballStartPosition;
-
   // Pinball Camera Offset
-  private Vector3 pinballCamOffset = new Vector3(0f, 0.725f, -0.535f);
-  private float pinballAngle = 35f;
+  private Vector3 PINBALL_CAM_OFFSET = new Vector3(0f, 0.725f, -0.535f);
+  private const float PINBALL_CAM_ANGLE = 35f;
 
   private Vector3 lastPositionInTarget;
 
   // True when the pinball enters the target circle for the first time
   private bool enteredTarget;
-
   // When true, the indicator will be placed in front of the pinball
   private bool indicatorPosition = true;
   private float trialTimer;
 
   // Plane that is parallel to the environment plane
   private Plane pPlane;
-
   // A position above the visual target that is aligned with the height of the pinball regardless
   // of plane tilt
   private Vector3 pinballAlignedTargetPosition;
-
   private GameObject bonusText;
-
   private Vector3 previousPosition;
-
   private int score;
   private float tempScore;
-
   private float timer;
 
   // Set to true if the user runs out of time 
@@ -471,7 +456,12 @@ public class PinballTask : BilliardsTask
         break;
     }
 
-    if (Finished) ctrler.EndAndPrepare();
+    if (Finished)
+    {
+      // re-parent lights
+      // lights.transform.SetParent(pinballSpace.transform);
+      ctrler.EndAndPrepare();
+    }
   }
 
   private void FlickPinball()
@@ -522,7 +512,6 @@ public class PinballTask : BilliardsTask
     }
 
     flickEndTime = Time.time;
-
     FirePinball();
   }
 
@@ -652,15 +641,18 @@ public class PinballTask : BilliardsTask
     XRRig = GameObject.Find("XR Rig");
     pinballWall = GameObject.Find("PinballWall");
     XRPosLock = GameObject.Find("XRPosLock");
-    XRCamOffset = GameObject.Find("Dummy Camera");
 
     bonusText = GameObject.Find("BonusText");
     obstacle = GameObject.Find("Obstacle");
     pinballSurface = GameObject.Find("Surface");
+    // lights = GameObject.Find("Lights");
     handL = GameObject.Find("handL");
     handR = GameObject.Find("handR");
     handL.SetActive(false);
     handR.SetActive(false);
+
+    // set lights parent to ctrler
+    // lights.transform.SetParent(ctrler.transform);
 
     float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
 
@@ -686,8 +678,8 @@ public class PinballTask : BilliardsTask
     if (ctrler.Session.settings.GetString("experiment_mode") == "pinball")
     {
       // Setup Pinball Camera Offset
-      pinballCam.transform.position = pinballCamOffset;
-      pinballCam.transform.rotation = Quaternion.Euler(pinballAngle, 0f, 0f);
+      pinballCam.transform.position = PINBALL_CAM_OFFSET;
+      pinballCam.transform.rotation = Quaternion.Euler(PINBALL_CAM_ANGLE, 0f, 0f);
 
       ctrler.CursorController.SetVRCamera(false);
     }
@@ -767,7 +759,7 @@ public class PinballTask : BilliardsTask
 
   private void SetTilt()
   {
-    Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
+    Vector3 ball_pos = Home.transform.position + Vector3.up * 0.025f;
     //Vector3 rot_axis = pinballSpace.transform.forward;
 
     SetTilt(pinballCam, ball_pos, pinballSpace, cameraTilt);
@@ -782,9 +774,7 @@ public class PinballTask : BilliardsTask
       //   cameraTilt + surfaceTilt);
       SetTilt(XRRig, ball_pos, pinballSpace, cameraTilt + surfaceTilt);
       XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
-                                                               //XRCamOffset.transform.position = new Vector3(0, -0.8f, -0.2f);
     }
-
   }
 
   public override void Disable()
