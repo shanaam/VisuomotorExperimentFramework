@@ -73,7 +73,7 @@ public class PinballTask : BilliardsTask
   private const float VR_FLICK_FORCE_MULTIPLIER = 1.8f;
   private const float MAX_MAGNITUDE = 2.2f;
   private const int MAX_POINTS = 10; // Maximum points the participant can earn
-  private const int BONUS_POINTS = 2; // Bonus points earned if the participant lands a hit
+  private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
   private const float MAX_TRIAL_TIME = 2.0f;
   private const float PINBALL_FIRE_FORCE = 15f;
   private const float indicatorLength = 0.2f; // Distance from pinball in meters the indicator will be shown
