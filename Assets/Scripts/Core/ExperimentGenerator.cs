@@ -27,27 +27,21 @@ public class ExperimentGenerator : MonoBehaviour
     // handle left handed participants
     session.participantDetails.TryGetValue("ppt_right_handed", out object pptRightHanded);
 
-    if (session.settings.ContainsKey("per_block_hand"))
+    if (session.settings.ContainsKey("per_block_hand") && !(bool)pptRightHanded)
     {
-      if (!(bool)pptRightHanded)
+      foreach (Block block in session.blocks)
       {
-        foreach (Block block in session.blocks)
+        // set the per_block_hand to be the opposite of what it was
+        if (block.settings.GetString("per_block_hand") == "r")
         {
-          // set the per_block_hand to be the opposite of what it was
-          if (block.settings.GetString("per_block_hand") == "r")
-          {
-            block.settings.SetValue("per_block_hand", "l");
-          }
-          else
-          {
-            block.settings.SetValue("per_block_hand", "r");
-          }
+          block.settings.SetValue("per_block_hand", "l");
+        }
+        else
+        {
+          block.settings.SetValue("per_block_hand", "r");
         }
       }
     }
-
-
-    Debug.Log($"right handed: {(bool)pptRightHanded}");
 
     GetComponent<ExperimentController>().Init(session);
   }
