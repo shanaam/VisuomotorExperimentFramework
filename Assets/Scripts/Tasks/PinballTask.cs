@@ -229,19 +229,19 @@ public class PinballTask : BilliardsTask
 
               direction = Vector3.ClampMagnitude(mouse - pinball.transform.position, indicatorLength);
 
-              if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
-              {
-                if (direction.z < 0)
-                {
-                  arcIndicator.gameObject.SetActive(true);
-                  arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
-                  arcIndicator.GenerateArc();
-                }
-                else
-                {
-                  arcIndicator.gameObject.SetActive(false);
-                }
-              }
+              // if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
+              // {
+              //   if (direction.z < 0)
+              //   {
+              //     arcIndicator.gameObject.SetActive(true);
+              //     arcIndicator.TargetDistance = Mathf.Lerp(-.337f, -.141f, direction.magnitude / indicatorLength);
+              //     arcIndicator.GenerateArc();
+              //   }
+              //   else
+              //   {
+              //     arcIndicator.gameObject.SetActive(false);
+              //   }
+              // }
 
               // Setup visual feedback for where the participant is aiming
 
@@ -728,11 +728,11 @@ public class PinballTask : BilliardsTask
 
     timerIndicator.GetComponent<TimerIndicator>().BeginTimer();
 
-    if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
-    {
-      directionIndicator.GetComponent<MeshRenderer>().enabled = false;
-
-    }
+    // if (ctrler.Session.CurrentBlock.settings.GetString("per_block_indicator_type") == "arc")
+    // {
+    //   directionIndicator.GetComponent<MeshRenderer>().enabled = false;
+    // 
+    // }
 
     if (ctrler.Session.CurrentBlock.settings.GetString("per_block_fire_mode") == "flick")
     {

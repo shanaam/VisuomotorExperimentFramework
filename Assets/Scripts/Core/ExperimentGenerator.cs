@@ -32,14 +32,7 @@ public class ExperimentGenerator : MonoBehaviour
       foreach (Block block in session.blocks)
       {
         // set the per_block_hand to be the opposite of what it was
-        if (block.settings.GetString("per_block_hand") == "r")
-        {
-          block.settings.SetValue("per_block_hand", "l");
-        }
-        else
-        {
-          block.settings.SetValue("per_block_hand", "r");
-        }
+        block.settings.SetValue("per_block_hand", block.settings.GetString("per_block_hand") == "r" ? "l" : "r");
       }
     }
 
