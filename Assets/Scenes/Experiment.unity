@@ -1367,6 +1367,7 @@ MonoBehaviour:
   SoundEffects:
   - {fileID: 8300000, guid: cb132b47806af9d489d50855b0abf4d7, type: 3}
   - {fileID: 8300000, guid: 323d999887e1e8e4c9164f54a7798f7c, type: 3}
+  - {fileID: 8300000, guid: 20559a280d066e547ad5228997fb3b26, type: 3}
   SurfaceMaterials:
   - {fileID: 2100000, guid: c8dc7d62f21ce7547bc2598e183ede72, type: 2}
   - {fileID: 2100000, guid: 5c62f3758691d4ba7ae9de514736c755, type: 2}
