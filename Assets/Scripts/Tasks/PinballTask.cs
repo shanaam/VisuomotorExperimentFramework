@@ -550,7 +550,7 @@ public class PinballTask : BilliardsTask
 
     pinball.GetComponent<Rigidbody>().velocity = force;
 
-    directionIndicator.GetComponent<AudioSource>().Play();
+    // directionIndicator.GetComponent<AudioSource>().Play();
 
     timerIndicator.GetComponent<TimerIndicator>().Cancel();
 

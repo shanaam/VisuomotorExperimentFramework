@@ -17,11 +17,12 @@ public class AnimateSurfaceTask : BaseTask
   private GameObject XRRig, XRPosLock;
   private Vector3 ball_pos;
   private bool rotating = false;
+  private bool started = false;
 
   // Pinball Camera Offset
   private Vector3 PINBALL_CAM_OFFSET = new Vector3(0f, 0.725f, -0.535f);
   private const float PINBALL_CAM_ANGLE = 35f;
-  private const float ROTATE_SPEED = 180f;
+  private const float ROTATE_SPEED = 90f;
 
 
   public override void Setup()
@@ -96,33 +97,44 @@ public class AnimateSurfaceTask : BaseTask
   {
     if (rotating)
     {
-      if (ctrler.Session.settings.GetString("anim_type") == "half")
+      if (ctrler.Session.CurrentTrial.settings.GetString("per_block_anim_type") == "half")
       {
         // Rotate the Surface by ROTATE_SPEED degrees
-      surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -1 * ROTATE_SPEED * Time.deltaTime);
+        surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -1 * ROTATE_SPEED * Time.deltaTime);
 
-      if (surface.transform.localEulerAngles.y <= 180f)
-      {
-        rotating = false;
-        StartCoroutine(WaitAndEnd());
-      }
-      }
-      else if (ctrler.Session.settings.GetString("anim_type") == "full")
-      {
-        // Rotate the Surface by 2 * ROTATE_SPEED degrees
-      surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -2 * ROTATE_SPEED * Time.deltaTime);
-        if (surface.transform.localEulerAngles.y <= 360f)
+        if (surface.transform.localEulerAngles.y <= 180f)
         {
+          // set the y rotation to 180
+          surface.transform.localEulerAngles = new Vector3(surface.transform.localEulerAngles.x, 180f, surface.transform.localEulerAngles.z);
           rotating = false;
           StartCoroutine(WaitAndEnd());
         }
       }
-      else if (ctrler.Session.settings.GetString("anim_type") == "wait")
+      else if (ctrler.Session.CurrentTrial.settings.GetString("per_block_anim_type") == "full")
+      {
+        // if started is false set it to true
+        if (!started && surface.transform.localEulerAngles.y <= 45f && surface.transform.localEulerAngles.y >= 2f)
+        {
+          started = true;
+        }
+        // Rotate the Surface by 2 * ROTATE_SPEED degrees
+        surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -2 * ROTATE_SPEED * Time.deltaTime);
+
+        if (started && surface.transform.localEulerAngles.y <= 360f && surface.transform.localEulerAngles.y >= 315)
+        {
+          started = false;
+          // set the y rotation to 0
+          surface.transform.localEulerAngles = new Vector3(surface.transform.localEulerAngles.x, 0f, surface.transform.localEulerAngles.z);
+          rotating = false;
+          StartCoroutine(WaitAndEnd());
+        }
+      }
+      else if (ctrler.Session.CurrentTrial.settings.GetString("per_block_anim_type") == "wait")
       {
         rotating = false;
         StartCoroutine(WaitAndEnd(2f));
       }
-      else 
+      else
       {
         Debug.LogError("Animation type not recognized. Please check spelling.");
       }
@@ -207,5 +219,4 @@ public class AnimateSurfaceTask : BaseTask
     // lights.transform.SetParent(surface.transform);
     ctrler.EndAndPrepare();
   }
-
 }
