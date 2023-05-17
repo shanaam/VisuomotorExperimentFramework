@@ -21,6 +21,7 @@ public class AnimateSurfaceTask : BaseTask
   // Pinball Camera Offset
   private Vector3 PINBALL_CAM_OFFSET = new Vector3(0f, 0.725f, -0.535f);
   private const float PINBALL_CAM_ANGLE = 35f;
+  private const float ROTATE_SPEED = 180f;
 
 
   public override void Setup()
@@ -93,14 +94,38 @@ public class AnimateSurfaceTask : BaseTask
 
   void Update()
   {
+    
     if (rotating)
     {
-      // Rotate the Surface by 1 degree
-      surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -1f);
+      
+      if (ctrler.Session.settings.GetString("anim_type") == "half")
+      {
+        // Rotate the Surface by ROTATE_SPEED degrees
+      surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -1 * ROTATE_SPEED * Time.deltaTime);
+
       if (surface.transform.localEulerAngles.y <= 180f)
       {
         rotating = false;
         StartCoroutine(WaitAndEnd());
+      }
+      }
+      else if (ctrler.Session.settings.GetString("anim_type") == "full")
+      {
+        // Rotate the Surface by 2 * ROTATE_SPEED degrees
+      surface.transform.RotateAround(ball_pos, rotateObject.transform.up, -2 * ROTATE_SPEED * Time.deltaTime);
+        if (surface.transform.localEulerAngles.y <= 360f)
+        {
+          rotating = false;
+          StartCoroutine(WaitAndEnd());
+        }
+      }
+      else if (ctrler.Session.settings.GetString("anim_type") == "wait")
+      {
+        StartCoroutine(WaitAndEnd(2f));
+      }
+      else 
+      {
+        Debug.LogError("Animation type not recognized. Please check spelling.");
       }
     }
   }
@@ -174,10 +199,11 @@ public class AnimateSurfaceTask : BaseTask
   /// <summary>
   /// Wait 1 second then run EndAndPrepare
   /// </summary>
+  /// <param name="waitTime">Time to wait in seconds</param>
   /// <returns></returns>
-  private IEnumerator WaitAndEnd()
+  private IEnumerator WaitAndEnd(float waitTime = 1f)
   {
-    yield return new WaitForSeconds(1);
+    yield return new WaitForSeconds(waitTime);
     // re-parent lights
     // lights.transform.SetParent(surface.transform);
     ctrler.EndAndPrepare();
