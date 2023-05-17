@@ -94,10 +94,8 @@ public class AnimateSurfaceTask : BaseTask
 
   void Update()
   {
-    
     if (rotating)
     {
-      
       if (ctrler.Session.settings.GetString("anim_type") == "half")
       {
         // Rotate the Surface by ROTATE_SPEED degrees
@@ -121,6 +119,7 @@ public class AnimateSurfaceTask : BaseTask
       }
       else if (ctrler.Session.settings.GetString("anim_type") == "wait")
       {
+        rotating = false;
         StartCoroutine(WaitAndEnd(2f));
       }
       else 
