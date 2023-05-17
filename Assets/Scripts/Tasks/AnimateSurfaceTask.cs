@@ -12,7 +12,6 @@ public class AnimateSurfaceTask : BaseTask
   private GameObject home;
   private GameObject pinballCam;
   private GameObject scoreboard, pinballWall, rotateObject;
-  // private GameObject lights;
   private float prevSurfaceTilt, nextSurfaceTilt, prevCameraTilt, nextCameraTilt;
   private GameObject XRRig, XRPosLock;
   private Vector3 ball_pos;
@@ -36,14 +35,10 @@ public class AnimateSurfaceTask : BaseTask
     home = GameObject.Find("PinballHome");
     scoreboard = GameObject.Find("Scoreboard");
     rotateObject = GameObject.Find("RotateObject");
-    // lights = GameObject.Find("Lights");
     pinballCam = GameObject.Find("PinballCamera");
     pinballWall = GameObject.Find("PinballWall");
     XRRig = GameObject.Find("XR Rig");
     XRPosLock = GameObject.Find("XRPosLock");
-
-    // unparent lights
-    // lights.transform.SetParent(ctrler.transform);
 
     prevSurfaceTilt = 0f;
     nextSurfaceTilt = 0f;
@@ -51,10 +46,6 @@ public class AnimateSurfaceTask : BaseTask
     nextCameraTilt = 25f;
 
     ball_pos = home.transform.position + Vector3.up * 0.025f;
-
-    // SetTilt(surface, ball_pos, surfaceSpace, prevSurfaceTilt);
-
-    Debug.Log("AnimateSurfaceTask set up");
 
     // Camera setup
     // Use static camera for non-vr version of pinball
@@ -132,7 +123,7 @@ public class AnimateSurfaceTask : BaseTask
       else if (ctrler.Session.CurrentTrial.settings.GetString("per_block_anim_type") == "wait")
       {
         rotating = false;
-        StartCoroutine(WaitAndEnd(2f));
+        StartCoroutine(WaitAndEnd(3f));
       }
       else
       {
@@ -146,8 +137,6 @@ public class AnimateSurfaceTask : BaseTask
     // Realign XR Rig to non-tilted position
     if (ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
     {
-      //XRRig.transform.RotateAround(Home.transform.position + Vector3.up * 0.25f, pinballSpace.transform.forward,
-      //    (cameraTilt + surfaceTilt) * -1);
       SetTilt(XRRig, ball_pos, surfaceSpace, (prevCameraTilt + prevSurfaceTilt) * -1);
     }
     surfaceSpace.SetActive(false);
@@ -198,12 +187,16 @@ public class AnimateSurfaceTask : BaseTask
   }
 
   /// <summary>
-  /// Wait for 1 second
+  /// Wait before rotating animation
   /// </summary>
   /// <returns></returns>
   private IEnumerator Wait()
   {
-    yield return new WaitForSeconds(1);
+    // play the don't use strategy clip
+    surfaceSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["dont_use_strategies_green"];
+    surfaceSpace.GetComponent<AudioSource>().Play();
+
+    yield return new WaitForSeconds(4);
     rotating = true;
   }
 
@@ -215,8 +208,6 @@ public class AnimateSurfaceTask : BaseTask
   private IEnumerator WaitAndEnd(float waitTime = 1f)
   {
     yield return new WaitForSeconds(waitTime);
-    // re-parent lights
-    // lights.transform.SetParent(surface.transform);
     ctrler.EndAndPrepare();
   }
 }

@@ -276,7 +276,7 @@ public class PinballTask : BilliardsTask
               // track positions of flick
               handPosFlick.Add(new Vector4(hand.x, hand.y, hand.z, Time.time));
 
-              Debug.Log("trigger is down");
+              // Debug.Log("trigger is down");
 
               if (!flickStarted)
               {
