@@ -21,8 +21,7 @@ public class AnimateSurfaceTask : BaseTask
   // Pinball Camera Offset
   private Vector3 PINBALL_CAM_OFFSET = new Vector3(0f, 0.725f, -0.535f);
   private const float PINBALL_CAM_ANGLE = 35f;
-  private const float ROTATE_SPEED = 90f;
-
+  private const float ROTATE_SPEED = 72f;
 
   public override void Setup()
   {
@@ -123,7 +122,8 @@ public class AnimateSurfaceTask : BaseTask
       else if (ctrler.Session.CurrentTrial.settings.GetString("per_block_anim_type") == "wait")
       {
         rotating = false;
-        StartCoroutine(WaitAndEnd(3f));
+        // we need to wait 1 second + the time it takes for the animation to finish (180/speed)
+        StartCoroutine(WaitAndEnd(3.5f));
       }
       else
       {
@@ -196,7 +196,7 @@ public class AnimateSurfaceTask : BaseTask
     surfaceSpace.GetComponent<AudioSource>().clip = ctrler.AudioClips["dont_use_strategies_green"];
     surfaceSpace.GetComponent<AudioSource>().Play();
 
-    yield return new WaitForSeconds(4);
+    yield return new WaitForSeconds(3);
     rotating = true;
   }
 
