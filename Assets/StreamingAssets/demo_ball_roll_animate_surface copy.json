@@ -834,9 +834,9 @@
   "mat2": [
     "brick"
   ],
-  "ins1": "Thank you for participating in our task!\n\nYour goal is to get points by rolling the ball\nto get it as close to the target as possible!\nBonus points for hitting the target!\n\nWhen you are ready to roll the ball, hold down\nthe trigger and move your hand in any direction.\nYou will not get any points if you take too long!\n\nThe next few trials are practice, try things out!",
+  "ins1": "Thank you for participating in our task!\n\nYour goal is to get points by rolling a ball\nto get it as close to the target as possible!\nBonus points for hitting the target!\n\nTo start a trial, move your hand to the middle\nof your body. When you are ready to roll the\nball, hold down the trigger and move your hand\nin any direction. You will not get any points if\nyou take too long!\n\nThe next few trials are practice, try things out!",
   "ins2": "Try using your left hand now!",
-  "ins3": "The real task starts now!\n\n Try and hit the target!\n\nUse your right hand.",
+  "ins3": "The real task starts now! You will roll the ball\non either a Black or Green surface.\nDO NOT USE any strategies you may have used on\none surface when the surface changes colour.\n\n Try and hit the targets accurately!\n\nUse your right hand.",
   "ins4": "Try using your right hand now!",
-  "ins5": "Try and hit the target!\n\n The surface will change and the task will feel different,\nbut the goal is the same!\n\n Make note of any cognitive strategies you use to help\nyou complete the task on the new surface.\n\n DO NOT USE THOSE STRATEGIES ON THE OLD SURFACE!"
+  "ins5": "Try and hit the targets accurately!\n\n The surface will change and the task may feel different,\nbut the goal is the same!\n\n Make note of any cognitive strategies you use.\nDO NOT USE any strategies you may have used on\none surface when the surface changes colour."
 }
