@@ -123,6 +123,8 @@ public class AnimateSurfaceTask : BaseTask
       {
         rotating = false;
         // we need to wait 1 second + the time it takes for the animation to finish (180/speed)
+        // set the surface angle to 180
+        surface.transform.localEulerAngles = new Vector3(surface.transform.localEulerAngles.x, 180f, surface.transform.localEulerAngles.z);
         StartCoroutine(WaitAndEnd(3.5f));
       }
       else
@@ -145,6 +147,8 @@ public class AnimateSurfaceTask : BaseTask
   public override void LogParameters()
   {
     ctrler.LogObjectPosition("home", ball_pos);
+    ctrler.Session.CurrentTrial.result["anim_type"] =
+        ctrler.Session.CurrentTrial.settings.GetString("per_block_anim_type");
   }
 
   /// <summary>
