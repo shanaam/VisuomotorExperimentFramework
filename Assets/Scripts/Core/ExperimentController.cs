@@ -268,9 +268,11 @@ public class ExperimentController : MonoBehaviour
             //Currently does not use same index as the above as camera/surface tilt are lists of 4 elements, while surfacematerials currently has 1 element
             InitializePseudorandomList(trial, "per_block_surface_materials");
             break;
+          /*
           case "animate_surface":
             CurrentTask = gameObject.AddComponent<AnimateSurface2Task>();
             break;
+            */
         }
         break;
       case "tool":
