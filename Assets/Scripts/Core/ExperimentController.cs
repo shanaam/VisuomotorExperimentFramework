@@ -253,6 +253,26 @@ public class ExperimentController : MonoBehaviour
             break;
         }
         break;
+      case "pinball2_vr":
+      case "pinball2":
+        switch (per_block_type)
+        {
+          case "aligned":
+          case "rotated":
+          case "clamped":
+            CurrentTask = gameObject.AddComponent<Pinball2Task>();
+
+            List<int> indices = InitializePseudorandomList(trial, "per_block_list_camera_tilt");
+            InitializePseudorandomList(trial, "per_block_list_surface_tilt", indices);
+
+            //Currently does not use same index as the above as camera/surface tilt are lists of 4 elements, while surfacematerials currently has 1 element
+            InitializePseudorandomList(trial, "per_block_surface_materials");
+            break;
+          case "animate_surface":
+            CurrentTask = gameObject.AddComponent<AnimateSurface2Task>();
+            break;
+        }
+        break;
       case "tool":
 
         // Triger type option list shuffled
