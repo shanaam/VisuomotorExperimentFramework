@@ -1,9 +1,9 @@
 {
-  "experiment_mode": "pinball2_vr",
+  "experiment_mode": "pinball2",
   "exp_record_score": true,
   "per_block_type": [
     "instruction",
-    "aligned",
+    "rotated",
     "aligned",
     "instruction",
     "aligned",
@@ -53,7 +53,7 @@
   ],
   "per_block_n": [
     1,
-    4,
+    24,
     4,
     1,
     8,
@@ -403,7 +403,7 @@
   ],
   "per_block_list_camera_tilt": [
     null,
-    "st1",
+    "tilt_15",
     "st1",
     null,
     "st1",
@@ -453,7 +453,7 @@
   ],
   "per_block_list_surface_tilt": [
     null,
-    "st1",
+    "tilt_0",
     "st1",
     null,
     "st1",
@@ -809,6 +809,15 @@
   ],
   "tl2": [
     90
+  ],
+  "tilt_0": [
+    0
+  ],
+  "tilt_25": [
+    25
+  ],
+  "tilt_15": [
+    15
   ],
   "ct1": [
     -26.5,

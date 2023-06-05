@@ -26,13 +26,14 @@ public abstract class BilliardsTask : BaseTask
         Surface = GameObject.Find("Surface");
         timerIndicator = GameObject.Find("TimerIndicator").GetComponent<TimerIndicator>();
         scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+        ctrler = ExperimentController.Instance();
 
         // Scoreboard is now updated by the billiards class
         scoreboard.AllowManualSet = true;
 
         cameraTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_camera_tilt"));
         surfaceTilt = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_list_surface_tilt"));
-        cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
+        // cameraTilt -= surfaceTilt; // As surfaceTilt rotates the entire prefab, this line makes creating the json more intuitive 
 
         // Whether or not this is a practice trial 
         // replaces scoreboard with 'Practice Round', doesn't record score
@@ -91,7 +92,11 @@ public abstract class BilliardsTask : BaseTask
             Debug.LogError("Material was not found. Check spelling.");
         }
 
-        Surface.GetComponent<MeshRenderer>().material = material;
+        if(ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr") 
+        {
+            Surface.GetComponent<MeshRenderer>().material = material;
+        }
+        
     }
 
     /// <summary>
