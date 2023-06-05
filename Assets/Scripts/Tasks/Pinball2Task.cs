@@ -341,12 +341,14 @@ public override void Setup()
 
     currentPathCurve = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_ball_path_curve");
     // scale the ball path curve to distance from home
-    currentPathCurve *= (Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE);
+    currentPathCurve *= Mathf.Pow((Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE), 3);
+    // above raised to the power of 3 to make it more pronounced
 
     // rotate the ball path object
     BallPathRotateParent.transform.localEulerAngles = new Vector3(0f, currentPathCurve, 0f);
     
-    
+    Debug.Log("currentPathCurve: " + currentPathCurve);
+
     switch (currentStep)
     {
       case 2:
