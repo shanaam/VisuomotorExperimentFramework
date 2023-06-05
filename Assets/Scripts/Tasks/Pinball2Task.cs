@@ -7,20 +7,15 @@ using CommonUsages = UnityEngine.XR.CommonUsages;
 public class Pinball2Task : BilliardsTask
 {
   // Task GameObjects
-  private GameObject pinballSpace;
-  private GameObject pinballCam;
-  private GameObject pinball;
+  private GameObject pinballSpace, pinballCam, pinballWall, pinball;
   private GameObject directionIndicator;
   private ArcScript arcIndicator;
-  // private GameObject XRRig;
-  private GameObject pinballWall;
   // private GameObject lights;
-  private GameObject XRPosLock;
+  private GameObject XRRig, XRPosLock;
   private GameObject obstacle;
-  private GameObject handL, handR;
-
+  private GameObject handL, handR, currentHand;
   // visual stuff
-  private GameObject PinballVisuals, VisPinball, BallPathRotateParent;
+  private GameObject PinballVisuals, VisPinball, BallPathRotateParent, bonusText;
   private GameObject SurfaceVisuals, VisSurface, VisPinballTarget, PinballAlignedTargetLoc;
   // Used for pinball aiming
   private Vector3 direction;
@@ -28,32 +23,23 @@ public class Pinball2Task : BilliardsTask
 
   // True when the participant is holding the trigger down to aim the pinball
   private bool aiming;
-  private GameObject currentHand;
   // Used to draw the path of the pinball for feedback mode
   private List<Vector3> pinballPoints = new List<Vector3>();
 
   // Used to determine if the ball moved away from the target for too long
-  private float missTimer;
-  private Vector3 pinballStartPosition;
+  private float missTimer, trialTimer;
+  private Vector3 pinballStartPosition, lastPositionInTarget, pinballAlignedTargetPosition, previousPosition;
   // Pinball Camera Offset
   private Vector3 PINBALL_CAM_OFFSET = new Vector3(0f, 0.725f, -0.535f);
   private const float PINBALL_CAM_ANGLE = 35f;
-
-  private Vector3 lastPositionInTarget;
 
   // True when the pinball enters the target circle for the first time
   private bool enteredTarget;
   // When true, the indicator will be placed in front of the pinball
   private bool indicatorPosition = true;
-  private float trialTimer;
 
   // Plane that is parallel to the environment plane
   private Plane pPlane;
-  // A position above the visual target that is aligned with the height of the pinball regardless
-  // of plane tilt
-  private Vector3 pinballAlignedTargetPosition;
-  private GameObject bonusText;
-  private Vector3 previousPosition;
   private int score;
   private float tempScore;
   private float timer;
@@ -110,7 +96,7 @@ public class Pinball2Task : BilliardsTask
 
     bonusText = GameObject.Find("BonusText");
     obstacle = GameObject.Find("Obstacle");
-    // pinballSurface = GameObject.Find("Surface");
+    XRRig = GameObject.Find("XR Rig");
 
     // find the vision gameobjects
     VisPinball = GameObject.Find("VisPinball");
@@ -204,7 +190,7 @@ public class Pinball2Task : BilliardsTask
 
     if (ctrler.Session.CurrentBlock.settings.GetString("per_block_fire_mode") == "flick")
     {
-      Cursor.visible = false;
+      // Cursor.visible = false;
     }
 
     // set up surface materials for the plane
@@ -223,6 +209,7 @@ public class Pinball2Task : BilliardsTask
     }
 
     SurfaceVisuals.transform.localEulerAngles = new Vector3(0f, 0f, cameraTilt);
+    XRRig.transform.position = XRPosLock.transform.position; // lock position of XR Rig
   }
 
   // Fixed Update rate should be set to 120hz
@@ -341,8 +328,13 @@ public class Pinball2Task : BilliardsTask
 
     currentPathCurve = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_ball_path_curve");
     // scale the ball path curve to distance from home
-    currentPathCurve *= Mathf.Pow((Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE), 3);
-    // above raised to the power of 3 to make it more pronounced
+    /*
+    if (Vector3.Distance(pinball.transform.position, Home.transform.position) <= TARGET_DISTANCE)
+      currentPathCurve *= Mathf.Pow((Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE), 2);
+    else
+    */
+    currentPathCurve *= Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE;
+
 
     // rotate the ball path object
     BallPathRotateParent.transform.localEulerAngles = new Vector3(0f, currentPathCurve, 0f);
