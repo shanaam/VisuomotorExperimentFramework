@@ -59,10 +59,13 @@ public class InstructionTask : BaseTask
     tempMainCamera = GameObject.Find("Main Camera");
 
     // move the vrInstructions to be in fromt of the Main Camera
-    vrInstructions.transform.position = tempMainCamera.transform.position + transform.forward * FWD_OFFSET + transform.up * UP_OFFSET;
+    if (ctrler.Session.settings.GetString("experiment_mode") == "pinball2_vr" || ctrler.Session.settings.GetString("experiment_mode") == "pinball_vr")
+    {
+      vrInstructions.transform.position = tempMainCamera.transform.position + transform.forward * FWD_OFFSET + transform.up * UP_OFFSET;
+      vrInstructions.GetComponent<TextMesh>().text = ins;
+    }
 
     instruction.GetComponent<Text>().text = ins;
-    vrInstructions.GetComponent<TextMesh>().text = ins;
 
     //countdown Timer start
     timer.GetComponent<Text>().text = System.Math.Round(timeRemaining, 0).ToString();

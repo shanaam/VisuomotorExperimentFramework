@@ -87,7 +87,7 @@ public class Pinball2Task : BilliardsTask
   private Vector3 initialVelocity;
 
   // private float timeBallTrackingStarts, timeHandTrackingStarts;
-public override void Setup()
+  public override void Setup()
   {
     maxSteps = 3;
 
@@ -320,9 +320,9 @@ public override void Setup()
   {
     // set the rotation of the pinball visual object to match surface tilt, then all its children
     PinballVisuals.transform.localEulerAngles = new Vector3(
-      PinballVisuals.transform.localEulerAngles.x, 
+      PinballVisuals.transform.localEulerAngles.x,
       PinballVisuals.transform.localEulerAngles.y,
-      surfaceTilt 
+      surfaceTilt
       );
 
     // set rotation of ball path object to 0
@@ -334,9 +334,9 @@ public override void Setup()
 
     // set rotation of the pinball visual object to equal to cameraTilt
     PinballVisuals.transform.localEulerAngles = new Vector3(
-      PinballVisuals.transform.localEulerAngles.x, 
+      PinballVisuals.transform.localEulerAngles.x,
       PinballVisuals.transform.localEulerAngles.y,
-      cameraTilt 
+      cameraTilt
       );
 
     currentPathCurve = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_ball_path_curve");
@@ -346,8 +346,6 @@ public override void Setup()
 
     // rotate the ball path object
     BallPathRotateParent.transform.localEulerAngles = new Vector3(0f, currentPathCurve, 0f);
-    
-    Debug.Log("currentPathCurve: " + currentPathCurve);
 
     switch (currentStep)
     {
@@ -363,7 +361,7 @@ public override void Setup()
         break;
     }
 
-    if (recordPathThisFrame) 
+    if (recordPathThisFrame)
       pinballPoints.Add(VisPinball.transform.position);
   }
 
@@ -797,7 +795,7 @@ public override void Setup()
     ctrler.LogVector4List("ball_pos_step1", ballPosStep1);
   }
 
-  
+
   private void SetTilt()
   {
     SetTilt(Surface, Home.transform.position, Surface, surfaceTilt); //Tilt surface

@@ -53,8 +53,8 @@
   ],
   "per_block_n": [
     1,
-    24,
-    4,
+    8,
+    8,
     1,
     8,
     8,
@@ -104,7 +104,7 @@
   "per_block_ball_path_curve": [
     null,
     30,
-    0,
+    -30,
     null,
     0,
     0,
@@ -453,8 +453,8 @@
   ],
   "per_block_list_camera_tilt": [
     null,
-    "tilt_15",
-    "st1",
+    "tilt_0",
+    "tilt_0",
     null,
     "st1",
     "ct1",
@@ -503,7 +503,7 @@
   ],
   "per_block_list_surface_tilt": [
     null,
-    "tilt_0",
+    "st1",
     "st1",
     null,
     "st1",
