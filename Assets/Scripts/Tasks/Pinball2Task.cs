@@ -8,18 +8,17 @@ public class Pinball2Task : BilliardsTask
 {
   // Task GameObjects
   private GameObject pinballSpace, pinballCam, pinballWall, pinball;
-  private GameObject directionIndicator;
+  private GameObject directionIndicator, obstacle;
   private ArcScript arcIndicator;
   // private GameObject lights;
   private GameObject XRRig, XRPosLock;
-  private GameObject obstacle;
   private GameObject handL, handR, currentHand;
   // visual stuff
   private GameObject PinballVisuals, VisPinball, BallPathRotateParent, bonusText;
   private GameObject SurfaceVisuals, VisSurface, VisPinballTarget, PinballAlignedTargetLoc;
   // Used for pinball aiming
   private Vector3 direction;
-  private float cutoffDistance;
+  private float cutoffDistance, distanceToTarget;
 
   // True when the participant is holding the trigger down to aim the pinball
   private bool aiming;
@@ -28,37 +27,29 @@ public class Pinball2Task : BilliardsTask
 
   // Used to determine if the ball moved away from the target for too long
   private float missTimer, trialTimer;
-  private Vector3 pinballStartPosition, lastPositionInTarget, pinballAlignedTargetPosition, previousPosition;
+  private Vector3 pinballStartPosition, lastPositionInTarget, pinballAlignedTargetPosition, previousPosition, flickStartPos;
   // Pinball Camera Offset
   private Vector3 PINBALL_CAM_OFFSET = new Vector3(0f, 0.725f, -0.535f);
   private const float PINBALL_CAM_ANGLE = 35f;
 
   // True when the pinball enters the target circle for the first time
-  private bool enteredTarget;
+  private bool enteredTarget, missed;
   // When true, the indicator will be placed in front of the pinball
   private bool indicatorPosition = true;
 
   // Plane that is parallel to the environment plane
   private Plane pPlane;
   private int score;
-  private float tempScore;
-  private float timer;
-
-  // Set to true if the user runs out of time 
-  private bool missed;
+  private float tempScore, timer;
   private bool recordPathThisFrame = false;
-
-  // Used to store the current distance t
-  private float distanceToTarget;
 
   // if in flick launch mode, the time the user starts the flick
   private float flickStartTime, flickEndTime;
   private float currentPathCurve;
-  private Vector3 flickStartPos;
   private bool flickStarted = false;
   private List<Vector4> handPosFlick = new List<Vector4>();
   private List<Vector4> ballPosStep1 = new List<Vector4>();
-  private Vector3 VisPinballPos; // to store position of pinball at each frame  
+  private Vector3 VisPinballPos, initialVelocity; // to store position of pinball at each frame  
 
   // constants
   private const float FLICK_CUTOFF_DISTANCE = 0.15f;
@@ -68,9 +59,7 @@ public class Pinball2Task : BilliardsTask
   private const int BONUS_POINTS = 5; // Bonus points earned if the participant lands a hit
   private const float MAX_TRIAL_TIME = 2.0f;
   private const float PINBALL_FIRE_FORCE = 15f;
-  private const float indicatorLength = 0.2f; // Distance from pinball in meters the indicator will be shown
-
-  private Vector3 initialVelocity;
+  private const float MOUSE_FLICK_MAGNITUDE = 0.25f; // Distance from pinball in meters the indicator will be shown
 
   // private float timeBallTrackingStarts, timeHandTrackingStarts;
   public override void Setup()
@@ -650,7 +639,7 @@ public class Pinball2Task : BilliardsTask
         tempDir = Quaternion.Euler(90, 0, 0) * tempDir;
       tempDir = Quaternion.Euler(0, 0, surfaceTilt) * tempDir;
 
-      direction = Vector3.ClampMagnitude(tempDir / (flickTime * 50), indicatorLength);
+      direction = Vector3.ClampMagnitude(tempDir / (flickTime * 50), MOUSE_FLICK_MAGNITUDE);
     }
     else // VR flick
     {

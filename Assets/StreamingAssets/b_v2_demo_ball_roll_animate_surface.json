@@ -1,5 +1,5 @@
 {
-  "experiment_mode": "pinball2_vr",
+  "experiment_mode": "pinball2",
   "exp_record_score": true,
   "per_block_type": [
     "instruction",
@@ -106,8 +106,8 @@
     30,
     -30,
     null,
-    0,
-    0,
+    -30,
+    30,
     null,
     0,
     0,
