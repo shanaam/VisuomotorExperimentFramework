@@ -20,8 +20,8 @@ public class Pinball2Task : BilliardsTask
   private GameObject handL, handR;
 
   // visual stuff
-  private GameObject VisPinball, VisPinballTarget, VisSurface, PinballVisuals, BallPathRotateParent;
-
+  private GameObject PinballVisuals, VisPinball, BallPathRotateParent;
+  private GameObject SurfaceVisuals, VisSurface, VisPinballTarget, PinballAlignedTargetLoc;
   // Used for pinball aiming
   private Vector3 direction;
   private float cutoffDistance;
@@ -72,7 +72,7 @@ public class Pinball2Task : BilliardsTask
   private bool flickStarted = false;
   private List<Vector4> handPosFlick = new List<Vector4>();
   private List<Vector4> ballPosStep1 = new List<Vector4>();
-  private Vector3 pinballPos; // to store position of pinball at each frame  
+  private Vector3 VisPinballPos; // to store position of pinball at each frame  
 
   // constants
   private const float FLICK_CUTOFF_DISTANCE = 0.15f;
@@ -118,6 +118,8 @@ public override void Setup()
     VisSurface = GameObject.Find("VisSurface");
     PinballVisuals = GameObject.Find("PinballVisuals");
     BallPathRotateParent = GameObject.Find("BallPathRotateParent");
+    SurfaceVisuals = GameObject.Find("SurfaceVisuals");
+    PinballAlignedTargetLoc = GameObject.Find("PinballAlignedTargetLoc");
 
     handL = GameObject.Find("handL");
     handR = GameObject.Find("handR");
@@ -127,6 +129,8 @@ public override void Setup()
     float targetAngle = Convert.ToSingle(ctrler.PollPseudorandomList("per_block_targetListToUse"));
 
     SetTargetPosition(targetAngle);
+    VisPinballTarget.transform.position = Target.transform.position;
+    VisPinballTarget.transform.rotation = Target.transform.rotation;
 
     // checks if the current trial uses the obstacle and activates it if it does
     if (ctrler.Session.CurrentBlock.settings.GetBool("per_block_obstacle"))
@@ -217,6 +221,8 @@ public override void Setup()
           VisSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["GrassMaterial"];
         break;
     }
+
+    SurfaceVisuals.transform.localEulerAngles = new Vector3(0f, 0f, cameraTilt);
   }
 
   // Fixed Update rate should be set to 120hz
@@ -225,14 +231,14 @@ public override void Setup()
     // While the pinball is in motion
     if (currentStep == 1)
     {
-      pinballPos = pinball.transform.position;
-      ballPosStep1.Add(new Vector4(pinballPos.x, pinballPos.y, pinballPos.z, Time.time));
+      VisPinballPos = VisPinball.transform.position;
+      ballPosStep1.Add(new Vector4(VisPinballPos.x, VisPinballPos.y, VisPinballPos.z, Time.time));
       // Current distance from pinball to the target
-      distanceToTarget = Vector3.Distance(pinballPos, pinballAlignedTargetPosition);
+      distanceToTarget = Vector3.Distance(VisPinballPos, pinballAlignedTargetPosition);
 
       // Every frame, we track the closest position the pinball has ever been to the target
       if (Vector3.Distance(lastPositionInTarget, pinballAlignedTargetPosition) > distanceToTarget)
-        lastPositionInTarget = pinballPos;
+        lastPositionInTarget = VisPinballPos;
 
       // Update score if pinball is within 20cm of the target
       if (distanceToTarget < 0.20f)
@@ -295,7 +301,6 @@ public override void Setup()
           Vector3.Distance(pinball.transform.position, Home.transform.position) >= cutoffDistance)
       {
         Debug.Log("Trial Ended: Ball has stopped moving or ball has exceeded the cutoff distance");
-        //lastPositionInTarget = pinball.transform.position;
         IncrementStep();
         return;
       }
@@ -303,11 +308,11 @@ public override void Setup()
       if (distanceToTarget < 0.05f)
       {
         // Set a temp variable to the pinball's position
-        lastPositionInTarget = pinball.transform.position;
+        lastPositionInTarget = VisPinball.transform.position;
         enteredTarget = true;
       }
 
-      previousPosition = pinball.transform.position;
+      previousPosition = VisPinball.transform.position;
     }
   }
 
@@ -324,12 +329,8 @@ public override void Setup()
     BallPathRotateParent.transform.localEulerAngles = Vector3.zero;
 
     // match the transform of the pinball, surface, and target
-    VisSurface.transform.position = Surface.transform.position;
-    VisSurface.transform.rotation = Surface.transform.rotation;
     VisPinball.transform.position = pinball.transform.position;
     VisPinball.transform.rotation = pinball.transform.rotation;
-    VisPinballTarget.transform.position = Target.transform.position;
-    VisPinballTarget.transform.rotation = Target.transform.rotation;
 
     // set rotation of the pinball visual object to equal to cameraTilt
     PinballVisuals.transform.localEulerAngles = new Vector3(
@@ -341,8 +342,6 @@ public override void Setup()
     currentPathCurve = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_ball_path_curve");
     // scale the ball path curve to distance from home
     currentPathCurve *= (Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE);
-
-    Debug.Log("currentPathCurve: " + currentPathCurve);
 
     // rotate the ball path object
     BallPathRotateParent.transform.localEulerAngles = new Vector3(0f, currentPathCurve, 0f);
@@ -404,6 +403,7 @@ public override void Setup()
                 FlickPinball();
               }
             }
+            /*
             else
             {
               Cursor.visible = false;
@@ -435,6 +435,7 @@ public override void Setup()
 
               directionIndicator.transform.LookAt(pinball.transform.position);
             }
+            */
           }
           else if (Input.GetMouseButtonUp(0))
           {
@@ -473,8 +474,10 @@ public override void Setup()
               FlickPinball();
             }
           }
+          /*
           else
-          {
+          { 
+            
             if (ctrler.CursorController.IsTriggerDown() &&
                 pinball.GetComponent<Grabbable>().Grabbed)
             {
@@ -509,6 +512,7 @@ public override void Setup()
                 FirePinball();
             }
           }
+          */
         }
 
         // If the user runs out of time to fire the pinball, play audio cue
@@ -608,7 +612,7 @@ public override void Setup()
             // Set transform
             if (enteredTarget)
             {
-              pinball.transform.position = lastPositionInTarget;
+              VisPinball.transform.position = lastPositionInTarget;
             }
             /*
             else
@@ -727,6 +731,7 @@ public override void Setup()
     pinball.GetComponent<Rigidbody>().velocity = force;
     timerIndicator.GetComponent<TimerIndicator>().Cancel();
 
+    /*
     // Creates a plane parallel to the main surface
     pPlane = new Plane(Surface.transform.up, Surface.transform.position);
 
@@ -737,6 +742,9 @@ public override void Setup()
     // Adds the radius of the pinball such that the resulting point above the target is
     // parallel to the pinball
     pinballAlignedTargetPosition = targetLocation + (pinball.transform.localScale.x / 2f) * pPlane.normal;
+    */
+
+    pinballAlignedTargetPosition = PinballAlignedTargetLoc.transform.position;
 
     IncrementStep();
   }
