@@ -20,10 +20,7 @@ public class Pinball2Task : BilliardsTask
   private GameObject handL, handR;
 
   // visual stuff
-  private GameObject VisPinball;
-  private GameObject VisPinballTarget;
-  private GameObject VisSurface;
-  private GameObject PinballVisuals;
+  private GameObject VisPinball, VisPinballTarget, VisSurface, PinballVisuals, BallPathRotateParent;
 
   // Used for pinball aiming
   private Vector3 direction;
@@ -70,6 +67,7 @@ public class Pinball2Task : BilliardsTask
 
   // if in flick launch mode, the time the user starts the flick
   private float flickStartTime, flickEndTime;
+  private float currentPathCurve;
   private Vector3 flickStartPos;
   private bool flickStarted = false;
   private List<Vector4> handPosFlick = new List<Vector4>();
@@ -119,6 +117,7 @@ public override void Setup()
     VisPinballTarget = GameObject.Find("VisPinballTarget");
     VisSurface = GameObject.Find("VisSurface");
     PinballVisuals = GameObject.Find("PinballVisuals");
+    BallPathRotateParent = GameObject.Find("BallPathRotateParent");
 
     handL = GameObject.Find("handL");
     handR = GameObject.Find("handR");
@@ -321,6 +320,9 @@ public override void Setup()
       surfaceTilt 
       );
 
+    // set rotation of ball path object to 0
+    BallPathRotateParent.transform.localEulerAngles = Vector3.zero;
+
     // match the transform of the pinball, surface, and target
     VisSurface.transform.position = Surface.transform.position;
     VisSurface.transform.rotation = Surface.transform.rotation;
@@ -335,6 +337,16 @@ public override void Setup()
       PinballVisuals.transform.localEulerAngles.y,
       cameraTilt 
       );
+
+    currentPathCurve = ctrler.Session.CurrentTrial.settings.GetFloat("per_block_ball_path_curve");
+    // scale the ball path curve to distance from home
+    currentPathCurve *= (Vector3.Distance(pinball.transform.position, Home.transform.position) / TARGET_DISTANCE);
+
+    Debug.Log("currentPathCurve: " + currentPathCurve);
+
+    // rotate the ball path object
+    BallPathRotateParent.transform.localEulerAngles = new Vector3(0f, currentPathCurve, 0f);
+    
     
     switch (currentStep)
     {
@@ -776,19 +788,13 @@ public override void Setup()
   }
 
   
-
   private void SetTilt()
   {
-    Vector3 ball_pos = Home.transform.position + Vector3.up * 0.025f;
-
-
-    SetTilt(Surface, ball_pos, Surface, surfaceTilt); //Tilt surface
+    SetTilt(Surface, Home.transform.position, Surface, surfaceTilt); //Tilt surface
   }
 
   public override void Disable()
   {
-    Vector3 ball_pos = Home.transform.position + Vector3.up * 0.25f;
-
     pinballSpace.SetActive(false);
   }
 
