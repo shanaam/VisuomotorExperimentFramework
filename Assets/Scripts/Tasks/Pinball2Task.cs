@@ -192,8 +192,7 @@ public class Pinball2Task : BilliardsTask
       case "brick":
         base.SetSurfaceMaterial(ctrler.Materials["GrassMaterial"]);
         pinballWall.GetComponent<MeshRenderer>().material = ctrler.Materials["BrickMat"];
-        if (ctrler.Session.settings.GetString("experiment_mode") == "pinball2")
-          VisSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["GrassMaterial"];
+        VisSurface.GetComponent<MeshRenderer>().material = ctrler.Materials["GrassMaterial"];
         break;
     }
 
