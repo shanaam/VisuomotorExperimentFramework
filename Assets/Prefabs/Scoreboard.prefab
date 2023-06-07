@@ -84,6 +84,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &5994538945276412209
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,7 +141,7 @@ GameObject:
   - component: {fileID: 3441599516443910589}
   - component: {fileID: 5399293106902290838}
   m_Layer: 0
-  m_Name: Scoreboard
+  m_Name: ScoreboardBG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -306,6 +307,9 @@ MonoBehaviour:
   CamSpaceText: {fileID: 5787847120013172359}
   WorldSpaceText: {fileID: 6116081743664576187}
   TrialTrackText: {fileID: 6706683284146166963}
+  ManualScoreText: 
+  AllowManualSet: 0
+  ScorePrefix: 1
 --- !u!1 &7480770916640234250
 GameObject:
   m_ObjectHideFlags: 0
@@ -467,6 +471,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &4454099162524174741
 MonoBehaviour:
   m_ObjectHideFlags: 0
