@@ -1,5 +1,5 @@
 {
-  "experiment_mode": "pinball_vr",
+  "experiment_mode": "pinball2",
   "exp_record_score": true,
   "per_block_type": [
     "instruction",
@@ -85,6 +85,23 @@
     "tl1",
     "tl1",
     "tl1"
+  ],
+  "per_block_ball_path_curve": [
+    30,
+    0,
+    0,
+    -30,
+    30,
+    30,
+    -30,
+    30,
+    -30,
+    30,
+    30,
+    -30,
+    30,
+    -30,
+    30
   ],
   "per_block_indicator_type": [
     "arc",

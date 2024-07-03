@@ -63,6 +63,7 @@ TextureImporter:
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -424,6 +425,20 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      confettitest_1: 1692677650815898006
+      confettitest_6: -2301100479894346601
+      confettitest_0: -1558312582611120004
+      confettitest_10: -4622977030774294910
+      confettitest_2: 5696974597373812886
+      confettitest_7: -4728111647688389088
+      confettitest_12: 6227342830501205415
+      confettitest_4: -1490664676669829749
+      confettitest_8: 1143501965665560368
+      confettitest_5: -2482108509949678338
+      confettitest_11: -8150996079997037485
+      confettitest_9: -9150657366424513403
+      confettitest_3: 794072135503405576
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
